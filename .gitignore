@@ -1,0 +1,6 @@
+.vscode/
+
+*.wasm
+*.aot
+
+.DS_Store

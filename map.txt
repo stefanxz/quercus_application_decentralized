@@ -1,0 +1,9 @@
+pi    pi/main.c
+pico0 pico_in/main.c
+pico1 pico_routing/main.c
+pico2 pico_routing/main.c
+pico3 pico_routing/main.c
+pico4 pico_routing/main.c
+pico5 pico_security/main.c
+pico6 pico_out/main.c
+pico7 pico_out/main.c
