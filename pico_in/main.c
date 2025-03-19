@@ -1,111 +1,123 @@
-#include "quercus_lib_pico.h"
-#include "libc_builtin.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <time.h>
 
-#include "elementary_functions/movement_functions.c"
-#include "elementary_functions/rfid_functions.c"
+#define TIMEOUT 1.0
 
-#include <stdbool.h>
+// Structure for Tub
+typedef struct
+{
+    int id;
+    int priority;
+    int security_bit;
+    int destination;
+    int wait_bit;
+    int request_bit;
+} Tub;
 
-void demo() {
-	print("start\n");
-	led_set_color(0xff0000);
-	belt_big_set_speed(0);
-	belt_small_set_speed(0);
-	servo_angle_set(0);
-	subscribe_to_event(EVENT_RFID_DETECT);
-	enum EventType e;
-	while (1) {
-		e = next_event();
-		if (e == EVENT_RFID_DETECT) {
-			rfid_to_laser_right();
-			sleep(1000);
-			laser_right_to_rfid();
-			sleep(1000);
-			rfid_to_laser_left();
-			sleep(1000);
-			laser_left_to_rfid();
-			sleep(1000);
-			rfid_to_laser_right();
-			sleep(1000);
-			laser_right_to_laser_left();
-			sleep(1000);
-			laser_left_to_laser_right();
-			subscribe_to_event(EVENT_RFID_DETECT);
-			//swap_laser_2_and_rfid();
-			//subscribe_to_event(EVENT_LASER_LEFT_DETECT);
-			print("end\n");
-		}
-		sleep(100);
-	}
+// Pico module
+typedef struct
+{
+    int id;
+    Tub *short_belt;
+    Tub *long_belt;
+} PicoModule;
+
+// Function to handle priority-based access control
+void handle_access(PicoModule *picoL, PicoModule *picoN)
+{
+    if (picoL->short_belt != NULL && picoN->long_belt != NULL)
+    {
+        picoL->short_belt->request_bit = 1;
+        picoN->long_belt->request_bit = 1;
+
+        // Compare priorities
+        if (picoL->short_belt->priority < picoN->long_belt->priority)
+        {
+            printf("Grant access to Tub %d from Short Belt \n", picoL->short_belt->id);
+            picoN->long_belt->wait_bit = 1;
+            picoN->long_belt->request_bit = 0;
+            usleep(TIMEOUT * 1000000);
+            printf("Tub %d moved to Long Belt\n", picoL->short_belt->id);
+            picoL->short_belt = NULL;
+        }
+        else
+        {
+            printf("Grant access to Tub %d from neighbour Long Belt\n", picoN->long_belt->id);
+            picoL->short_belt->wait_bit = 1;
+            picoL->short_belt->request_bit = 0;
+            usleep(TIMEOUT * 1000000);
+            printf("Tub %d moved to Long Belt\n", picoN->long_belt->id);
+            picoN->long_belt = NULL;
+        }
+    }
 }
 
-void rfid_write_demo() {
-	print("start\n");
-	led_set_color(0xff0000);
-	belt_big_set_speed(0);
-	belt_small_set_speed(0);
-	servo_angle_set(0);
-	subscribe_to_event(EVENT_RFID_DETECT);
-	enum EventType e;
-	while (1) {
-		e = next_event();
-		if (e == EVENT_RFID_DETECT) {
-			led_set_color(0x00ff00);
-			char data[4];
-			data[0] = 0x1;
-			RFID_write_data_block((int)data, 0);
-			data[0] = 0x1;
-			RFID_write_data_block((int)data, 1);
-			data[0] = 0x56;
-			RFID_write_data_block((int)data, 2);
-			data[0] = 0x0;
-			RFID_write_data_block((int)data, 3);
-			data[0] = 0x0;
-			RFID_write_data_block((int)data, 6);
-			data[0] = 0x1;
-			RFID_write_data_block((int)data, 7);
-			data[0] = 0x34;
-			RFID_write_data_block((int)data, 8);
-			subscribe_to_event(EVENT_RFID_DETECT);
-			print("end\n");
-		}
-		sleep(100);
-	}
+// Function to process Tub movement in IN Module
+void process_Tub(PicoModule *picoL, PicoModule *picoN)
+{
+    printf("\nProcessing Tub in Pico %d\n", picoL->id);
+
+    if (picoL->short_belt != NULL)
+    {
+        picoL->short_belt->request_bit = 1;
+    }
+
+    handle_access(picoL, picoN);
+
+    if (picoL->short_belt != NULL && picoL->short_belt->wait_bit == 1)
+    {
+        if (picoN->long_belt == NULL) // No one else waiting
+        {
+            printf("No other requests, Tub %d can proceed\n", picoL->short_belt->id);
+            picoL->short_belt->wait_bit = 0;
+            usleep(TIMEOUT * 1000000);
+            printf("Tub %d moved to Long Belt\n", picoL->short_belt->id);
+            picoL->short_belt = NULL;
+        }
+        else
+        {
+            printf("Tub %d waiting, retrying in %.1f seconds...\n", picoL->short_belt->id, TIMEOUT);
+            usleep(TIMEOUT * 1000000);
+            printf("Rechecking access for Tub %d\n", picoL->short_belt->id);
+            process_Tub(picoL, picoN);
+        }
+    }
 }
 
-void rfid_read_demo() {
-	print("start\n");
-	led_set_color(0xff0000);
-	belt_big_set_speed(0);
-	belt_small_set_speed(0);
-	servo_angle_set(0);
-	subscribe_to_event(EVENT_RFID_DETECT);
-	enum EventType e;
-	while (1) {
-		e = next_event();
-		if (e == EVENT_RFID_DETECT) {
-			led_set_color(0x00ff00);
-			int rfid = get_security_flag();
-			printf("Security: %02X\n", rfid);
-			rfid = get_plane_dropoff_flag();
-			printf("Plane/Dropoff: %02X\n", rfid);
-			rfid = get_plane_id();
-			printf("Plane: %02X\n", rfid);
-			rfid = get_payload();
-			printf("Payload: %02X\n", rfid);
-			rfid = has_security_been_passed();
-			printf("Passed Security: %02X\n", rfid);
-			rfid = has_plane_arrived();
-			printf("Plane Arrived: %02X\n", rfid);
-			rfid = get_destination();
-			printf("Destination: %02X\n", rfid);
-			subscribe_to_event(EVENT_RFID_DETECT);
-			print("end\n");
-		}
-		sleep(100);
-	}
+// Structure for Request
+typedef struct
+{
+    int tId;
+    int tDeadline;
+    int atDestination;
+} Request;
+
+// Function to send a request from a tub to access the long belt
+void send_request(Tub *tub, PicoModule *pico)
+{
+    tub->request_bit = 1;
+
+    Request request;
+    request.tId = tub->id;
+    request.tDeadline = tub->priority;
+    request.atDestination = tub->destination;
 }
 
-export int main(void) {
-	demo();
+int main()
+{
+    srand(time(NULL));
+
+    Tub tub1 = {101, 3, 1, 2, 0, 0}; // Lower priority
+    Tub tub2 = {103, 1, 1, 2, 0, 0}; // Highest priority
+
+    PicoModule picoL = {1, &tub1, NULL}; // Short belt occupied
+    PicoModule picoN = {2, NULL, &tub2}; // Long belt occupied
+
+    process_Tub(&picoL, &picoN);
+
+    return 0;
 }
