@@ -1,4 +1,4 @@
-#include "quercus_lib_pi.h"
+#include "../quercus_lib_pi.h"
 
 #include "libc_builtin.h"
 
