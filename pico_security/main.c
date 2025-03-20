@@ -1,111 +1,59 @@
-#include "quercus_lib_pico.h"
-#include "libc_builtin.h"
+#include "../quercus_lib_pico.h"
+#include "../libc_builtin.h"
 
-#include "elementary_functions/movement_functions.c"
-#include "elementary_functions/rfid_functions.c"
+#include "../elementary_functions/movement_functions.c"
+#include "../elementary_functions/rfid_functions.c"
 
 #include <stdbool.h>
 
-void demo() {
-	print("start\n");
-	led_set_color(0xff0000);
-	belt_big_set_speed(0);
-	belt_small_set_speed(0);
-	servo_angle_set(0);
-	subscribe_to_event(EVENT_RFID_DETECT);
-	enum EventType e;
-	while (1) {
-		e = next_event();
-		if (e == EVENT_RFID_DETECT) {
-			rfid_to_laser_right();
-			sleep(1000);
-			laser_right_to_rfid();
-			sleep(1000);
-			rfid_to_laser_left();
-			sleep(1000);
-			laser_left_to_rfid();
-			sleep(1000);
-			rfid_to_laser_right();
-			sleep(1000);
-			laser_right_to_laser_left();
-			sleep(1000);
-			laser_left_to_laser_right();
-			subscribe_to_event(EVENT_RFID_DETECT);
-			//swap_laser_2_and_rfid();
-			//subscribe_to_event(EVENT_LASER_LEFT_DETECT);
-			print("end\n");
-		}
-		sleep(100);
-	}
+#define MAX_NUMBER_OF_TUBS 2
+#define MAX_NUMBER_OF_PLANES 2
+#define MAX_NUMBER_OF_MODULES 8
+
+//Structure for Module
+typedef struct
+{
+	int id;
+	int plane_to_id[255];
+	int lookup[MAX_NUMBER_OF_MODULES];
+	int dropoff_id;
+	int quarantine_id;
+	int security_id;
+	int storage_id;
+	Tub tub;
+} Module;
+
+typedef struct
+{
+    int id;
+    // int priority;
+    int plane_id;
+    bool plane_dropoff;
+    int passed_security;
+    int destination;
+	bool plane_arrived;
+	// bool is_free;
+} Tub;
+
+
+void change_tub_status(Module module){
+    set_security_passed(1);
+    set_needs_security(1 /* get_payload() */);
+    set_destination(1 /* determine_destination(module, get_payload(), 1, module.tub.plane_dropoff, module.tub.plane_id)*/);
 }
 
-void rfid_write_demo() {
-	print("start\n");
-	led_set_color(0xff0000);
-	belt_big_set_speed(0);
-	belt_small_set_speed(0);
-	servo_angle_set(0);
-	subscribe_to_event(EVENT_RFID_DETECT);
-	enum EventType e;
-	while (1) {
-		e = next_event();
-		if (e == EVENT_RFID_DETECT) {
-			led_set_color(0x00ff00);
-			char data[4];
-			data[0] = 0x1;
-			RFID_write_data_block((int)data, 0);
-			data[0] = 0x1;
-			RFID_write_data_block((int)data, 1);
-			data[0] = 0x56;
-			RFID_write_data_block((int)data, 2);
-			data[0] = 0x0;
-			RFID_write_data_block((int)data, 3);
-			data[0] = 0x0;
-			RFID_write_data_block((int)data, 6);
-			data[0] = 0x1;
-			RFID_write_data_block((int)data, 7);
-			data[0] = 0x34;
-			RFID_write_data_block((int)data, 8);
-			subscribe_to_event(EVENT_RFID_DETECT);
-			print("end\n");
-		}
-		sleep(100);
-	}
+int determine_destination(Module module, bool sec_check_needed, bool sec_check_passed, bool plane_dropoff, int tub_plane_id){
+	if(sec_check_needed)
+		if(sec_check_passed) return module.quarantine_id;
+		else return module.security_id;
+	else if (plane_dropoff) return module.dropoff_id;
+	else return check_plane_arrived1(module, tub_plane_id) ? module.plane_to_id[tub_plane_id] : module.storage_id;
 }
 
-void rfid_read_demo() {
-	print("start\n");
-	led_set_color(0xff0000);
-	belt_big_set_speed(0);
-	belt_small_set_speed(0);
-	servo_angle_set(0);
-	subscribe_to_event(EVENT_RFID_DETECT);
-	enum EventType e;
-	while (1) {
-		e = next_event();
-		if (e == EVENT_RFID_DETECT) {
-			led_set_color(0x00ff00);
-			int rfid = get_security_flag();
-			printf("Security: %02X\n", rfid);
-			rfid = get_plane_dropoff_flag();
-			printf("Plane/Dropoff: %02X\n", rfid);
-			rfid = get_plane_id();
-			printf("Plane: %02X\n", rfid);
-			rfid = get_payload();
-			printf("Payload: %02X\n", rfid);
-			rfid = has_security_been_passed();
-			printf("Passed Security: %02X\n", rfid);
-			rfid = has_plane_arrived();
-			printf("Plane Arrived: %02X\n", rfid);
-			rfid = get_destination();
-			printf("Destination: %02X\n", rfid);
-			subscribe_to_event(EVENT_RFID_DETECT);
-			print("end\n");
-		}
-		sleep(100);
-	}
+bool check_plane_arrived1(Module module, int tub_plane_id){
+	return module.plane_to_id[tub_plane_id] != 0;
 }
 
 export int main(void) {
-	demo();
+
 }
