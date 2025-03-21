@@ -1,6 +1,6 @@
 #define export __attribute__((visibility("default"))) __attribute__((used))
 
-enum EventType {
+typedef enum EventType {
 	EVENT_NONE = 0,
 	EVENT_LASER_LEFT_DETECT = 1,
 	EVENT_LASER_RIGHT_DETECT = 2,
@@ -10,7 +10,7 @@ enum EventType {
 	EVENT_POWER_THRESHOLD_REACHED = 32,
 	EVENT_MESSAGE_RECEIVED = 64, // special event, needs buffer for data
 	EVENT_MESSAGE_ALLOC_FAILED = 128,
-};
+} EventType;
 
 extern void print(const char* str);
 extern void sleep(int ms);
@@ -32,4 +32,4 @@ enum EventType next_event();
  * memory left in the WAMR heap, then returns -1.
  * Other errors are other negative numbers.
  */
-int next_message_address(int* address_ptr);
+// int next_message_address(int* address_ptr);

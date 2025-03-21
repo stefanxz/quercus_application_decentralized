@@ -3,57 +3,48 @@
 
 #include "../elementary_functions/movement_functions.c"
 #include "../elementary_functions/rfid_functions.c"
+#include "../algo_functions.c"
 
 #include <stdbool.h>
 
-#define MAX_NUMBER_OF_TUBS 2
-#define MAX_NUMBER_OF_PLANES 2
-#define MAX_NUMBER_OF_MODULES 8
 
-//Structure for Module
-typedef struct
-{
-	int id;
-	int plane_to_id[255];
-	int lookup[MAX_NUMBER_OF_MODULES];
-	int dropoff_id;
-	int quarantine_id;
-	int security_id;
-	int storage_id;
-	Tub tub;
-} Module;
+int main(void) {
+	Module module;
+	Module* module_ptr = &module;
+	enum EventType e;
+	char * msg;
+	subscribe_to_event(EVENT_MESSAGE_RECEIVED | EVENT_RFID_DETECT | EVENT_LASER_LEFT_DETECT | EVENT_LASER_RIGHT_DETECT);
+	while(1) {
+		e = next_event();
+		if (e == EVENT_RFID_DETECT) {
+			(module_ptr);
+		} else if (e == EVENT_MESSAGE_RECEIVED) {
+			next_message_address(&msg);
+			int type = get_message_type(&msg);
+			if (type == REQUEST_MOVEMENT) {
+				//Send accept message
+				//Save request data to tub
 
-typedef struct
-{
-    int id;
-    // int priority;
-    int plane_id;
-    bool plane_dropoff;
-    int passed_security;
-    int destination;
-	bool plane_arrived;
-	// bool is_free;
-} Tub;
-
-
-void change_tub_status(Module module){
-    set_security_passed(1);
-    set_needs_security(1 /* get_payload() */);
-    set_destination(1 /* determine_destination(module, get_payload(), 1, module.tub.plane_dropoff, module.tub.plane_id)*/);
-}
-
-int determine_destination(Module module, bool sec_check_needed, bool sec_check_passed, bool plane_dropoff, int tub_plane_id){
-	if(sec_check_needed)
-		if(sec_check_passed) return module.quarantine_id;
-		else return module.security_id;
-	else if (plane_dropoff) return module.dropoff_id;
-	else return check_plane_arrived1(module, tub_plane_id) ? module.plane_to_id[tub_plane_id] : module.storage_id;
-}
-
-bool check_plane_arrived1(Module module, int tub_plane_id){
-	return module.plane_to_id[tub_plane_id] != 0;
-}
-
-export int main(void) {
-
+				if(module.tub.destination == module.id){
+					//Move to RFID
+					//if (RFID detected) {
+					change_tub_status(module);
+					//}
+				} else {
+					//move(module);
+				}
+			} else if (type == PLANE_STATUS){
+				//Read plane status
+				//plane_to_id[plane_id] = plane_module_id;
+			} else if (type == TUB_STATUS) {
+				// Don't care
+			} else if (type == PATHS_CONFIG) {
+				// Save lookup table
+			} else if (type == LOGGING) {
+				printf("MESSAGE TYPE WAS WRONG, I DO NOT DO LOGGING\n");
+			}
+		}
+		sleep(10);
+	}
+	return 0;
 }
