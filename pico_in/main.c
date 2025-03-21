@@ -3,109 +3,39 @@
 
 #include "../elementary_functions/movement_functions.c"
 #include "../elementary_functions/rfid_functions.c"
+#include "../algo_functions.c"
 
 #include <stdbool.h>
 
-void demo() {
-	print("start\n");
-	led_set_color(0xff0000);
-	belt_big_set_speed(0);
-	belt_small_set_speed(0);
-	servo_angle_set(0);
-	subscribe_to_event(EVENT_RFID_DETECT);
-	enum EventType e;
-	while (1) {
-		e = next_event();
-		if (e == EVENT_RFID_DETECT) {
-			rfid_to_laser_right();
-			sleep(1000);
-			laser_right_to_rfid();
-			sleep(1000);
-			rfid_to_laser_left();
-			sleep(1000);
-			laser_left_to_rfid();
-			sleep(1000);
-			rfid_to_laser_right();
-			sleep(1000);
-			laser_right_to_laser_left();
-			sleep(1000);
-			laser_left_to_laser_right();
-			subscribe_to_event(EVENT_RFID_DETECT);
-			//swap_laser_2_and_rfid();
-			//subscribe_to_event(EVENT_LASER_LEFT_DETECT);
-			print("end\n");
-		}
-		sleep(100);
-	}
-}
+#define MAX_NUMBER_OF_TUBS 2
+#define MAX_NUMBER_OF_PLANES 100
+#define MAX_NUMBER_OF_MODULES 8
 
-void rfid_write_demo() {
-	print("start\n");
-	led_set_color(0xff0000);
-	belt_big_set_speed(0);
-	belt_small_set_speed(0);
-	servo_angle_set(0);
-	subscribe_to_event(EVENT_RFID_DETECT);
-	enum EventType e;
-	while (1) {
-		e = next_event();
-		if (e == EVENT_RFID_DETECT) {
-			led_set_color(0x00ff00);
-			char data[4];
-			data[0] = 0x1;
-			RFID_write_data_block((int)data, 0);
-			data[0] = 0x1;
-			RFID_write_data_block((int)data, 1);
-			data[0] = 0x56;
-			RFID_write_data_block((int)data, 2);
-			data[0] = 0x0;
-			RFID_write_data_block((int)data, 3);
-			data[0] = 0x0;
-			RFID_write_data_block((int)data, 6);
-			data[0] = 0x1;
-			RFID_write_data_block((int)data, 7);
-			data[0] = 0x34;
-			RFID_write_data_block((int)data, 8);
-			subscribe_to_event(EVENT_RFID_DETECT);
-			print("end\n");
-		}
-		sleep(100);
-	}
-}
 
-void rfid_read_demo() {
-	print("start\n");
-	led_set_color(0xff0000);
-	belt_big_set_speed(0);
-	belt_small_set_speed(0);
-	servo_angle_set(0);
-	subscribe_to_event(EVENT_RFID_DETECT);
-	enum EventType e;
-	while (1) {
+int in(EventType e, Module* module_ptr) {
+	char* msg;
+	while(true) {
 		e = next_event();
-		if (e == EVENT_RFID_DETECT) {
-			led_set_color(0x00ff00);
-			int rfid = get_security_flag();
-			printf("Security: %02X\n", rfid);
-			rfid = get_plane_dropoff_flag();
-			printf("Plane/Dropoff: %02X\n", rfid);
-			rfid = get_plane_id();
-			printf("Plane: %02X\n", rfid);
-			rfid = get_payload();
-			printf("Payload: %02X\n", rfid);
-			rfid = has_security_been_passed();
-			printf("Passed Security: %02X\n", rfid);
-			rfid = has_plane_arrived();
-			printf("Plane Arrived: %02X\n", rfid);
-			rfid = get_destination();
-			printf("Destination: %02X\n", rfid);
-			subscribe_to_event(EVENT_RFID_DETECT);
-			print("end\n");
+		if (e == EVENT_RFID_DETECT /*detect rfid somehow*/) {
+			save_RFID_data(module_ptr);
+		} else if (e == EVENT_MESSAGE_RECEIVED) {
+			next_message_address(&msg);
+			int type = get_message_type(&msg);
+			if (type == REQUEST_MOVEMENT) {
+				//Send accept message
+				//Move the actuators
+			} else if (type == PLANE_STATUS){
+				//Read plane status
+				//Save to module
+			} else if (type == TUB_STATUS) {
+				printf("MESSAGE TYPE WAS WRONG, I DO NOT DO TUB STATUS\n");
+			} else if (type == PATHS_CONFIG) {
+				// Save lookup table
+			} else if (type == LOGGING) {
+				printf("MESSAGE TYPE WAS WRONG, I DO NOT DO LOGGING\n");
+			}
 		}
-		sleep(100);
+		sleep(10);
 	}
-}
-
-export int main(void) {
-	demo();
+	
 }

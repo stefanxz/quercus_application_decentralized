@@ -1,6 +1,6 @@
 #include "../quercus_lib_pi.h"
 
-#include "libc_builtin.h"
+#include "../libc_builtin.h"
 
 export int main(void) {
 	print("boo from triple updated WASM\n");
