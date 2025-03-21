@@ -1,84 +1,49 @@
-#include "quercus_lib_pico.h"
-#include "libc_builtin.h"
-
-#include "elementary_functions/movement_functions.c"
-#include "elementary_functions/rfid_functions.c"
-
 #include <stdbool.h>
+#include "../quercus_lib_pico.h"
+#include "../libc_builtin.h"
+
+#include "../elementary_functions/movement_functions.c"
+#include "../elementary_functions/rfid_functions.c"
 
 #define MAX_MODULES 100
 #define MAX_PLANES 256
 
 int SECOND = 1000000;
 
-// Enum for task
-typedef enum
-{
-	IDLE,
-	MOVE_RFID_TO_LEFT,
-	MOVE_LEFT_TO_RFID,
-
-	MOVE_RFID_TO_RIGHT,
-	MOVE_RIGHT_TO_RFID,
-
-	MOVE_LEFT_TO_RIGHT,
-	MOVE_RIGHT_TO_LEFT,
-
-	LEAVE_AT_LEFT,
-	LEAVE_AT_RIGHT,
-	LEAVE_AT_RFID,
-
-	WAIT_AT_RFID,
-	WAIT_AT_LEFT,
-	WAIT_AT_RIGHT
-} Move;
-
-// Structure for a request
-typedef struct
-{
+typedef struct {
     int sender_ID;
     int type;
     // Data
+	int tub_ID;
     bool security_status;
     bool plane_or_dropoff;
     int  plane_ID;
     bool payload;
     bool plane_arrived;
     int  destination;
-
-} Request;
+} Request; // structure for a request
 Request current_request;
 
-typedef struct
-{
-	Move move;
+typedef struct {
+	Direction to;
+	Direction from;
 	Request request;
-} Task;
+} Task; // structure for a task
 Task tasks[10];
 int current;
 int next_free;
 
-// Neighbouring modules
-typedef struct
-{
-    int left;
-    int right;
-    int rfid;
-} NextModule;
-NextModule next;
-
-typedef enum
-{
+int next[3];
+typedef enum {
 	LASER_LEFT,
 	LASER_RIGHT,
-	RFID
-} ModulePoints;
+	RFID,
+	OUT
+} Direction;
 
-typedef struct
-{
-	bool at_left;
-	bool at_right;
-	bool at_RFID;
+typedef struct {
+	int at[3];
+	bool is_storing;
 } State;
 State state;
 
@@ -89,9 +54,9 @@ int planes[MAX_PLANES];
 int lookup[MAX_MODULES];
 
 void init(int my_id) {
-	state.at_left = false;
-	state.at_right = false;
-	state.at_RFID = false;
+	state.at[LASER_LEFT] = -1;
+	state.at[LASER_RIGHT] = -1;
+	state.at[RFID] = -1;
 
 	for(int i = 0; i < MAX_PLANES; i++) {
 		planes[i] = 0;
@@ -102,11 +67,12 @@ void init(int my_id) {
 	}
 }
 
-bool add_task(int move) {
+bool add_task(Direction to, Direction from, Request request) {
 	if (next_free == current) {
 		// Epic fail
 		return false;
 	}
+
 	Task task;
 	task.move = move;
 	task.request = current_request;
@@ -117,104 +83,49 @@ bool add_task(int move) {
 }
 
 bool do_task() {
-	switch (tasks[current].move) {
-		case IDLE:
-			break;
-		case MOVE_RFID_TO_LEFT:
-			// PUT IN ID 
-			move_within_module(0, RFID, LASER_LEFT);
-			state.at_left = true;
-			state.at_RFID = false;
-			break;
-		case MOVE_LEFT_TO_RFID:
-			// PUT IN ID 
-			move_within_module(0, LASER_LEFT, RFID);
-			state.at_left = false;
-			state.at_RFID = true;
-			break;
-		case MOVE_RFID_TO_RIGHT:
-			// PUT IN ID 
-			move_within_module(0, RFID, LASER_RIGHT);
-			state.at_right = true;
-			state.at_RFID = false;
-			break;
-		case MOVE_RIGHT_TO_RFID:
-			// PUT IN ID 
-			move_within_module(0, LASER_RIGHT, RFID);
-			state.at_right = false;
-			state.at_RFID = true;
-			break;
-		case MOVE_LEFT_TO_RIGHT:
-			// PUT IN ID 
-			move_within_module(0, LASER_LEFT, LASER_RIGHT);
-			state.at_left = false;
-			state.at_right = true;
-			break;
-		case MOVE_RIGHT_TO_LEFT:
-			// PUT IN ID 
-			move_within_module(0, LASER_RIGHT, LASER_LEFT);
-			state.at_right = false;
-			state.at_left = true;
-			break;
-		case LEAVE_AT_LEFT:
-			// PUT IN ID 
-			request_leave(0, next.left, tasks[current].request);
-			state.at_left = false;
-			break;
-		case LEAVE_AT_RIGHT:
-			// PUT IN ID 
-			request_leave(0, next.right, tasks[current].request);
-			state.at_right = false;
-			break;
-		case LEAVE_AT_RFID:
-			// PUT IN ID 
-			request_leave(0, next.left, tasks[current].request);
-			state.at_RFID = false;
-			break;
+	Task task = tasks[current];
+	int tub = task.request.tub_ID;
+
+	if (to == OUT) {
+		request_leave(tub, next[task.from], task.request);
+	} else if (from == OUT) {
+		wait_to_enter(tub, next[task.to], task.request);
+	} else {
+		move_within_module(tub, task.from, task.to);
 	}
-	tasks[current].move = IDLE;
+	
+	// Mayb
+	tasks[current].from = OUT;
+	tasks[current].to = OUT;
 	current = (current + 1) % 7;
 	return true;
 }
 
 void handle_request() {
 	// Reroute tub if it's plane has arrived
-	
 	if(!current_request.plane_arrived && planes[current_request.plane_ID] != 0) {
 		current_request.destination = planes[current_request.plane_ID];
 		current_request.plane_arrived = true;
 	}
 
-	int which_module = lookup[current_request.destination];
+	int origin = current_request.sender_ID;
+	int end = lookup[current_request.destination];
 
-	if (current_request.sender_ID == next.left) {
-		add_task(WAIT_AT_LEFT);
-		if(which_module == next.rfid) {
-			add_task(MOVE_LEFT_TO_RFID);
-			add_task(LEAVE_AT_RFID);
-		} else {
-			add_task(MOVE_LEFT_TO_RIGHT);
-			add_task(LEAVE_AT_RIGHT);
+	Direction from;
+	Direction to;
+	for(int i = 0; i < 3; i++) {
+		if(next[i] == origin) {
+			from = i;
 		}
-	} else if (current_request.sender_ID == next.right) {
-		add_task(WAIT_AT_RIGHT);
-		if(which_module == next.rfid) {
-			add_task(MOVE_RIGHT_TO_RFID);
-			add_task(LEAVE_AT_RFID);
-		} else {
-			add_task(MOVE_RIGHT_TO_LEFT);
-			add_task(LEAVE_AT_LEFT);
-		}
-	} else if (current_request.sender_ID == next.rfid) {
-		add_task(WAIT_AT_RFID);
-		if(which_module == next.left) {
-			add_task(MOVE_RFID_TO_LEFT);
-			add_task(LEAVE_AT_LEFT);
-		} else {
-			add_task(MOVE_RFID_TO_RIGHT);
-			add_task(LEAVE_AT_RIGHT);
+
+		if(next[i] == end) {
+			to = i;
 		}
 	}
+
+	add_task(OUT, from, current_request);
+	add_task(from, to, current_request);
+	add_task(to, OUT, current_request);
 }
 
 void get_request() {
@@ -224,7 +135,8 @@ void get_request() {
 		if(e == EVENT_MESSAGE_RECEIVED) {
 			handle_message(&msg, 0);
 		} else {
-			// Handle other events ?
+			// Todo: rewire logic
+			return;
 		}
 	}
 }
@@ -241,7 +153,6 @@ void loop() {
 }
 
 export int main(void) {
-	init(3, 3, 0);
 	for (int i = 0; i < 100000000; i++)
 	{
 		loop();
