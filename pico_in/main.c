@@ -17,6 +17,7 @@ int in(EventType e, Module* module_ptr) {
 	while(true) {
 		e = next_event();
 		if (e == EVENT_RFID_DETECT /*detect rfid somehow*/) {
+			//if(rfid is a leaving plane) -> return 0;
 			save_RFID_data(module_ptr);
 		} else if (e == EVENT_MESSAGE_RECEIVED) {
 			next_message_address(&msg);
