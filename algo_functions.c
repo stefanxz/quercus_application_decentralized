@@ -6,20 +6,35 @@
 typedef struct Module {
 	int id;
 	int lookup[MAX_NUMBER_OF_MODULES];
+	int plane_to_id[MAX_NUMBER_OF_MODULES]; // Index 0 will be plane on this module
+
+	// Module IDs of important modules
 	int dropoff_id;
 	int quarantine_id;
 	int security_id;
 	int storage_id;
-	Tub tub;
-	// Index 0 will be plane on this module
-	int plane_to_id[MAX_NUMBER_OF_MODULES];
+
+	// Module IDs of the neighbouring modules. We index by Direction.
+	int next[3];
+
+	// Variables for the ring buffer containing the tasks
 	Task tasks[10];
-	State state;
-	
 	int current;
 	int next_free;
-	int next[3];
-} Module;
+
+	// Variables for storing
+	bool is_storage;
+	Direction next_storage;
+	
+	Tub tub;
+} Module; // structure for a module containing its essential fields
+
+typedef enum Direction {
+	LASER_LEFT,
+	LASER_RIGHT,
+	RFID,
+	OUT
+} Direction;
 
 typedef struct Tub {
     int id;
@@ -43,25 +58,18 @@ typedef enum MessageType {
 
 // Structure for Request
 typedef struct Request {
-	int origin_module;
-    int type_message;
+	int type;
+	int sender_id;
+	int destination;
     int plane_id;
-    int destination;
-	int tub_id;
 
+	// RFID info of tub
+	int tub_id;
     bool security_status;
     bool plane_or_drop_off;
     bool payload;
     bool plane_arrived;
-	
 } Request;
-
-typedef enum Direction {
-	LASER_LEFT,
-	LASER_RIGHT,
-	RFID,
-	OUT
-} Direction;
 
 typedef struct State
 {
@@ -154,7 +162,8 @@ bool add_task(Direction to, Direction from, Request request) {
 	}
 
 	Task task;
-	task.move = move;
+	task.to = to;
+	task.from = from;
 	task.request = current_request;
 
 	tasks[next_free] = task;
@@ -162,16 +171,15 @@ bool add_task(Direction to, Direction from, Request request) {
 	return true;
 }
 
-bool do_task(Direction to, Direction from, Request request) {
-	Task task = tasks[current];
-	int tub = task.request.tub_id;
+bool do_task(Task* task) {
+	int tub = task->request.tub_id;
 
-	if (to == OUT) {
-		request_leave(tub, next[task.from], task.request);
-	} else if (from == OUT) {
-		wait_to_enter(tub, next[task.to], task.request);
+	if (task->to == OUT) {
+		request_leave(tub, next[task->from], task->request);
+	} else if (task->from == OUT) {
+		wait_to_enter(tub, next[task->to], task->request);
 	} else {
-		move_within_module(tub, task.from, task.to);
+		move_within_module(tub, task->from, task->to);
 	}
 	
 	// Mayb

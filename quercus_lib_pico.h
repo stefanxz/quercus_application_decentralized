@@ -1,9 +1,12 @@
 #pragma once
 
 #define export __attribute__((visibility("default"))) __attribute__((used))
+
+#define NULL ((void*)0)
+
 #include <stdint.h>
 
-typedef enum EventType {
+enum EventType {
 	EVENT_NONE = 0,
 	EVENT_LASER_RIGHT_DETECT = 1,
 	EVENT_LASER_LEFT_DETECT = 2,
@@ -14,10 +17,13 @@ typedef enum EventType {
 	EVENT_MESSAGE_RECEIVED = 64, // special event, needs buffer for data
 	EVENT_MESSAGE_ALLOC_FAILED = 128,
 	EVENT_RFID_DETECT = 256,
-} EventType;
+};
 
 extern void print(const char* str);
 extern void sleep(int ms);
+
+extern int get_own_id();
+extern int get_network_map(char* dest, int dest_size);
 
 extern void subscribe_to_event(int event_type);
 extern void unsubscribe_from_event(int event_type);
@@ -69,7 +75,13 @@ extern int RFID_get_uid(int uid_pointer);
  * memory left in the WAMR heap, then returns -1.
  * Other errors are other negative numbers.
  */
-int next_message_address(char** address_ptr);
+extern int next_message_address(char** address_ptr);
+
+/**
+ * Send a packet to the IP address with the last octet given by last_dest_octet.
+ * The packet is sent with the data in the buffer at app_data, with the size of data_size.
+ */
+extern int send_packet(int last_dest_octet, char* app_data, int data_size);
 
 /*
 extern int get_pico_id(void);

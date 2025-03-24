@@ -1,7 +1,7 @@
 #include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
 #include <stdbool.h>
-#include "rfid_functions.h"
+#include "rfid.h"
 
 int get_security_flag() {
 	if (!RFID_check_tag()) return -1;
