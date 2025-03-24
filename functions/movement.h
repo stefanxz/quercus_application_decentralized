@@ -15,11 +15,6 @@ const int BELT_RIGHT_SLOW = -100;
 const int BELT_DOWN_SLOW = 100;
 const int BELT_UP_SLOW = -100;
 
-enum MODULE_POINTS {
-	LASER_LEFT = 0,
-	LASER_RIGHT = 1,
-	RFID = 2
-};
 
 // Stops the belts, resets the arm and turn the LED to red.
 void reset_module();
@@ -30,4 +25,4 @@ void move_within_module(int tubId, int start, int dest);
 
 // Moves Tub within a Hardware Module from the position of exit_point to the Hardware Module with moduleId,
 // let requestData send the tub data.
-int move_to_neighbour(int module_id, char* tub_data, int exit_point);
+int move_to_neighbour(int module_id, int exit_point, char* tub_data);

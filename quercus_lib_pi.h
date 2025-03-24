@@ -1,17 +1,5 @@
 #define export __attribute__((visibility("default"))) __attribute__((used))
 
-typedef enum EventType {
-	EVENT_NONE = 0,
-	EVENT_LASER_LEFT_DETECT = 1,
-	EVENT_LASER_RIGHT_DETECT = 2,
-	EVENT_ENCODER_LONG_STOPPED = 4,
-	EVENT_ENCODER_SHORT_STOPPED = 8,
-	EVENT_CURRENT_THRESHOLD_REACHED = 16,
-	EVENT_POWER_THRESHOLD_REACHED = 32,
-	EVENT_MESSAGE_RECEIVED = 64, // special event, needs buffer for data
-	EVENT_MESSAGE_ALLOC_FAILED = 128,
-} EventType;
-
 extern void print(const char* str);
 extern void sleep(int ms);
 

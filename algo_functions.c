@@ -1,7 +1,52 @@
+#pragma once
+
 #include<stdbool.h>
 
 #define MAX_NUMBER_OF_MODULES 256
 #define MAX_NUMBER_OF_PLANES 256
+
+typedef enum Direction {
+	LASER_LEFT = 0,
+	LASER_RIGHT = 1,
+	RFID = 2,
+	OUT = 3
+} Direction;
+
+typedef struct State {
+	int at[3];
+	bool in_storage;
+} State;
+State state;
+
+// Structure for Request
+typedef struct Request {
+	int type;
+	int sender_id;
+	int destination;
+    int plane_id;
+
+	// RFID info of tub
+	int tub_id;
+    bool security_status;
+    bool plane_or_drop_off;
+    bool payload;
+    bool plane_arrived;
+} Request;
+
+typedef struct {
+	Direction to;
+	Direction from;
+	Request request;
+} Task; // structure for a task
+
+typedef struct Tub {
+    int id;
+	int plane_id;
+    int passed_security;
+    int destination;
+	bool plane_dropoff;
+	bool plane_arrived;
+} Tub;
 
 typedef struct Module {
 	int id;
@@ -29,63 +74,6 @@ typedef struct Module {
 	Tub tub;
 } Module; // structure for a module containing its essential fields
 
-typedef enum Direction {
-	LASER_LEFT,
-	LASER_RIGHT,
-	RFID,
-	OUT
-} Direction;
-
-typedef struct Tub {
-    int id;
-	int plane_id;
-    int passed_security;
-    int destination;
-	bool plane_dropoff;
-	bool plane_arrived;
-} Tub;
-
-
-typedef enum MessageType {
-	NONE = 0,
-    REQUEST_MOVEMENT = 1,
-    REQUEST_RESPONSE = 2,
-    PLANE_STATUS = 3,
-    TUB_STATUS = 4, // Notify entering/leaving system
-    PATHS_CONFIG = 5,
-	LOGGING = 6
-} MessageType;
-
-// Structure for Request
-typedef struct Request {
-	int type;
-	int sender_id;
-	int destination;
-    int plane_id;
-
-	// RFID info of tub
-	int tub_id;
-    bool security_status;
-    bool plane_or_drop_off;
-    bool payload;
-    bool plane_arrived;
-} Request;
-
-typedef struct State
-{
-	int at[3];
-	bool in_storage;
-} State;
-State state;
-
-typedef struct
-{
-	Direction to;
-	Direction from;
-	Request request;
-} Task; // structure for a task
-
-
 //FAKE HAS TO BE IMPLEMENTED
 void broadcast_plane_detected(int plane_id, int module_id) {
 	printf("Plane %d detected at Module %d\n", plane_id, module_id);
@@ -96,12 +84,10 @@ void broadcast_plane_left(int plane_id, int module_id){
 	printf("Plane %d left\n from Module %d", plane_id, module_id);
 }
 
-
-Tub create_tub(int id, int priority, int security_bit, int destination)
+Tub create_tub(int id, int security_bit, int destination)
 {
 	Tub tub;
 	tub.id = id;
-	// tub.priority = priority;
 	tub.passed_security = security_bit;
 	tub.destination = destination;
 	// tub.is_free = 1;
@@ -109,11 +95,23 @@ Tub create_tub(int id, int priority, int security_bit, int destination)
 }
 
 
+bool check_plane_arrived(Module module, int tub_plane_id){
+	return module.plane_to_id[tub_plane_id] != 0;
+}
+
+int determine_destination(Module* module, bool sec_check_needed, bool sec_check_passed, bool plane_dropoff, int plane_id){
+	if(sec_check_needed)
+		if(sec_check_passed) return module -> quarantine_id;
+		else return module -> security_id;
+	else if (plane_dropoff) return module -> dropoff_id;
+	else return check_plane_arrived(*module, plane_id) ? module->plane_to_id[plane_id] : module->storage_id;
+}
+
 void save_RFID_data(Module* module) {
-	if(is_plane(0)){
+	if(true/* is_plane(0) */){
 		//plane detected
 		int plane_id = 1;//get_plane_id();
-		int deadline = 1;//get_deadline();
+		// int deadline = 1;//get_deadline();
 		int direction = 1;//get_direction();
 		int plane_arrived = 1;//has_plane_arrived();
 		module -> plane_to_id[plane_id] = 1;
@@ -123,40 +121,22 @@ void save_RFID_data(Module* module) {
 		//tub detected
 		int tub_id = 0;//get_tub_id();
 		bool tub_has_passed_security = 0;//has_security_been_passed();
-		int tub_destination = determine_destination(*module, tub_has_passed_security, 0 /*get_sec_bit()*/, 0/*  get_plane_dropoff_flag() */,3 /* get_plane_id() */);
+		int tub_destination = determine_destination(module, tub_has_passed_security, 0 /*get_sec_bit()*/, 0/*  get_plane_dropoff_flag() */,3 /* get_plane_id() */);
 		//write tub destination to module
-		int tub_priority = -1;
+		// int tub_priority = -1;
 		
-		module -> tub = create_tub(tub_id, tub_priority, tub_has_passed_security, tub_destination);
+		module -> tub = create_tub(tub_id, tub_has_passed_security, tub_destination);
 		//send tub status message -> entry
 	}
 }
 
-bool check_plane_arrived(Module module, int plane_id){
-	return (module.plane_to_id[plane_id] != 0);
-}
-
-
-int determine_destination(Module module, bool sec_check_needed, bool sec_check_passed, bool plane_dropoff, int plane_id){
-	if(sec_check_needed)
-		if(sec_check_passed) return module.quarantine_id;
-		else return module.security_id;
-	else if (plane_dropoff) return module.dropoff_id;
-	else return check_plane_arrived(module, plane_id) ? module.plane_to_id[plane_id] : module.storage_id;
-}
-
-void change_tub_status(Module module){
+void change_tub_status(/* Module module */){
     //set_security_passed(1);
     //set_needs_security(1 /* get_payload() */);
     //set_destination(1 /* determine_destination(module, get_payload(), 1, module.tub.plane_dropoff, module.tub.plane_id)*/);
 }
-
-bool check_plane_arrived(Module module, int tub_plane_id){
-	return module.plane_to_id[tub_plane_id] != 0;
-}
-
-bool add_task(Direction to, Direction from, Request request) {
-	if (next_free == current) {
+bool add_task(Direction to, Direction from, Request request, Module* module) {
+	if (module->next_free == module->current) {
 		// Epic fail
 		return false;
 	}
@@ -164,27 +144,27 @@ bool add_task(Direction to, Direction from, Request request) {
 	Task task;
 	task.to = to;
 	task.from = from;
-	task.request = current_request;
+	task.request = request;
 
-	tasks[next_free] = task;
-	next_free = (next_free + 1) % 7;
+	module->tasks[module->next_free] = task;
+	module->next_free = (module->next_free + 1) % 7;
 	return true;
 }
 
-bool do_task(Task* task) {
+bool do_task(Task* task, Module* module) {
 	int tub = task->request.tub_id;
 
 	if (task->to == OUT) {
-		request_leave(tub, next[task->from], task->request);
+		// request_leave(tub, module->next[task->from], task->request);
 	} else if (task->from == OUT) {
-		wait_to_enter(tub, next[task->to], task->request);
+		// wait_to_enter(tub, module->next[task->to], task->request);
 	} else {
-		move_within_module(tub, task->from, task->to);
+		// move_within_module(tub, task->from, task->to);
 	}
 	
 	// Mayb
-	tasks[current].from = OUT;
-	tasks[current].to = OUT;
-	current = (current + 1) % 7;
+	module->tasks[module->current].from = OUT;
+	module->tasks[module->current].to = OUT;
+	module->current = (module->current + 1) % 7;
 	return true;
 }

@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-enum EventType {
+typedef enum EventType {
 	EVENT_NONE = 0,
 	EVENT_LASER_RIGHT_DETECT = 1,
 	EVENT_LASER_LEFT_DETECT = 2,
@@ -17,7 +17,7 @@ enum EventType {
 	EVENT_MESSAGE_RECEIVED = 64, // special event, needs buffer for data
 	EVENT_MESSAGE_ALLOC_FAILED = 128,
 	EVENT_RFID_DETECT = 256,
-};
+} EventType;
 
 extern void print(const char* str);
 extern void sleep(int ms);

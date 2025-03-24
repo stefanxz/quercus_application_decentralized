@@ -1,25 +1,23 @@
 #include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
 
-#include "../elementary_functions/movement_functions.c"
-#include "../elementary_functions/rfid_functions.c"
+#include "../functions/movement.c"
+#include "../functions/rfid.c"
+#include "../functions/network.h"
+
 #include "../algo_functions.c"
 
 #include <stdbool.h>
-
-#define MAX_NUMBER_OF_TUBS 2
-#define MAX_NUMBER_OF_PLANES 100
-#define MAX_NUMBER_OF_MODULES 8
-
 
 int in(EventType e, Module* module_ptr) {
 	char* msg;
 	while(true) {
 		e = next_event();
-		if (e == EVENT_RFID_DETECT /*detect rfid somehow*/) {
+		if (RFID_check_tag) {
 			//if(rfid is a leaving plane) -> return 0;
 			save_RFID_data(module_ptr);
-		} else if (e == EVENT_MESSAGE_RECEIVED) {
+		} 
+		if (e == EVENT_MESSAGE_RECEIVED) {
 			next_message_address(&msg);
 			int type = get_message_type(&msg);
 			if (type == REQUEST_MOVEMENT) {
@@ -32,7 +30,7 @@ int in(EventType e, Module* module_ptr) {
 				printf("MESSAGE TYPE WAS WRONG, I DO NOT DO TUB STATUS\n");
 			} else if (type == PATHS_CONFIG) {
 				// Save lookup table
-			} else if (type == LOGGING) {
+			} else if (type == TUB_LOGGING) {
 				printf("MESSAGE TYPE WAS WRONG, I DO NOT DO LOGGING\n");
 			}
 		}

@@ -1,7 +1,7 @@
 # Makefile for building WebAssembly and AOT binaries
 
 # Tools
-CC       ?= clang
+CC       = clang
 WAMRC    ?= wamrc
 
 # Compilation flags for building WebAssembly

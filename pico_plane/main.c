@@ -1,8 +1,10 @@
 #include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
 
-#include "../elementary_functions/movement_functions.c"
-#include "../elementary_functions/rfid_functions.c"
+#include "../functions/movement.c"
+#include "../functions/rfid.c"
+#include "../functions/network.c"
+#include "../functions/graph.c"
 #include "../algo_functions.c"
 
 #include <stdbool.h>
@@ -21,11 +23,15 @@ int main(void) {
 	Module* module_ptr = &module;
 	enum EventType e;
 	char * msg;
-	subscribe_to_event(EVENT_MESSAGE_RECEIVED | EVENT_RFID_DETECT | EVENT_LASER_LEFT_DETECT | EVENT_LASER_RIGHT_DETECT);
+	subscribe_to_event(EVENT_MESSAGE_RECEIVED | EVENT_LASER_LEFT_DETECT | EVENT_LASER_RIGHT_DETECT);
 	while(true) {
-		e = next_event();
-		//if RFID detected plane
+		// if(){
+		// 	if(RFID_read_data_block(0, 1))
+		// } 
 		//{
+		if(RFID_check_tag()){
+			printf("RFID detected\n");
+		}
 		in(e, module_ptr);
 		sleep(10);
 		//}

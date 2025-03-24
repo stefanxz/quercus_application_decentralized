@@ -1,5 +1,7 @@
 #include "movement.h"
 #include "network.c"
+#include "../algo_functions.c"
+#include <stdbool.h>
 
 void reset_module() {
 	led_set_color(LED_RED);

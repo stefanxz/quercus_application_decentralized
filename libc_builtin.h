@@ -1,7 +1,5 @@
 #pragma once
 
-#include "quercus_lib_pico.h"
-
 /* Standard I/O functions */
 #include <stdarg.h>
 
