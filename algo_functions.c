@@ -1,9 +1,9 @@
-#define MAX_NUMBER_OF_MODULES 256
-
 #include<stdbool.h>
 
-typedef struct
-{
+#define MAX_NUMBER_OF_MODULES 256
+#define MAX_NUMBER_OF_PLANES 256
+
+typedef struct Module {
 	int id;
 	int lookup[MAX_NUMBER_OF_MODULES];
 	int dropoff_id;
@@ -13,10 +13,15 @@ typedef struct
 	Tub tub;
 	// Index 0 will be plane on this module
 	int plane_to_id[MAX_NUMBER_OF_MODULES];
+	Task tasks[10];
+	State state;
+	
+	int current;
+	int next_free;
+	int next[3];
 } Module;
 
-typedef struct
-{
+typedef struct Tub {
     int id;
 	int plane_id;
     int passed_security;
@@ -37,12 +42,12 @@ typedef enum MessageType {
 } MessageType;
 
 // Structure for Request
-typedef struct
-{
+typedef struct Request {
 	int origin_module;
     int type_message;
-    int  plane_id;
-    int  destination;
+    int plane_id;
+    int destination;
+	int tub_id;
 
     bool security_status;
     bool plane_or_drop_off;
@@ -50,6 +55,28 @@ typedef struct
     bool plane_arrived;
 	
 } Request;
+
+typedef enum Direction {
+	LASER_LEFT,
+	LASER_RIGHT,
+	RFID,
+	OUT
+} Direction;
+
+typedef struct State
+{
+	int at[3];
+	bool in_storage;
+} State;
+State state;
+
+typedef struct
+{
+	Direction to;
+	Direction from;
+	Request request;
+} Task; // structure for a task
+
 
 //FAKE HAS TO BE IMPLEMENTED
 void broadcast_plane_detected(int plane_id, int module_id) {
@@ -120,4 +147,36 @@ bool check_plane_arrived(Module module, int tub_plane_id){
 	return module.plane_to_id[tub_plane_id] != 0;
 }
 
-void move(Module module);
+bool add_task(Direction to, Direction from, Request request) {
+	if (next_free == current) {
+		// Epic fail
+		return false;
+	}
+
+	Task task;
+	task.move = move;
+	task.request = current_request;
+
+	tasks[next_free] = task;
+	next_free = (next_free + 1) % 7;
+	return true;
+}
+
+bool do_task(Direction to, Direction from, Request request) {
+	Task task = tasks[current];
+	int tub = task.request.tub_id;
+
+	if (to == OUT) {
+		request_leave(tub, next[task.from], task.request);
+	} else if (from == OUT) {
+		wait_to_enter(tub, next[task.to], task.request);
+	} else {
+		move_within_module(tub, task.from, task.to);
+	}
+	
+	// Mayb
+	tasks[current].from = OUT;
+	tasks[current].to = OUT;
+	current = (current + 1) % 7;
+	return true;
+}

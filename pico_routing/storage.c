@@ -3,6 +3,7 @@
 
 #include "../elementary_functions/movement_functions.c"
 #include "../elementary_functions/rfid_functions.c"
+#include "../algo_functions.c"
 
 #include <stdbool.h>
 
@@ -11,45 +12,10 @@
 
 int SECOND = 1000000;
 
-// Enum for task
-typedef enum
-{
-	IDLE,
-	WAIT_AT_RFID,
-	WAIT_AT_LEFT,
-	WAIT_AT_RIGHT,
-	LEAVE_AT_LEFT,
-	LEAVE_AT_RIGHT,
-	LEAVE_AT_RFID,
-	MOVE_RFID_TO_LEFT,
-	MOVE_RFID_TO_RIGHT,
-	MOVE_LEFT_TO_RIGHT,
-	MOVE_LEFT_TO_RFID,
-	MOVE_RIGHT_TO_LEFT,
-	MOVE_RIGHT_TO_RFID
-} Move;
-
-// Structure for a request
-typedef struct
-{
-    int sender_ID;
-    int type;
-    // Data
-    bool security_status;
-    bool plane_or_dropoff;
-    int  plane_ID;
-    bool payload;
-    bool plane_arrived;
-    int  destination;
-
-} Request;
 Request current_request;
 
-typedef struct
-{
-	Move move;
-	Request request;
-} Task;
+
+
 Task tasks[10];
 int current;
 int next_free;
@@ -57,22 +23,6 @@ int next_free;
 int next[3];
 
 bool is_storage;
-ModulePoints next_storage;
-
-typedef enum
-{
-	LASER_LEFT,
-	LASER_RIGHT,
-	RFID
-} ModulePoints;
-
-typedef struct
-{
-	bool at[3];
-	int stored_tub_ID;
-	ModulePoints stored_at;
-} State;
-State state;
 
 // Unused for now
 State projected_state;
@@ -180,49 +130,6 @@ void handle_storage() {
 	state.stored_tub_ID = -1;
 }
 
-void handle_request() {
-	// Reroute tub if it's plane has arrived
-	if(!current_request.plane_arrived && planes[current_request.plane_ID] != 0) {
-		current_request.destination = planes[current_request.plane_ID];
-		current_request.plane_arrived = true;
-	}
-
-	int origin = current_request.sender_ID;
-	int end = lookup[current_request.destination];
-
-	if(is_storage) {
-		handle_storage();
-	}
-
-	if (origin = next[LASER_LEFT]) {
-		add_task(WAIT_AT_LEFT);
-		if(end == next[LASER_RIGHT]) {
-			add_task(MOVE_LEFT_TO_RFID);
-			add_task(LEAVE_AT_RFID);
-		} else {
-			add_task(MOVE_LEFT_TO_RIGHT);
-			add_task(LEAVE_AT_RIGHT);
-		}
-	} else if (current_request.sender_ID == next[LASER_RIGHT]) {
-		add_task(WAIT_AT_RIGHT);
-		if(end == next[RFID]) {
-			add_task(MOVE_RIGHT_TO_RFID);
-			add_task(LEAVE_AT_RFID);
-		} else {
-			add_task(MOVE_RIGHT_TO_LEFT);
-			add_task(LEAVE_AT_LEFT);
-		}
-	} else if (current_request.sender_ID == next[RFID]) {
-		add_task(WAIT_AT_RFID);
-		if(end == next[LASER_LEFT]) {
-			add_task(MOVE_RFID_TO_LEFT);
-			add_task(LEAVE_AT_LEFT);
-		} else {
-			add_task(MOVE_RFID_TO_RIGHT);
-			add_task(LEAVE_AT_RIGHT);
-		}
-	}
-}
 
 void get_request() {
 	enum EventType e;

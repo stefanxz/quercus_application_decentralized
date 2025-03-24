@@ -4,111 +4,47 @@
 
 #include "../elementary_functions/movement_functions.c"
 #include "../elementary_functions/rfid_functions.c"
-
-#define MAX_MODULES 100
-#define MAX_PLANES 256
+#include "../algo_functions.c"
 
 int SECOND = 1000000;
 
-typedef struct {
-    int sender_ID;
-    int type;
-    // Data
-	int tub_ID;
-    bool security_status;
-    bool plane_or_dropoff;
-    int  plane_ID;
-    bool payload;
-    bool plane_arrived;
-    int  destination;
-} Request; // structure for a request
 Request current_request;
 
-typedef struct {
-	Direction to;
-	Direction from;
-	Request request;
-} Task; // structure for a task
 Task tasks[10];
 int current;
 int next_free;
 
 int next[3];
-typedef enum {
-	LASER_LEFT,
-	LASER_RIGHT,
-	RFID,
-	OUT
-} Direction;
-
-typedef struct {
-	int at[3];
-	bool is_storing;
-} State;
-State state;
 
 // Unused for now
 State projected_state;
 
-int planes[MAX_PLANES];
-int lookup[MAX_MODULES];
+int planes[MAX_NUMBER_OF_PLANES];
+int lookup[MAX_NUMBER_OF_MODULES];
 
 void init(int my_id) {
 	state.at[LASER_LEFT] = -1;
 	state.at[LASER_RIGHT] = -1;
 	state.at[RFID] = -1;
 
-	for(int i = 0; i < MAX_PLANES; i++) {
+	for(int i = 0; i < MAX_NUMBER_OF_PLANES; i++) {
 		planes[i] = 0;
 	}
 
-	for(int i = 0; i < MAX_MODULES; i++) {
+	for(int i = 0; i < MAX_NUMBER_OF_MODULES; i++) {
 		lookup[i] = 0;
 	}
 }
 
-bool add_task(Direction to, Direction from, Request request) {
-	if (next_free == current) {
-		// Epic fail
-		return false;
-	}
-
-	Task task;
-	task.move = move;
-	task.request = current_request;
-
-	tasks[next_free] = task;
-	next_free = (next_free + 1) % 7;
-	return true;
-}
-
-bool do_task() {
-	Task task = tasks[current];
-	int tub = task.request.tub_ID;
-
-	if (to == OUT) {
-		request_leave(tub, next[task.from], task.request);
-	} else if (from == OUT) {
-		wait_to_enter(tub, next[task.to], task.request);
-	} else {
-		move_within_module(tub, task.from, task.to);
-	}
-	
-	// Mayb
-	tasks[current].from = OUT;
-	tasks[current].to = OUT;
-	current = (current + 1) % 7;
-	return true;
-}
 
 void handle_request() {
 	// Reroute tub if it's plane has arrived
-	if(!current_request.plane_arrived && planes[current_request.plane_ID] != 0) {
-		current_request.destination = planes[current_request.plane_ID];
+	if(!current_request.plane_arrived && planes[current_request.plane_id] != 0) {
+		current_request.destination = planes[current_request.plane_id];
 		current_request.plane_arrived = true;
 	}
 
-	int origin = current_request.sender_ID;
+	int origin = current_request.origin_module;
 	int end = lookup[current_request.destination];
 
 	Direction from;
