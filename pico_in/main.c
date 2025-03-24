@@ -3,9 +3,9 @@
 
 #include "../functions/movement.c"
 #include "../functions/rfid.c"
-#include "../functions/network.h"
+#include "../functions/algorithm.c"
 
-#include "../algo_functions.c"
+#include "../functions/network.h"
 
 #include <stdbool.h>
 
@@ -13,7 +13,7 @@ int in(EventType e, Module* module_ptr) {
 	char* msg;
 	while(true) {
 		e = next_event();
-		if (RFID_check_tag) {
+		if (RFID_check_tag()) {
 			//if(rfid is a leaving plane) -> return 0;
 			save_RFID_data(module_ptr);
 		} 

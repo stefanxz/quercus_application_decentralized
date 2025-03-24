@@ -1,6 +1,8 @@
 #include "movement.h"
+#include "algorithm.h"
+
 #include "network.c"
-#include "../algo_functions.c"
+
 #include <stdbool.h>
 
 void reset_module() {
@@ -53,7 +55,7 @@ void move_within_module(int start, int dest, int tub_id) {
 	if (tub_id >= 0) { send_updated_tub_location(tub_id, dest); }
 }
 
-int move_to_neighbour(int module_id, int exit_point, char* tub_data) {
+int leave_at(int module_id, int exit_point, char* tub_data) {
 	led_set_color(LED_GREEN);
 	if(send_request_movement(module_id, tub_data) < 0) { 
 		return -1; 
@@ -102,7 +104,7 @@ int move_to_neighbour(int module_id, int exit_point, char* tub_data) {
     }
 }
 
-bool wait_to_enter(int tub, int from, Request req) {
+bool enter_at(int tub, int from) {
 	if(from == RFID) {
 		belt_small_set_speed(BELT_UP_SLOW);
 	} else if (from == LASER_LEFT) {
@@ -113,14 +115,13 @@ bool wait_to_enter(int tub, int from, Request req) {
 
 	while (1) {
 		if (from == RFID && RFID_check_tag()) {
-			break;
+			return true;
 		} else if (from == LASER_LEFT && !laser_left_detect()) {
-			break;
+			return true;
 		} else if (from == LASER_RIGHT && !laser_right_detect()) {
-			break;
+			return true;
 		}
 		sleep(10);
 	}
-
 	reset_module();
 }

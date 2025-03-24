@@ -1,78 +1,7 @@
 #pragma once
 
-#include<stdbool.h>
-
-#define MAX_NUMBER_OF_MODULES 256
-#define MAX_NUMBER_OF_PLANES 256
-
-typedef enum Direction {
-	LASER_LEFT = 0,
-	LASER_RIGHT = 1,
-	RFID = 2,
-	OUT = 3
-} Direction;
-
-typedef struct State {
-	int at[3];
-	bool in_storage;
-} State;
-State state;
-
-// Structure for Request
-typedef struct Request {
-	int type;
-	int sender_id;
-	int destination;
-    int plane_id;
-
-	// RFID info of tub
-	int tub_id;
-    bool security_status;
-    bool plane_or_drop_off;
-    bool payload;
-    bool plane_arrived;
-} Request;
-
-typedef struct {
-	Direction to;
-	Direction from;
-	Request request;
-} Task; // structure for a task
-
-typedef struct Tub {
-    int id;
-	int plane_id;
-    int passed_security;
-    int destination;
-	bool plane_dropoff;
-	bool plane_arrived;
-} Tub;
-
-typedef struct Module {
-	int id;
-	int lookup[MAX_NUMBER_OF_MODULES];
-	int plane_to_id[MAX_NUMBER_OF_MODULES]; // Index 0 will be plane on this module
-
-	// Module IDs of important modules
-	int dropoff_id;
-	int quarantine_id;
-	int security_id;
-	int storage_id;
-
-	// Module IDs of the neighbouring modules. We index by Direction.
-	int next[3];
-
-	// Variables for the ring buffer containing the tasks
-	Task tasks[10];
-	int current;
-	int next_free;
-
-	// Variables for storing
-	bool is_storage;
-	Direction next_storage;
-	
-	Tub tub;
-} Module; // structure for a module containing its essential fields
+#include "algorithm.h"
+#include <stdbool.h>
 
 //FAKE HAS TO BE IMPLEMENTED
 void broadcast_plane_detected(int plane_id, int module_id) {
@@ -109,20 +38,20 @@ int determine_destination(Module* module, bool sec_check_needed, bool sec_check_
 
 void save_RFID_data(Module* module) {
 	if(true/* is_plane(0) */){
-		//plane detected
-		int plane_id = 1;//get_plane_id();
-		// int deadline = 1;//get_deadline();
-		int direction = 1;//get_direction();
-		int plane_arrived = 1;//has_plane_arrived();
+		// plane detected
+		int plane_id = 1; //get_plane_id();
+		// int deadline = 1; //get_deadline();
+		int direction = 1; // get_direction();
+		int plane_arrived = 1;// has_plane_arrived();
 		module -> plane_to_id[plane_id] = 1;
 		if (plane_arrived) broadcast_plane_detected(plane_id, module -> id);
 		else broadcast_plane_left(plane_id, module -> id);
 	} else {
-		//tub detected
+		// tub detected
 		int tub_id = 0;//get_tub_id();
 		bool tub_has_passed_security = 0;//has_security_been_passed();
 		int tub_destination = determine_destination(module, tub_has_passed_security, 0 /*get_sec_bit()*/, 0/*  get_plane_dropoff_flag() */,3 /* get_plane_id() */);
-		//write tub destination to module
+		// write tub destination to module
 		// int tub_priority = -1;
 		
 		module -> tub = create_tub(tub_id, tub_has_passed_security, tub_destination);
@@ -135,9 +64,9 @@ void change_tub_status(/* Module module */){
     //set_needs_security(1 /* get_payload() */);
     //set_destination(1 /* determine_destination(module, get_payload(), 1, module.tub.plane_dropoff, module.tub.plane_id)*/);
 }
-bool add_task(Direction to, Direction from, Request request, Module* module) {
+bool add_task(Module* module, Direction to, Direction from, Request request) {
 	if (module->next_free == module->current) {
-		// Epic fail
+		// Epic fail, too many tasks
 		return false;
 	}
 
@@ -151,20 +80,24 @@ bool add_task(Direction to, Direction from, Request request, Module* module) {
 	return true;
 }
 
-bool do_task(Task* task, Module* module) {
+bool do_task(Module* module) {
+	Task * task = &(module->tasks[module->current]);
 	int tub = task->request.tub_id;
 
 	if (task->to == OUT) {
-		// request_leave(tub, module->next[task->from], task->request);
+		leave_at(tub, module->next[task->from], task->request.tub_data);
 	} else if (task->from == OUT) {
-		// wait_to_enter(tub, module->next[task->to], task->request);
+		enter_at(tub, module->next[task->to]);
 	} else {
-		// move_within_module(tub, task->from, task->to);
+		move_within_module(tub, task->from, task->to);
 	}
 	
-	// Mayb
 	module->tasks[module->current].from = OUT;
 	module->tasks[module->current].to = OUT;
 	module->current = (module->current + 1) % 7;
 	return true;
+}
+
+bool no_tasks(Module* module) {
+	return (module->current == module->next_free);
 }
