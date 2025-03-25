@@ -89,8 +89,10 @@ void handle_request() {
 
 	// Receive tub at one of your endpoints:
 	add_task(&this, from, to, current_request);
+
 	// TODO: Implement not always responding with a go-ahead to a request
 	send_request_response(origin, 1);
+	
 	if (end != this.id) {
 		// If the tub is not for you, send it to the next module.
 		add_task(&this, to, OUT, current_request);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithm.h"
+#include "movement.c"
 #include <stdbool.h>
 
 //FAKE HAS TO BE IMPLEMENTED

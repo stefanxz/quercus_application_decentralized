@@ -14,7 +14,7 @@ void reset_module() {
 }
 
 void move_within_module(int start, int dest, int tub_id) {
-	if (start == dest) return
+	if (start == dest) return;
 	led_set_color(LED_GREEN);
 
 	if (start == RFID) {
