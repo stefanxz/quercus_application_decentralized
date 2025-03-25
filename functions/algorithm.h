@@ -39,8 +39,9 @@ typedef struct {
 typedef struct Tub {
     int id;
 	int plane_id;
-    int passed_security;
     int destination;
+	
+    bool passed_security;
 	bool plane_dropoff;
 	bool plane_arrived;
 } Tub;

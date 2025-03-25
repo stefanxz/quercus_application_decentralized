@@ -4,74 +4,59 @@
 #include <stdbool.h>
 #include "rfid.h"
 
-int get_security_flag() {
+int get_rfid_data(int type) {
 	if (!RFID_check_tag()) return -1;
+	if (type == PAYLOAD) {
+		//TODO: Check whether module is security
+	}
+
 	char data[BLOCK_SIZE];
-	RFID_read_data_block((int)data, 0);
+	RFID_read_data_block((int)data, type);
 	return data[0];
 }
 
-int get_plane_dropoff_flag() {
+int get_entrance_rfid_data(char* rfid_data) {
 	if (!RFID_check_tag()) return -1;
-	char data[BLOCK_SIZE];
-	RFID_read_data_block((int)data, 1);
-	return data[0];
+	char block_data[BLOCK_SIZE];
+	for (int i = 0; i < END_OF_ENUM; ++i) {
+		RFID_read_data_block((int)block_data, i);
+		rfid_data[i] = block_data[0];
+	}
+	return 0;
 }
 
-int get_plane_id() {
+int set_tub_id(int tub_id) {
 	if (!RFID_check_tag()) return -1;
 	char data[BLOCK_SIZE];
-	RFID_read_data_block((int)data, 2);
-	return data[0];
+	data[0] = tub_id;
+	RFID_write_data_block((int)data, TUB_ID);
+	return 0;
 }
 
-int get_payload() {
+int set_security_flag(int flag) {
 	if (!RFID_check_tag()) return -1;
+	char data[BLOCK_SIZE];
+	data[0] = flag;
+	RFID_write_data_block((int)data, TUB_ID);
+	return 0;
+}
+
+int set_security_passed(int flag) {
+	if (!RFID_check_tag()) return -1;
+	if (!get_rfid_data(SECURITY)) return -2;
 	//TODO: Add check whether module is security
 	char data[BLOCK_SIZE];
-	RFID_read_data_block((int)data, 3);
-	return data[0];
-}
-
-int has_security_been_passed() {
-	if (!RFID_check_tag()) return -1;
-	if (!get_security_flag()) return -2;
-	char data[BLOCK_SIZE];
-	RFID_read_data_block((int)data, 6);
-	return data[0];
-}
-
-int has_plane_arrived() {
-	if (!RFID_check_tag()) return -1;
-	if (!get_plane_dropoff_flag()) return -2;
-	char data[BLOCK_SIZE];
-	RFID_read_data_block((int)data, 7);
-	return data[0];
-}
-
-int get_destination() {
-	if (!RFID_check_tag()) return -1;
-	char data[BLOCK_SIZE];
-	RFID_read_data_block((int)data, 8);
-	return data[0];
-}
-
-int set_security_passed() {
-	if (!RFID_check_tag()) return -1;
-	if (!get_security_flag()) return -2;
-	//TODO: Add check whether module is security
-	char data[BLOCK_SIZE];
-	data[0] = 0x1;
-	RFID_write_data_block((int)data, 6);
+	data[0] = flag;
+	RFID_write_data_block((int)data, SECURITY);
 	return 0;
 }
 
 int set_plane_arrived() {
 	if (!RFID_check_tag()) return -1;
-	if (!get_plane_dropoff_flag()) return -2;
+	if (!get_rfid_data(PLANE_DROPOFF)) return -2;
 	char data[BLOCK_SIZE];
 	data[0] = 0x1;
-	RFID_write_data_block((int)data, 7);
+	RFID_write_data_block((int)data, PLANE_ARRIVED);
 	return 0;
 }
 
@@ -79,6 +64,6 @@ int set_destination(int dest) {
 	if (!RFID_check_tag()) return -1;
 	char data[BLOCK_SIZE];
 	data[0] = dest;
-	RFID_write_data_block((int)data, 8);
+	RFID_write_data_block((int)data, DESTINATION);
 	return 0;
 }

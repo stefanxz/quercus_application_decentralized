@@ -1,38 +1,39 @@
+#pragma once
 #include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
 #include <stdbool.h>
 
 const int BLOCK_SIZE = 4;
 
-// Checks whether a Tub needs to go through security.
-// Returns 1 if Tub needs to pass security, if Tub does not it returns 0.
-int get_security_flag();
+enum RFID_DATA {
+	TUB_PLANE = 0,
+	PLANE_DROPOFF = 1,
+	PLANE_ID = 2,
+	PAYLOAD = 3,
+	DEPARTURE_TIME = 4,
+    TUB_ID = 5,
+    SECURITY = 6,
+	PASSED_SECURITY = 7,
+	PLANE_ARRIVED = 8,
+	DESTINATION = 9,
+    PLANE_DIRECTION = 10, // 0 = outgoing, 1 = incoming
+    END_OF_ENUM = 11
+};
 
-// Checks whether a Tub needs to got to a plane or to dropoff.
-// Returns 1 if Tub needs to got to a plane, and returns 0 if Tub must go to a dropoff.
-int get_plane_dropoff_flag();
+// Retrieve data from the rfid based on the provided type, returns the first byte of the requested data block.
+int get_rfid_data(int type);
 
-// Checks the id of the plane that the Tub is assigned to.
-// Permitted id values range from 0 to 255.
-int get_plane_id();
+// Retrieve all data from the rfid, used for when a tub or plane enters the system. 
+int get_entrance_rfid_data(char* rfid_data);
 
-// Im not sure yet.
-int get_payload();
+// Updates the ID of the Tub.
+int set_tub_id(int tub_id);
 
-// Checks whether a Tub has already passed through security.
-// Returns 1 if Tub still needs to pass security, if Tub has already passed security it returns 0.
-int has_security_been_passed();
-
-// Checks whether the Plane the Tub is assigned to has already arrived.
-// Returns 1 if the assigned plane has arrived, if the assigned plane has not yet arrived it returns 0.
-int has_plane_arrived();
-
-// Checks the id of the Hardware Module that the Tub has currently set as its destination.
-// Permitted id values range from 0 to 255.
-int get_destination();
+// Updates whether a Tub needs to go to security.
+int set_security_flag(int flag);
 
 // Updates whether a Tub has already passed through security.
-int set_security_passed();
+int set_security_passed(int flag);
 
 // Updates whether the Plane the Tub is assigned to has already arrived.
 int set_plane_arrived();

@@ -3,6 +3,7 @@
 #include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
 
+
 enum MESSAGE_TYPE {
     NONE = 0,
     REQUEST_MOVEMENT = 1,
@@ -26,7 +27,7 @@ int send_request_movement(int module_id, char* tub_data);
 int send_updated_tub_location(int tub_id, int location_belt);
 
 // Sends a message to the Pi that a plane with 'plane_id' has arrived or left.
-int send_plane_status(int plane_id);
+int send_plane_status(int plane_id, bool arrival_status);
 
 // Sends a message to the Pi that a tub with 'tub_id' has arrived or left.
 int send_tub_status(char* tub_data);
