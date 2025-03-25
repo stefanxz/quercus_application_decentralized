@@ -5,10 +5,10 @@
 #include "../functions/rfid.c"
 #include "../functions/network.c"
 #include "../functions/graph.c"
-#include "../algo_functions.c"
+// #include "../functions/algorithm.c"
+#include "../pico_in/main.c"
 
 #include <stdbool.h>
-#include <stdio.h>
 
 #define MAX_NUMBER_OF_TUBS 2
 #define MAX_NUMBER_OF_PLANES 100
@@ -18,12 +18,13 @@ int get_message_type(char* msg){
 	return msg[1];
 }
 
-int main(void) {
-	Module module;
-	Module* module_ptr = &module;
-	enum EventType e;
-	char * msg;
-	subscribe_to_event(EVENT_MESSAGE_RECEIVED | EVENT_LASER_LEFT_DETECT | EVENT_LASER_RIGHT_DETECT);
+export int main(void) {
+	// Module module;
+	// Module* module_ptr = &module;
+	// enum EventType e;
+	// char * msg;
+	// subscribe_to_event(EVENT_MESSAGE_RECEIVED | EVENT_LASER_LEFT_DETECT | EVENT_LASER_RIGHT_DETECT);
+	led_set_color(LED_RED);
 	while(true) {
 		// if(){
 		// 	if(RFID_read_data_block(0, 1))
@@ -32,8 +33,8 @@ int main(void) {
 		if(RFID_check_tag()){
 			printf("RFID detected\n");
 		}
-		in(e, module_ptr);
-		sleep(10);
+		// in(e, module_ptr);
+		sleep(50) ;
 		//}
 	}
 	return 0;

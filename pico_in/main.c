@@ -1,7 +1,6 @@
 #include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
 
-#include "../functions/movement.c"
 #include "../functions/rfid.c"
 #include "../functions/algorithm.c"
 
@@ -19,7 +18,7 @@ int in(EventType e, Module* module_ptr) {
 		} 
 		if (e == EVENT_MESSAGE_RECEIVED) {
 			next_message_address(&msg);
-			int type = get_message_type(&msg);
+			int type = (int)&msg[MESSAGE_TYPE];
 			if (type == REQUEST_MOVEMENT) {
 				//Send accept message
 				//Move the actuators

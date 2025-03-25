@@ -96,7 +96,7 @@ void get_request() {
 	while ((e = next_event())) {
 		char* msg;
 		if(e == EVENT_MESSAGE_RECEIVED) {
-			handle_message(&msg, 0);
+			//handle_message(&msg, 0);
 		} else {
 			// Todo: rewire logic
 			return;

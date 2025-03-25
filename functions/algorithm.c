@@ -85,11 +85,11 @@ bool do_task(Module* module) {
 	int tub = task->request.tub_id;
 
 	if (task->to == OUT) {
-		leave_at(tub, module->next[task->from], task->request.tub_data);
+		//leave_at(tub, module->next[task->from], task->request.tub_data);
 	} else if (task->from == OUT) {
-		enter_at(tub, module->next[task->to]);
+		//enter_at(tub, module->next[task->to]);
 	} else {
-		move_within_module(tub, task->from, task->to);
+		//move_within_module(tub, task->from, task->to);
 	}
 	
 	module->tasks[module->current].from = OUT;

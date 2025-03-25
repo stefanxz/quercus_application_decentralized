@@ -10,16 +10,18 @@ WAMRC    ?= wamrc
 # -Wno-incompatible-library-redeclaration: Suppress warnings about redefined functions
 # since we are not using the real stdlib anyway
 CFLAGS   = -Wall -Wextra -Wno-incompatible-library-redeclaration
+
 WASM_OPTS = -target wasm32 -nostdlib \
+			-Wl,--export=__heap_base,--export=__data_end,--export=__global_base \
 		   -Wl,--no-entry \
 		   -Wl,--allow-undefined \
 		   -Wl,--export-dynamic \
 		   -Os
 
-WASM_PI_OPTS = -Wl,-z,stack-size=128 \
+WASM_PI_OPTS = -Wl,-z,stack-size=8096 \
 			   -Wl,--max-memory=65536 \
 
-WASM_PICO_OPTS = -Wl,-z,stack-size=128 \
+WASM_PICO_OPTS = -Wl,-z,stack-size=8096 \
 				 -Wl,--max-memory=65536 \
 
 
@@ -98,7 +100,7 @@ $(AOT_PICO_SECURITY): $(WASM_PICO_SECURITY)
 	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $(AOT_PICO_SECURITY) $(WASM_PICO_SECURITY) > /dev/null
 
 $(AOT_PICO_PLANE): $(WASM_PICO_PLANE)
-	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $(AOT_PICO_PLANE) $(WASM_PICO_PLANE) > /dev/null
+	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $(AOT_PICO_PLANE) $(WASM_PICO_PLANE)
 
 
 # Clean up build artifacts

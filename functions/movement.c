@@ -1,3 +1,4 @@
+#pragma once
 #include "movement.h"
 #include "algorithm.h"
 

@@ -3,7 +3,7 @@
 /* Standard I/O functions */
 #include <stdarg.h>
 
-// int printf(const char* format, ...);
+int printf(const char* format, ...);
 int sprintf(char* str, const char* format, ...);
 int snprintf(char* str, int size, const char* format, ...);
 int vprintf(const char* format, void* args);
@@ -11,22 +11,6 @@ int vsprintf(char* str, const char* format, void* args);
 int vsnprintf(char* str, int size, const char* format, void* args);
 int puts(const char* s);
 int putchar(int c);
-
-void printf(const char* format, ...) {
-	// A fixed-size buffer; adjust size if necessary.
-	char buffer[1024];
-
-	va_list args;
-	va_start(args, format);
-
-	// Use vsnprintf to safely format the string into our buffer.
-	vsnprintf(buffer, sizeof(buffer), format, (void*)args);
-
-	va_end(args);
-
-	// Output the final result using the provided print function.
-	print(buffer);
-}
 
 /* Memory manipulation functions */
 int memcmp(const void* s1, const void* s2, int n);

@@ -1,3 +1,4 @@
+#pragma once
 #include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
 #include <stdbool.h>
