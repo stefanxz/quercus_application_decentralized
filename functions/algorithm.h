@@ -2,6 +2,7 @@
 
 #define MAX_NUMBER_OF_MODULES 7
 #define MAX_NUMBER_OF_PLANES 256
+#define NON -1
 
 #include <stdbool.h>
 
@@ -14,20 +15,21 @@ typedef enum Direction {
 
 // Structure for Request
 typedef struct Request {
-	int type;
 	int sender_id;
-	int destination;
-    int plane_id;
 
 	// RFID info of tub
-	int tub_id;
-    bool security_status;
     bool plane_or_drop_off;
+	int plane_id;
     bool payload;
+	int departure_time;
+	int tub_id;
+	bool security;
+	bool security_status;
     bool plane_arrived;
+	int destination;
 
-	// For calling the movement functions for now
-	char * tub_data;
+	// Raw data of the request
+	char * raw_data;
 } Request;
 
 typedef struct {
