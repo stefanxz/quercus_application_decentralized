@@ -89,30 +89,19 @@ void handle_request() {
 
 	// Receive tub at one of your endpoints:
 	add_task(&this, from, to, current_request);
+	// TODO: Implement not always responding with a go-ahead to a request
+	send_request_response(origin, 1);
 	if (end != this.id) {
 		// If the tub is not for you, send it to the next module.
 		add_task(&this, to, OUT, current_request);
 		add_task(&this, OUT, from, current_request);
 	}
 }
-
-void get_request() {
-	enum EventType e;
-	while ((e = next_event())) {
-		char* msg;
-		if(e == EVENT_MESSAGE_RECEIVED) {
-			//handle_message(&msg, 0);
-		} else {
-			// Todo: rewire logic
-			return;
-		}
-	}
-}
 	
 
 void loop() {
 	if(no_tasks(&this)) { 
-		get_request();
+		get_request(&current_request);
 		handle_request();
 	}
 	do_task(&this);
@@ -121,8 +110,8 @@ void loop() {
 }
 
 export int main(void) {
-	for (int i = 0; i < 100000000; i++)
-	{
+	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
+	for (int i = 0; i < 100000000; i++) {
 		loop();
 	}
 }

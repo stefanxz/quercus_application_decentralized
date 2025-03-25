@@ -84,15 +84,18 @@ bool add_task(Module* module, Direction to, Direction from, Request request) {
 }
 
 bool do_task(Module* module) {
-	Task * task = &(module->tasks[module->current]);
+	Task* task = &(module->tasks[module->current]);
 	int tub = task->request.tub_id;
 
 	if (task->to == OUT) {
-		//leave_at(tub, module->next[task->from], task->request.tub_data);
+		printf("Tub %d to leave module %d\n", tub, module->id);
+		leave_at(tub, module->next[task->from], encode_request(&(task->request)));
 	} else if (task->from == OUT) {
-		//enter_at(tub, module->next[task->to]);
+		printf("Tub %d to enter module %d\n", tub, module->id);
+		enter_at(module->next[task->to]);
 	} else {
-		//move_within_module(tub, task->from, task->to);
+		printf("Tub %d hits the griddy from to %d to %d", tub, task->from, task->to);
+		move_within_module(tub, task->from, task->to);
 	}
 	
 	module->tasks[module->current].from = OUT;
