@@ -21,9 +21,14 @@ void init(Module* mod) {
 
     this.id = mod->id;
     this.is_storage = mod->is_storage;
-    this.lookup[0] = mod->lookup[0];
-    this.lookup[1] = mod->lookup[1];
-    this.lookup[2] = mod->lookup[2];
+
+    for (int i = 0; i < MAX_NUMBER_OF_PLANES; i++) {
+		this.lookup[i] = mod->lookup[i];
+	}
+
+	for (int i = 0; i < MAX_NUMBER_OF_PLANES; i++) {
+		this.plane_to_id[i] = 0;
+	}
 
 	this.next[0] = mod->next[0];
 	this.next[1] = mod->next[1];

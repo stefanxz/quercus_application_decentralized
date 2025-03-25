@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_NUMBER_OF_MODULES 256
+#define MAX_NUMBER_OF_MODULES 7
 #define MAX_NUMBER_OF_PLANES 256
 
 #include <stdbool.h>
@@ -47,8 +47,8 @@ typedef struct Tub {
 
 typedef struct Module {
 	int id;
-	int lookup[MAX_NUMBER_OF_MODULES];
-	int plane_to_id[MAX_NUMBER_OF_MODULES]; // Index 0 will be plane on this module
+	int lookup[MAX_NUMBER_OF_MODULES + 1]; // Index 0 will always be Pi
+	int plane_to_id[MAX_NUMBER_OF_PLANES]; // Index 0 will be plane on this module
 
 	// Module IDs of important modules
 	int dropoff_id;

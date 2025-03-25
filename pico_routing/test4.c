@@ -2,6 +2,6 @@
 #include "test_constants.h"
 
 export int main(void) {
-    init(0);
+    init(&T4);
     loop();
 }
