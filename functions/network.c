@@ -5,7 +5,7 @@
 #define TIMEOUT 50
 
 int send_request_movement(int module_id, char* tub_data) {
-    char data[12];
+    char data[13];
     data[SENDER] = get_own_id();
     data[MESSAGE_TYPE] = REQUEST_MOVEMENT;
     for (int i = 0; i < 10; i++) { data[i+2] = tub_data[i]; }
@@ -21,16 +21,17 @@ int send_updated_tub_location(int tub_id, int location_belt) {
     return send_packet(0, data, sizeof(data));
 }
 
-int send_plane_status(int plane_id) {
-    char data[3];
+int send_plane_status(int plane_id, bool arrival_status) {
+    char data[4];
     data[SENDER] = get_own_id();
     data[MESSAGE_TYPE] = PLANE_STATUS;
     data[2] = plane_id;
+    data[3] = arrival_status;
     return send_packet(0, data, sizeof(data));
 }
 
 int send_tub_status(char* tub_data) {
-    char data[12];
+    char data[13];
     data[SENDER] = get_own_id();
     data[MESSAGE_TYPE] = TUB_STATUS;
     for (int i = 0; i < 10; i++) { data[i+2] = tub_data[i]; }

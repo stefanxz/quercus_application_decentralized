@@ -1,6 +1,7 @@
 #pragma once
 
 #include "algorithm.h"
+#include "rfid.h"
 #include "movement.c"
 #include <stdbool.h>
 
@@ -14,12 +15,15 @@ void broadcast_plane_left(int plane_id, int module_id){
 	printf("Plane %d left\n from Module %d", plane_id, module_id);
 }
 
-Tub create_tub(int id, int security_bit, int destination)
+Tub create_tub(int id, bool passed_security, bool plane_dropoff, bool plane_arrived, int destination, int plane_id)
 {
 	Tub tub;
 	tub.id = id;
-	tub.passed_security = security_bit;
+	tub.passed_security = passed_security;
+	tub.plane_dropoff = plane_dropoff;
 	tub.destination = destination;
+	tub.plane_arrived = plane_arrived;
+	tub.plane_id = plane_id;
 	// tub.is_free = 1;
 	return tub;
 }
@@ -29,7 +33,8 @@ bool check_plane_arrived(Module module, int tub_plane_id){
 	return module.plane_to_id[tub_plane_id] != 0;
 }
 
-int determine_destination(Module* module, bool sec_check_needed, bool sec_check_passed, bool plane_dropoff, int plane_id){
+int determine_destination(Module* module, bool sec_check_passed, bool sec_check_needed, bool plane_dropoff, int plane_id){
+	return 69;
 	if(sec_check_needed)
 		if(sec_check_passed) return module -> quarantine_id;
 		else return module -> security_id;
@@ -37,27 +42,25 @@ int determine_destination(Module* module, bool sec_check_needed, bool sec_check_
 	else return check_plane_arrived(*module, plane_id) ? module->plane_to_id[plane_id] : module->storage_id;
 }
 
+/// @brief Saves the data of a tub to the given module.
+/// @param module pointer to the Module that receives the rfid readings.
 void save_RFID_data(Module* module) {
-	if(true/* is_plane(0) */){
-		// plane detected
-		int plane_id = 1; //get_plane_id();
-		// int deadline = 1; //get_deadline();
-		int direction = 1; // get_direction();
-		int plane_arrived = 1;// has_plane_arrived();
-		module -> plane_to_id[plane_id] = 1;
-		if (plane_arrived) broadcast_plane_detected(plane_id, module -> id);
-		else broadcast_plane_left(plane_id, module -> id);
-	} else {
-		// tub detected
-		int tub_id = 0;//get_tub_id();
-		bool tub_has_passed_security = 0;//has_security_been_passed();
-		int tub_destination = determine_destination(module, tub_has_passed_security, 0 /*get_sec_bit()*/, 0/*  get_plane_dropoff_flag() */,3 /* get_plane_id() */);
-		// write tub destination to module
-		// int tub_priority = -1;
-		
-		module -> tub = create_tub(tub_id, tub_has_passed_security, tub_destination);
-		//send tub status message -> entry
-	}
+	// tub detected
+	char data[END_OF_ENUM];
+	get_entrance_rfid_data(data);
+	int tub_id = (int)data[TUB_ID];
+	bool has_passed_security = (bool)data[PASSED_SECURITY];
+	bool security_bit = (bool) data[SECURITY];
+	bool plane_dropoff = (bool) data[PLANE_DROPOFF];
+
+	int plane_id = (int)data[PLANE_ID];
+
+	int tub_destination = determine_destination(module, has_passed_security, security_bit, plane_dropoff, plane_id);
+	// write tub destination to module
+	// int tub_priority = -1;
+	printf("Tub gets: id: %d, passed_sec:%d, sec_bit:%d, plane_dropoff:%d, plane_id:%d\n", tub_id, has_passed_security, security_bit, plane_dropoff, plane_id);
+	module -> tub = create_tub(tub_id, has_passed_security, plane_dropoff, 1/*FAKE*/, tub_destination, plane_id);
+	//send tub status message -> entry
 }
 
 void change_tub_status(/* Module module */){
