@@ -11,6 +11,7 @@ State state;
 Request current_request;
 
 void init(Module* mod) {
+	Task empty = {.from = OUT, .to = OUT};
     // Initialize the module's state
     state.at[RFID] = -1;
     state.at[LASER_LEFT] = -1;
@@ -23,11 +24,15 @@ void init(Module* mod) {
     this.is_storage = mod->is_storage;
 
     for (int i = 0; i < MAX_NUMBER_OF_PLANES; i++) {
-		this.lookup[i] = mod->lookup[i];
+		this.id_lookup[i] = mod->id_lookup[i];
 	}
 
 	for (int i = 0; i < MAX_NUMBER_OF_PLANES; i++) {
 		this.plane_to_id[i] = 0;
+	}
+	
+	for (int i = 0; i < 7; ++i) {
+		this.tasks[i] = empty;
 	}
 
 	this.next[0] = mod->next[0];
@@ -67,10 +72,11 @@ void handle_request() {
 	}
 
 	int origin = current_request.sender_id;
-	int end = this.lookup[current_request.destination];
+	int end = this.id_lookup[current_request.destination];
 
 	Direction from;
 	Direction to;
+
 	for(int i = 0; i < 3; i++) {
 		if(this.next[i] == origin) {
 			from = i;
@@ -88,32 +94,31 @@ void handle_request() {
 	// Add logic for more complicated scheduling here:
 
 	// Receive tub at one of your endpoints:
-	add_task(&this, from, to, current_request);
+	add_task(&this, OUT, from, current_request);
 
 	// TODO: Implement not always responding with a go-ahead to a request
 	send_request_response(origin, 1);
 	
 	if (end != this.id) {
 		// If the tub is not for you, send it to the next module.
+		add_task(&this, from, to, current_request);
 		add_task(&this, to, OUT, current_request);
-		add_task(&this, OUT, from, current_request);
 	}
 }
 	
 
 void loop() {
 	if(no_tasks(&this)) { 
-		get_request(&current_request);
-		handle_request();
-	}
-	do_task(&this);
-
-	sleep(50);
-}
-
-export int main(void) {
-	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
-	for (int i = 0; i < 100000000; i++) {
-		loop();
+		// printf("No tasks.\n");
+		if (get_request(&current_request)) handle_request();
+	} else{
+		do_task(&this);
 	}
 }
+
+// export int main(void) {
+// 	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
+// 	for (int i = 0; i < 100000000; i++) {
+// 		loop();
+// 	}
+// }

@@ -1,6 +1,7 @@
 #pragma once
 #include "network.h"
 #include "algorithm.h"
+#include "rfid.h"
 
 #define TIMEOUT 50
 
@@ -9,6 +10,7 @@ int send_request_movement(int module_id, char* tub_data) {
     data[SENDER] = get_own_id();
     data[MESSAGE_TYPE] = REQUEST_MOVEMENT;
     for (int i = 0; i < 10; i++) { data[i+2] = tub_data[i]; }
+    printf("net-12 // im sending it\n");
     return send_packet(module_id, data, sizeof(data));
 }
 
@@ -47,30 +49,28 @@ int send_request_response(int module_id, int value) {
 }
 
 char* encode_request(Request* request) {
-    char data[10];
-    data[SENDER] = request->sender_id;
-    data[MESSAGE_TYPE] = REQUEST_MOVEMENT;
-    data[2] = request->plane_or_drop_off;
-    data[3] = request->plane_id;
-    data[4] = request->payload;
-    data[5] = request->departure_time;
-    data[6] = request->tub_id;
-    data[7] = request->security_status;
-    data[8] = request->plane_arrived;
-    data[9] = request->destination;
+    char data[END_OF_ENUM];
+    data[PLANE_DROPOFF] = request->plane_or_drop_off;
+    data[PLANE_ID] = request->plane_id;
+    data[PAYLOAD] = request->payload;
+    data[DEPARTURE_TIME] = request->departure_time;
+    data[TUB_ID] = request->tub_id;
+    data[SECURITY] = request->security_status;
+    data[PLANE_ARRIVED] = request->plane_arrived;
+    data[DESTINATION] = request->destination;
     return &data;
 }
 
 void decode_request(Request* request, char* data) {
     request->sender_id = data[SENDER];
-    request->plane_or_drop_off = data[2];
-    request->plane_id = data[3];
-    request->payload = data[4];
-    request->departure_time = data[5];
-    request->tub_id = data[6];
-    request->security_status = data[7];
-    request->plane_arrived = data[8];
-    request->destination = data[9];
+    request->plane_or_drop_off = data[PLANE_DROPOFF];
+    request->plane_id = data[PLANE_ID];
+    request->payload = data[PAYLOAD];
+    request->departure_time = data[DEPARTURE_TIME];
+    request->tub_id = data[TUB_ID];
+    request->security_status = data[SECURITY];
+    request->plane_arrived = data[PLANE_ARRIVED];
+    request->destination = data[DESTINATION];
 }
 
 int handle_request_response(char* msg) {
@@ -90,16 +90,20 @@ int handle_tub_config(char* msg) {
     return 0;
 }
 
-int await_message(char* msg, int expected_type, char* buffer) {
-    int response;
+int await_message(char* msg, int expected_type) {
+    int response = -1;
     int type;
-
-    while (next_event() == EVENT_MESSAGE_RECEIVED) {
-        printf("Received message\n");
+    EventType e = next_event();
+    while (e == EVENT_MESSAGE_RECEIVED) {
+        printf("e: %d\n", e);
+        printf("net-98 // i'm jaking it.\n");
         next_message_address(&msg);
         type = msg[1];
 
-        if (type == REQUEST_RESPONSE) {
+        if(type == REQUEST_MOVEMENT) {
+            response = 1;
+        }
+        else if (type == REQUEST_RESPONSE) {
             response = handle_request_response(msg);
         } else if (type == PLANE_STATUS) {
             response = handle_plane_status(msg);
@@ -110,27 +114,29 @@ int await_message(char* msg, int expected_type, char* buffer) {
         }
 
         if (expected_type == type) {
-            printf("Expected message, returning response\n");
+            printf("net-113 // expected response got, return\n");
             return response;
-        } 
+        }
+        e = next_event(); 
     }
 
     // This return is never handled, but it is here to prevent a warning
     return -1;
 }
 
-int get_response() {
+bool get_response() {
     char* msg;
-    bool response = await_message(&msg, REQUEST_RESPONSE, NULL);
+    int response = await_message(&msg, REQUEST_RESPONSE);
     free(msg);
-    return response;
+    return (response == NON ? false : true);
 }
 
-void get_request(Request* request) {
+bool get_request(Request* request) {
     char* msg;
     char* data;
-    await_message(&msg, REQUEST_MOVEMENT, data);
-    // TODO: Put data in request fields
-    decode_request(&request, data);
+
+    int response = await_message(&msg, REQUEST_MOVEMENT);
+    decode_request(request, msg);
     free(msg);
+    return (response == NON ? false : true);
 }

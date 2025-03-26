@@ -39,23 +39,23 @@ WAMRC_PI_OPTS = --target=armv8a --target-abi=eabi --cpu=cortex-a53 \
 # WASM_PI     = $(SRC_PI).wasm
 # AOT_PI      = $(SRC_PI).aot
 
-SRC_PICO_IN      = pico_in/main.c
+SRC_PICO_IN      = pico_routing/test2.c
 WASM_PICO_IN     = $(SRC_PICO_IN).wasm
 AOT_PICO_IN      = $(SRC_PICO_IN).aot
 
-SRC_PICO_OUT      = pico_out/main.c
+SRC_PICO_OUT      = pico_routing/test3.c
 WASM_PICO_OUT     = $(SRC_PICO_OUT).wasm
 AOT_PICO_OUT      = $(SRC_PICO_OUT).aot
 
-SRC_PICO_ROUTING      = pico_routing/main.c
+SRC_PICO_ROUTING      = pico_routing/test4.c
 WASM_PICO_ROUTING     = $(SRC_PICO_ROUTING).wasm
 AOT_PICO_ROUTING      = $(SRC_PICO_ROUTING).aot
 
-SRC_PICO_SECURITY      = pico_security/main.c
+SRC_PICO_SECURITY      = pico_routing/test5.c
 WASM_PICO_SECURITY     = $(SRC_PICO_SECURITY).wasm
 AOT_PICO_SECURITY      = $(SRC_PICO_SECURITY).aot
 
-SRC_PICO_PLANE      = pico_plane/main.c
+SRC_PICO_PLANE      = pico_routing/test1.c
 WASM_PICO_PLANE     = $(SRC_PICO_PLANE).wasm
 AOT_PICO_PLANE      = $(SRC_PICO_PLANE).aot
 

@@ -12,7 +12,7 @@ void broadcast_plane_detected(int plane_id, int module_id) {
 
 //FAKE HAS TO BE IMPLMENTED
 void broadcast_plane_left(int plane_id, int module_id){
-	printf("Plane %d left\n from Module %d", plane_id, module_id);
+	printf("Plane %d left\n from Module %d\n", plane_id, module_id);
 }
 
 Tub create_tub(int id, bool passed_security, bool plane_dropoff, bool plane_arrived, int destination, int plane_id)
@@ -24,7 +24,6 @@ Tub create_tub(int id, bool passed_security, bool plane_dropoff, bool plane_arri
 	tub.destination = destination;
 	tub.plane_arrived = plane_arrived;
 	tub.plane_id = plane_id;
-	// tub.is_free = 1;
 	return tub;
 }
 
@@ -34,7 +33,7 @@ bool check_plane_arrived(Module module, int tub_plane_id){
 }
 
 int determine_destination(Module* module, bool sec_check_passed, bool sec_check_needed, bool plane_dropoff, int plane_id){
-	return 69;
+	return 7;//FAKE
 	if(sec_check_needed)
 		if(sec_check_passed) return module -> quarantine_id;
 		else return module -> security_id;
@@ -68,12 +67,9 @@ void change_tub_status(/* Module module */){
     //set_needs_security(1 /* get_payload() */);
     //set_destination(1 /* determine_destination(module, get_payload(), 1, module.tub.plane_dropoff, module.tub.plane_id)*/);
 }
-bool add_task(Module* module, Direction to, Direction from, Request request) {
-	if (module->next_free == module->current) {
-		// Epic fail, too many tasks
-		return false;
-	}
 
+bool add_task(Module* module, Direction from, Direction to, Request request) {
+	printf("algo-72 // added task\n");
 	Task task;
 	task.to = to;
 	task.from = from;
@@ -85,17 +81,18 @@ bool add_task(Module* module, Direction to, Direction from, Request request) {
 }
 
 bool do_task(Module* module) {
+	printf("algo-84 // doing task\n");
 	Task* task = &(module->tasks[module->current]);
 	int tub = task->request.tub_id;
-
+	if(task->to == OUT && task->from == OUT) printf("We are doing an empty task, fml\n");
 	if (task->to == OUT) {
-		printf("Tub %d to leave module %d\n", tub, module->id);
+		printf("Tub %d to leave module %d\n", tub, module->next[task->from]);
 		leave_at(tub, module->next[task->from], encode_request(&(task->request)));
 	} else if (task->from == OUT) {
 		printf("Tub %d to enter module %d\n", tub, module->id);
 		enter_at(module->next[task->to]);
 	} else {
-		printf("Tub %d hits the griddy from to %d to %d", tub, task->from, task->to);
+		printf("Tub %d hits the griddy from to %d to %d\n", tub, task->from, task->to);
 		move_within_module(tub, task->from, task->to);
 	}
 	
@@ -108,3 +105,5 @@ bool do_task(Module* module) {
 bool no_tasks(Module* module) {
 	return (module->current == module->next_free);
 }
+
+void determine_next_direction_to(Module* module, Direction* direction_lookup);

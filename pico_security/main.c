@@ -39,7 +39,7 @@
 // 			} else if (type == TUB_STATUS) {
 // 				// Don't care
 // 			} else if (type == PATHS_CONFIG) {
-// 				// Save lookup table
+// 				// Save id_lookup table
 // 			} else if (type == LOGGING) {
 // 				printf("MESSAGE TYPE WAS WRONG, I DO NOT DO LOGGING\n");
 // 			}

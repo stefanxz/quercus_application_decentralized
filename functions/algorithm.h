@@ -50,7 +50,8 @@ typedef struct Tub {
 
 typedef struct Module {
 	int id;
-	int lookup[MAX_NUMBER_OF_MODULES + 1]; // Index 0 will always be Pi
+	int id_lookup[MAX_NUMBER_OF_MODULES + 1]; // Index 0 will always be Pi
+	Direction direction_lookup[MAX_NUMBER_OF_MODULES + 1]; // Index 0 will always be Pi
 	int plane_to_id[MAX_NUMBER_OF_PLANES]; // Index 0 will be plane on this module
 
 	// Module IDs of important modules
@@ -63,14 +64,14 @@ typedef struct Module {
 	int next[3];
 
 	// Variables for the ring buffer containing the tasks
-	Task tasks[10];
+	Task tasks[7];
 	int current;
 	int next_free;
 
 	// Variables for storing
 	bool is_storage;
 	Direction next_storage;
-	
+
 	Tub tub;
 } Module; // structure for a module containing its essential fields
 

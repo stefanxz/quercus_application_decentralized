@@ -1,6 +1,9 @@
+#include "../functions/algorithm.h"
+
 Module T1 = {
-    .id = 1,
-    .lookup = {-1, 0, 0, 3, 4, 4, 4, 4},
+    .id = 3,
+    .id_lookup = {-1, 0, 0, 3, 4, 4, 4, 4},
+    .direction_lookup = {OUT, OUT, OUT, OUT, LASER_LEFT, LASER_LEFT, LASER_LEFT, LASER_LEFT},
     //.plane_to_id = {-1, -1, -1, -1},
     .dropoff_id = -1,
     .quarantine_id = -1,
@@ -12,8 +15,9 @@ Module T1 = {
     .next = {4, -1, -1}
 };
 Module T2 = {
-    .id = 2,
-    .lookup = {-1, 0, 0, 5, 4, 5, 5, 5},
+    .id = 4,
+    .id_lookup = {-1, 0, 0, 5, 4, 5, 5, 5},
+    .direction_lookup = {OUT, OUT, OUT, LASER_RIGHT, OUT, LASER_LEFT, LASER_LEFT, LASER_LEFT},
     //.plane_to_id = {-1, -1, -1, -1},
     .dropoff_id = -1,
     .quarantine_id = -1,
@@ -25,9 +29,10 @@ Module T2 = {
     .next = {5, 3, 7}
 };          
 Module T3 = {
-    .id = 3,
-    .lookup = {-1, 0, 0, 6, 6, 5, 6, 6},
+    .id = 5,
+    .id_lookup = {-1, 0, 0, 6, 6, 5, 6, 6},
     //.plane_to_id = {-1, -1, -1, -1},
+    .direction_lookup = {OUT, OUT, OUT, LASER_LEFT, LASER_LEFT, OUT, LASER_LEFT, LASER_LEFT},
     .dropoff_id = -1,
     .quarantine_id = -1,
     .security_id = -1,
@@ -38,9 +43,10 @@ Module T3 = {
     .next = {6, -1, 4}
 };
 Module T4 = {
-    .id = 4,
-    .lookup = {-1, 0, 0, 7, 7, 7, 6, 7},
+    .id = 6,
+    .id_lookup = {-1, 0, 0, 7, 7, 7, 6, 7},
     //.plane_to_id = {-1, -1, -1, -1},
+    .direction_lookup = {OUT, OUT, OUT, LASER_LEFT, LASER_LEFT, LASER_LEFT, OUT, LASER_LEFT},
     .dropoff_id = -1,
     .quarantine_id = -1,
     .security_id = -1,
@@ -51,8 +57,9 @@ Module T4 = {
     .next = {7, -1, 5}
 };
 Module T5 = {
-    .id = 5,
-    .lookup = {-1, 0, 0, 4, 4, 4, 4, 7},
+    .id = 7,
+    .id_lookup = {-1, 0, 0, 4, 4, 4, 4, 7},
+    .direction_lookup = {OUT, OUT, OUT, LASER_LEFT, LASER_LEFT, LASER_LEFT, LASER_LEFT, OUT},
     //.plane_to_id = {-1, -1, -1, -1},
     .dropoff_id = -1,
     .quarantine_id = -1,
@@ -66,8 +73,8 @@ Module T5 = {
 
 // Unused for now
 Module T6 = {
-    .id = 6,
-    .lookup = {1, 2, 3},
+    .id = 8,
+    .id_lookup = {1, 2, 3},
     //.plane_to_id = {-1, -1, -1, -1},
     .dropoff_id = 1,
     .quarantine_id = 2,
@@ -79,8 +86,8 @@ Module T6 = {
     .next = {1, 2, 3}
 };
 Module T7 = {
-    .id = 7,
-    .lookup = {1, 2, 3},
+    .id = 9,
+    .id_lookup = {1, 2, 3},
     //.plane_to_id = {-1, -1, -1, -1},
     .dropoff_id = 1,
     .quarantine_id = 2,

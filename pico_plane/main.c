@@ -43,14 +43,14 @@ export int main(void) {
 				int direction = get_rfid_data(PLANE_DIRECTION);
 				if(direction == 1){
 					// send_plane_status(plane_id, plane_arrival);
-					int result = in(e, module_ptr);
-					printf("Result is: %d\n", result);
+					// int result = in(e, module_ptr);
+					// printf("Result is: %d\n", result);
 					//Plane left properly
-					if(result == 0) {
-						led_set_color(0xffa500);
-						sleep(5000);
-						continue;
-					}
+					// if(result == 0) {
+					// 	led_set_color(0xffa500);
+					// 	sleep(5000);
+					// 	continue;
+					// }
 				} else if(direction == 0) {
 					//implement the out logic
 					printf("I am living eternally, SEP is going to be the biggest success of our life\n");

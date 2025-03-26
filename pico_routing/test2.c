@@ -2,6 +2,11 @@
 #include "test_constants.h"
 
 export int main(void) {
+	reset_module();
     init(&T2);
-    loop();
+    subscribe_to_event(EVENT_MESSAGE_RECEIVED);
+    while(1){
+        loop();
+        sleep(1000);
+    }
 }

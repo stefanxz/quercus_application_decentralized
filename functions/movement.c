@@ -1,10 +1,24 @@
 #pragma once
-#include "movement.h"
+// #include "movement.h"
 #include "algorithm.h"
 
 #include "network.c"
 
 #include <stdbool.h>
+
+const int ARM_LEFT = 60;
+const int ARM_RIGHT = 105;
+const int ARM_NEUTRAL = 0;
+
+const int LED_RED = 0xff0000;
+const int LED_GREEN = 0x00ff00;
+const int LED_BLUE = 0x0000ff;
+
+const int BELT_OFF = 0;
+const int BELT_LEFT_SLOW = 20;
+const int BELT_RIGHT_SLOW = -20;
+const int BELT_DOWN_SLOW = 20;
+const int BELT_UP_SLOW = -20;
 
 void reset_module() {
 	led_set_color(LED_RED);
@@ -13,7 +27,7 @@ void reset_module() {
 	servo_angle_set(ARM_NEUTRAL);
 }
 
-void move_within_module(int start, int dest, int tub_id) {
+void move_within_module(int tub_id, int start, int dest) {
 	if (start == dest) return;
 	led_set_color(LED_GREEN);
 
@@ -62,16 +76,20 @@ int leave_at(int module_id, int exit_point, char* tub_data) {
 	led_set_color(LED_GREEN);
 	
 	// Platform fails to send packet:
-	if(send_request_movement(module_id, tub_data) < 0) return NON;
+	for(int i = 0; i < 10; i++) {
+		int resp = send_request_movement(module_id, tub_data);
+		if(resp < 0) {
+			printf("mov-80 // failed move request cause %d, trying again \n", resp);
+		}
+	}
 
     int response;
 	int loop_count = 0;
 
-	for(int i = 0; i < 1000; i++) {
-		if(i % 100 == 0 && send_request_movement(module_id, tub_data) < 0) return NON;
-
+	for(int i = 0; i < 10; i++) {
 		response = get_response();
 		if (response > 0) {
+			printf("mov-95 // response got %d \n", response);
 			if (exit_point == LASER_LEFT) {
 				belt_big_set_speed(BELT_LEFT_SLOW);
 			} else if (exit_point == LASER_RIGHT) {
