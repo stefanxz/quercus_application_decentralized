@@ -7,10 +7,12 @@
 
 int send_request_movement(int module_id, char* tub_data) {
     char data[13];
+    // printf("the id is: %d\n", get_own_id());
     data[SENDER] = get_own_id();
     data[MESSAGE_TYPE] = REQUEST_MOVEMENT;
     for (int i = 0; i < 10; i++) { data[i+2] = tub_data[i]; }
-    printf("net-12 // im sending it\n");
+    // printf("net-12 // im sending it\n");
+    printf("I am sending data with sender: %d\n", data[SENDER]);
     return send_packet(module_id, data, sizeof(data));
 }
 
@@ -63,14 +65,14 @@ char* encode_request(Request* request) {
 
 void decode_request(Request* request, char* data) {
     request->sender_id = data[SENDER];
-    request->plane_or_drop_off = data[PLANE_DROPOFF];
-    request->plane_id = data[PLANE_ID];
-    request->payload = data[PAYLOAD];
-    request->departure_time = data[DEPARTURE_TIME];
-    request->tub_id = data[TUB_ID];
-    request->security_status = data[SECURITY];
-    request->plane_arrived = data[PLANE_ARRIVED];
-    request->destination = data[DESTINATION];
+    request->plane_or_drop_off = data[PLANE_DROPOFF+2];
+    request->plane_id = data[PLANE_ID+2];
+    request->payload = data[PAYLOAD+2];
+    request->departure_time = data[DEPARTURE_TIME+2];
+    request->tub_id = data[TUB_ID+2];
+    request->security_status = data[SECURITY+2];
+    request->plane_arrived = data[PLANE_ARRIVED+2];
+    request->destination = data[DESTINATION+2];
 }
 
 int handle_request_response(char* msg) {
@@ -90,53 +92,58 @@ int handle_tub_config(char* msg) {
     return 0;
 }
 
-int await_message(char* msg, int expected_type) {
+int await_message(char** msg_ptr, int expected_type) {
     int response = -1;
-    int type;
+    char type;
     EventType e = next_event();
     while (e == EVENT_MESSAGE_RECEIVED) {
-        printf("e: %d\n", e);
-        printf("net-98 // i'm jaking it.\n");
-        next_message_address(&msg);
-        type = msg[1];
-
+        next_message_address(msg_ptr);
+        type = (*msg_ptr)[MESSAGE_TYPE];
+        printf("Type: %d, Sender:%d\n", type, (*msg_ptr)[SENDER]);
+        
         if(type == REQUEST_MOVEMENT) {
             response = 1;
-        }
+        } 
         else if (type == REQUEST_RESPONSE) {
-            response = handle_request_response(msg);
+            response = handle_request_response(*msg_ptr);
         } else if (type == PLANE_STATUS) {
-            response = handle_plane_status(msg);
+            response = handle_plane_status(*msg_ptr);
         } else if (type == PATHS_CONFIG) {
-            response = handle_paths_config(msg);
+            response = handle_paths_config(*msg_ptr);
         } else if (type == TUB_CONFIG) {
-            response = handle_tub_config(msg);
+            response = handle_tub_config(*msg_ptr);
         }
-
         if (expected_type == type) {
-            printf("net-113 // expected response got, return\n");
+            // printf("net-113 // expected response got, return\n");
             return response;
         }
         e = next_event(); 
     }
-
+    printf("Grindset\n");
     // This return is never handled, but it is here to prevent a warning
-    return -1;
+    return response;
 }
 
 bool get_response() {
     char* msg;
+    printf("I am waiting for a response.\n");
     int response = await_message(&msg, REQUEST_RESPONSE);
-    free(msg);
+    if(response > 0) free(msg);
     return (response == NON ? false : true);
 }
 
 bool get_request(Request* request) {
     char* msg;
-    char* data;
 
+    // msg[0] = (char)-7;
+    // msg[1] = (char)-77;
+    
     int response = await_message(&msg, REQUEST_MOVEMENT);
+    printf("msg has: %d, %d, %d\n", (int)msg[SENDER], (int)msg[MESSAGE_TYPE], (int)msg[2]);
     decode_request(request, msg);
+    // msg[0] = (char)0;
+    // msg[1] = (char)0;
+    sleep(1000);
     free(msg);
     return (response == NON ? false : true);
 }

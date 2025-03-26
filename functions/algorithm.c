@@ -57,7 +57,7 @@ void save_RFID_data(Module* module) {
 	int tub_destination = determine_destination(module, has_passed_security, security_bit, plane_dropoff, plane_id);
 	// write tub destination to module
 	// int tub_priority = -1;
-	printf("Tub gets: id: %d, passed_sec:%d, sec_bit:%d, plane_dropoff:%d, plane_id:%d\n", tub_id, has_passed_security, security_bit, plane_dropoff, plane_id);
+	// printf("Tub gets: id: %d, passed_sec:%d, sec_bit:%d, plane_dropoff:%d, plane_id:%d\n", tub_id, has_passed_security, security_bit, plane_dropoff, plane_id);
 	module -> tub = create_tub(tub_id, has_passed_security, plane_dropoff, 1/*FAKE*/, tub_destination, plane_id);
 	//send tub status message -> entry
 }
@@ -69,7 +69,7 @@ void change_tub_status(/* Module module */){
 }
 
 bool add_task(Module* module, Direction from, Direction to, Request request) {
-	printf("algo-72 // added task\n");
+	// printf("algo-72 // added task\n");
 	Task task;
 	task.to = to;
 	task.from = from;
@@ -81,16 +81,16 @@ bool add_task(Module* module, Direction from, Direction to, Request request) {
 }
 
 bool do_task(Module* module) {
-	printf("algo-84 // doing task\n");
+	// printf("algo-84 // doing task\n");
 	Task* task = &(module->tasks[module->current]);
 	int tub = task->request.tub_id;
 	if(task->to == OUT && task->from == OUT) printf("We are doing an empty task, fml\n");
 	if (task->to == OUT) {
-		printf("Tub %d to leave module %d\n", tub, module->next[task->from]);
-		leave_at(tub, module->next[task->from], encode_request(&(task->request)));
+		printf("Tub %d to leave to module %d by %d\n", tub, module->next[task->from], task->from);
+		leave_at(module->next[task->from], task->from, encode_request(&(task->request)));
 	} else if (task->from == OUT) {
 		printf("Tub %d to enter module %d\n", tub, module->id);
-		enter_at(module->next[task->to]);
+		enter_at(task->to);//QUESTIONMARK
 	} else {
 		printf("Tub %d hits the griddy from to %d to %d\n", tub, task->from, task->to);
 		move_within_module(tub, task->from, task->to);

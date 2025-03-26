@@ -76,18 +76,19 @@ int leave_at(int module_id, int exit_point, char* tub_data) {
 	led_set_color(LED_GREEN);
 	
 	// Platform fails to send packet:
-	for(int i = 0; i < 10; i++) {
+	// for(int i = 0; i < 10; i++) {
 		int resp = send_request_movement(module_id, tub_data);
 		if(resp < 0) {
-			printf("mov-80 // failed move request cause %d, trying again \n", resp);
+			printf("mov-80 // failed move request cause %d\n", resp);
 		}
-	}
+	// }
 
     int response;
 	int loop_count = 0;
 
-	for(int i = 0; i < 10; i++) {
+	for(int i = 0; i < 1000; i++) {
 		response = get_response();
+		printf("I am still standing.\n");
 		if (response > 0) {
 			printf("mov-95 // response got %d \n", response);
 			if (exit_point == LASER_LEFT) {
@@ -99,10 +100,11 @@ int leave_at(int module_id, int exit_point, char* tub_data) {
 			}
 			sleep(5000); // TODO: Test this timing.
 			reset_module();
+			return response;
 		}
-		return response;
 		sleep(100);	
     }
+	return -1;
 }
 
 bool enter_at(int from) {

@@ -6,6 +6,11 @@ State state;
 Request current_request;
 
 export int main(void) {
-    init(&T4);
-    loop();
+    // init(&T4);
+
+    // loop();
+    
+    while(1){
+
+    }
 }

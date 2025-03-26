@@ -9,7 +9,6 @@ export int main(void) {
     while(1){
         in(&this);
         loop();
-
         sleep(100);
     }
 }

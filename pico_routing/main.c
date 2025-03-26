@@ -65,12 +65,12 @@ void handle_storage(Direction from, Direction to) {
 }
 
 void handle_request() {
-	// Reroute tub if it's plane has arrived
+
+	// Reroute tub if its plane has arrived
 	if(!current_request.plane_arrived && this.plane_to_id[current_request.plane_id] != 0) {
 		current_request.destination = this.plane_to_id[current_request.plane_id];
 		current_request.plane_arrived = true;
 	}
-
 	int origin = current_request.sender_id;
 	int end = this.id_lookup[current_request.destination];
 
@@ -97,6 +97,7 @@ void handle_request() {
 	add_task(&this, OUT, from, current_request);
 
 	// TODO: Implement not always responding with a go-ahead to a request
+	printf("I am sending the response. Origin = %d\n", origin);
 	send_request_response(origin, 1);
 	
 	if (end != this.id) {
