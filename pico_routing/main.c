@@ -1,41 +1,42 @@
-#include <stdbool.h>
-#include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
+#include "../quercus_lib_pico.h"
+#include <stdbool.h>
 
+#include "../functions/algorithm.c"
 #include "../functions/movement.c"
 #include "../functions/rfid.c"
-#include "../functions/algorithm.c"
 
 Module this;
 State state;
-char current_request[MSG_HEAD + RFID_LENGTH];
+char current_request[REQ_LENGTH];
 
 void init(Module* mod) {
 	Task empty = {.from = OUT, .to = OUT};
-    // Initialize the module's state
-    state.at[RFID] = -1;
-    state.at[LASER_LEFT] = -1;
-    state.at[LASER_RIGHT] = -1;
+
+	// Initialize the module's state
+	state.at[RFID] = NON;
+	state.at[LASER_LEFT] = NON;
+	state.at[LASER_RIGHT] = NON;
 
 	this.current = mod->current;
 	this.next_free = mod->next_free;
 
-	this.security_id = mod-> security_id;
-	this.quarantine_id = mod-> quarantine_id;
-	this.storage_id = mod-> storage_id;
-	this.dropoff_id = mod-> dropoff_id;
-	
-    this.id = mod->id;
-    this.is_storage = mod->is_storage;
+	this.security_id = mod->security_id;
+	this.quarantine_id = mod->quarantine_id;
+	this.storage_id = mod->storage_id;
+	this.dropoff_id = mod->dropoff_id;
 
-    for (int i = 0; i < MAX_NUMBER_OF_PLANES; i++) {
+	this.id = mod->id;
+	this.is_storage = mod->is_storage;
+
+	for (int i = 0; i < MAX_NUMBER_OF_PLANES; i++) {
 		this.id_lookup[i] = mod->id_lookup[i];
 	}
 
 	for (int i = 0; i < MAX_NUMBER_OF_PLANES; i++) {
 		this.plane_to_id[i] = 0;
 	}
-	
+
 	for (int i = 0; i < 7; ++i) {
 		this.tasks[i] = empty;
 	}
@@ -47,20 +48,20 @@ void init(Module* mod) {
 
 void handle_storage(Direction from, Direction to) {
 	// If RFID is empty, move tub to side of RFID
-	if (from < RFID && to < RFID && state.at[RFID] == -1) {
-		if(state.at[from] != -1) {
+	if (from < RFID && to < RFID && state.at[RFID] == NON) {
+		if (state.at[from] != NON) {
 			add_task(&this, from, RFID, current_request);
-		} else if (state.at[to] != -1) {
+		} else if (state.at[to] != NON) {
 			add_task(&this, to, RFID, current_request);
 		} else {
 			return;
 		}
 	} else {
 		// If RFID is full or needs to be passed through, move tub to adjacent storage module.
-		if (state.at[from] != -1) {
+		if (state.at[from] != NON) {
 			add_task(&this, from, this.next_storage, current_request);
 			add_task(&this, this.next_storage, OUT, current_request);
-		} else if (state.at[to] != -1) {
+		} else if (state.at[to] != NON) {
 			add_task(&this, to, this.next_storage, current_request);
 			add_task(&this, this.next_storage, OUT, current_request);
 		} else {
@@ -70,27 +71,27 @@ void handle_storage(Direction from, Direction to) {
 }
 
 void handle_request() {
-	int plane_arrived = current_request[MSG_HEAD + PLANE_ARRIVED];
-	int plane_id = current_request[MSG_HEAD + PLANE_ID];
+	int plane_arrived = current_request[REQ_PLANE_ARRIVED];
+	int plane = current_request[REQ_PLANE_ID];
 
 	// Reroute tub if its plane has arrived
-	if(!plane_arrived && this.plane_to_id[plane_id] != 0) {
-		current_request[MSG_HEAD + DESTINATION]= this.plane_to_id[plane_id];
-		current_request[MSG_HEAD + PLANE_ARRIVED] = 1;
+	if (!plane_arrived && this.plane_to_id[plane] != 0) {
+		current_request[REQ_DEST_ID] = this.plane_to_id[plane];
+		current_request[REQ_PLANE_ARRIVED] = 1;
 	}
 
-	int origin = current_request[SENDER];
-	int end = this.id_lookup[(int) current_request[DESTINATION+MSG_HEAD]];
+	int origin = current_request[MSG_SENDER];
+	int end = this.id_lookup[current_request[REQ_DEST_ID]];
 
 	Direction from;
 	Direction to;
 
-	for(int i = 0; i < 3; i++) {
-		if(this.next[i] == origin) {
+	for (int i = 0; i < 3; i++) {
+		if (this.next[i] == origin) {
 			from = i;
 		}
 
-		if(this.next[i] == end) {
+		if (this.next[i] == end) {
 			to = i;
 		}
 	}
@@ -103,24 +104,23 @@ void handle_request() {
 	// TODO: Implement not always responding with a go-ahead to a request
 	printf("I am sending the response. Origin = %d\n", origin);
 	send_request_response(origin, 1);
-	
+
 	// Receive tub at one of your endpoints:
 	add_task(&this, OUT, from, current_request);
-	
+
 	// if (end != this.id) {
-		// If the tub is not for you, send it to the next module.
+	// If the tub is not for you, send it to the next module.
 	add_task(&this, from, to, current_request);
 	add_task(&this, to, OUT, current_request);
 	// }
 }
-	
 
 void loop() {
-	if(no_tasks(&this)) { 
+	if (no_tasks(&this)) {
 		// printf("No tasks.\n");
-		if (get_request(&current_request)) handle_request();
+		if (await_request(&this, &current_request)) handle_request();
 		sleep(1000);
-	} else{
+	} else {
 		do_task(&this);
 	}
 }

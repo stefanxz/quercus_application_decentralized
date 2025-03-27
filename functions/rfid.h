@@ -1,29 +1,29 @@
 #pragma once
-#include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
+#include "../quercus_lib_pico.h"
 #include <stdbool.h>
 
 const int BLOCK_SIZE = 4;
 
-enum RFID_DATA {
+enum DataOnRFID {
 	TUB_OR_PLANE = 0,
 	PLANE_OR_DROPOFF = 1,
 	PLANE_ID = 2,
 	PAYLOAD = 3,
 	DEPARTURE_TIME = 4,
-    TUB_ID = 5,
-    SECURITY = 6,
+	TUB_ID = 5,
+	NEEDS_SECURITY = 6,
 	PASSED_SECURITY = 7,
 	PLANE_ARRIVED = 8,
 	DESTINATION = 9,
-    PLANE_DIRECTION = 10, // 0 = outgoing, 1 = incoming
-    RFID_LENGTH = 11
+	PLANE_DIRECTION = 10, // 0 = outgoing, 1 = incoming
+	RFID_LENGTH = 11
 };
 
 // Retrieve data from the rfid based on the provided type, returns the first byte of the requested data block.
 int get_rfid_data(int type);
 
-// Retrieve all data from the rfid, used for when a tub or plane enters the system. 
+// Retrieve all data from the rfid, used for when a tub or plane enters the system.
 int get_entrance_rfid_data(char* rfid_data);
 
 // Updates the ID of the Tub.

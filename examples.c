@@ -1,8 +1,8 @@
-#include "quercus_lib_pico.h"
-#include "libc_builtin.h"
 #include "functions/movement.c"
-#include "functions/rfid.c"
 #include "functions/network.c"
+#include "functions/rfid.c"
+#include "libc_builtin.h"
+#include "quercus_lib_pico.h"
 
 int current_tub_id = 0;
 
@@ -51,7 +51,7 @@ int current_tub_id = 0;
 
 //     if (expected_type == message_type) {
 //         return response;
-//     } 
+//     }
 //     return -1;
 // }
 
@@ -182,7 +182,7 @@ void demo() {
 // 	char* msg;
 //     char data[END_OF_ENUM];
 //     //Fill data with tub data
-//     while (1) {		
+//     while (1) {
 //         if (RFID_check_tag()) {
 // 			belt_small_set_speed(BELT_OFF);
 // 			move_within_module(-1, RFID, LASER_RIGHT);
@@ -219,7 +219,7 @@ void demo() {
 //         }
 //         if (next_event() == EVENT_MESSAGE_RECEIVED) {
 //             next_message_address(&msg);
-//             if (msg[MESSAGE_TYPE] == TUB_CONFIG) {
+//             if (msg[MSG_TYPE] == TUB_CONFIG) {
 //                 set_tub_id(msg[2]);
 //                 break;
 //             } else {

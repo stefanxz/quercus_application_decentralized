@@ -1,13 +1,13 @@
 #pragma once
-#include "../quercus_lib_pico.h"
-#include "../libc_builtin.h"
-#include <stdbool.h>
 #include "rfid.h"
+#include "../libc_builtin.h"
+#include "../quercus_lib_pico.h"
+#include <stdbool.h>
 
 int get_rfid_data(int type) {
 	if (!RFID_check_tag()) return -1;
 	if (type == PAYLOAD) {
-		//TODO: Check whether module is security
+		// TODO: Check whether module is security
 	}
 
 	char data[BLOCK_SIZE];
@@ -43,11 +43,11 @@ int set_security_flag(int flag) {
 
 int set_security_passed(int flag) {
 	if (!RFID_check_tag()) return -1;
-	if (!get_rfid_data(SECURITY)) return -2;
-	//TODO: Add check whether module is security
+	if (!get_rfid_data(NEEDS_SECURITY)) return -2;
+	// TODO: Add check whether module is security
 	char data[BLOCK_SIZE];
 	data[0] = flag;
-	RFID_write_data_block((int)data, SECURITY);
+	RFID_write_data_block((int)data, NEEDS_SECURITY);
 	return 0;
 }
 

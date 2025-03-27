@@ -1,5 +1,5 @@
-#include "../quercus_lib_pico.h"
 #include "../libc_builtin.h"
+#include "../quercus_lib_pico.h"
 
 const int ARM_LEFT = 60;
 const int ARM_RIGHT = 105;
@@ -14,7 +14,6 @@ const int BELT_LEFT_SLOW = 20;
 const int BELT_RIGHT_SLOW = -20;
 const int BELT_DOWN_SLOW = 20;
 const int BELT_UP_SLOW = -20;
-
 
 // Stops the belts, resets the arm and turn the LED to red.
 void reset_module();

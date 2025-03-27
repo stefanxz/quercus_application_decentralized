@@ -11,24 +11,24 @@ enum GRAPH {
 
 // Structure a hardware module
 typedef struct {
-    int id;
-    int type;
-    int a;
-    int b;
-    int c;
+	int id;
+	int type;
+	int a;
+	int b;
+	int c;
 } Module;
 
 // Structure for an adjacency list node
 typedef struct Node {
-    int dest;
-    struct Node* next;
+	int dest;
+	struct Node* next;
 } Node;
 
 // Structure for an adjacency list
 typedef struct Graph {
-    int vertices;
-    Node** adjLists; // Array of linked lists
+	int vertices;
+	Node** adjLists; // Array of linked lists
 } Graph;
 
 // Converts the module 'layout' into a graph given the specific 'vertex_type'.
-Graph* convert_to_graph(char *layout, int vertex_type);
+Graph* convert_to_graph(char* layout, int vertex_type);

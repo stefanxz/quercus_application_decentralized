@@ -4,6 +4,7 @@
 #include "../functions/rfid.c"
 #include "../functions/algorithm.c"
 
+#include "../functions/algorithm.h"
 #include "../functions/network.h"
 
 #define COLOR_CYAN 0x00FFFF
@@ -21,18 +22,21 @@ int in(Module* module) {
 			if (plane_has_arrived) return 0;
 		} else {
 			save_RFID_data(module);
-			char request[MSG_HEAD + RFID_LENGTH];
-			request[SENDER] = module -> id;
-			request[MESSAGE_TYPE] = REQUEST_MOVEMENT;
+			char request[REQ_LENGTH];
+			request[MSG_SENDER] = module -> id;
+			request[MSG_TYPE] = REQUEST_MOVEMENT;
 
 			// FIX
-			request[MSG_HEAD + TUB_ID] = module -> tub.id;
-			request[MSG_HEAD + PLANE_ID] = module -> tub.plane_id;
-			request[MSG_HEAD + PLANE_ARRIVED] = module -> tub.plane_arrived;
-			request[MSG_HEAD + DESTINATION] = module -> tub.destination;
-			request[MSG_HEAD + PLANE_OR_DROPOFF] = module -> tub.plane_dropoff;
-			request[MSG_HEAD + PASSED_SECURITY] = module -> tub.passed_security;
-			request[MSG_HEAD + SECURITY] = -17;//FAKE
+			request[REQ_TUB_ID] = module -> tub.id;
+
+			request[REQ_PLANE_ID] = module -> tub.plane_id;
+			request[REQ_PLANE_ARRIVED] = module -> tub.plane_arrived;
+			request[REQ_DEST_ID] = module -> tub.destination;
+			request[REQ_DEST_TYPE] = STORAGE;
+
+			// FIX
+			request[REQ_SECURITY] = module -> tub.passed_security;
+			request[REQ_PAYLOAD] = -17; //FAKE
 			
 			add_task(module, RFID, module->direction_lookup[module->tub.destination], request);
 			add_task(module, module->direction_lookup[module->tub.destination], OUT, request);
