@@ -25,7 +25,11 @@ void reset_module() {
 	belt_big_set_speed(BELT_OFF);
 
 	// Wait a little before resetting the arm
-	sleep(100);
+	float curr_pos = servo_angle_get();
+	for(int i =0; i < 10; ++i){
+		servo_angle_set(curr_pos -= curr_pos/10);	
+		sleep(25);
+	}
 	servo_angle_set(ARM_NEUTRAL);
 }
 
@@ -67,6 +71,7 @@ void move_within_module(int tub_id, int start, int dest) {
 		}
 		sleep(10);
 	}
+	sleep(20);
 	reset_module();
 
 	if (tub_id >= 0) { 
@@ -76,20 +81,12 @@ void move_within_module(int tub_id, int start, int dest) {
 
 int leave_at(int module_id, int exit_point, char* tub_data) {
 	led_set_color(LED_GREEN);
-	
-	// Platform fails to send packet:
-	// for(int i = 0; i < 10; i++) {
-		// int resp = send_request_movement(module_id, tub_data);
-		// if(resp < 0) {
-		// 	printf("mov-80 // failed move request cause %d\n", resp);
-		// }
-	// }
     int response;
 
-	// Send request to move:
-	int resp = send_request_movement(module_id, tub_data);
-	if(resp < 0) {
+	// Send until success:
+	for(int i = 0; i < 10, send_request_movement(module_id, tub_data) < 0; i++) {
 		printf("move // packet loss\n");
+		sleep(100);
 	}
 
 	// Wait for response to arrive and acquire it:
@@ -104,16 +101,14 @@ int leave_at(int module_id, int exit_point, char* tub_data) {
 		} else {
 			belt_small_set_speed(BELT_DOWN_SLOW);
 		}
-
 		// Wait for tub to leave:
-		sleep(1000);
+		sleep(2000);
 
 		reset_module();
 		return response;
+	} else {
+		return NON;
 	}
-
-	// If no response is ever received, return -1:
-	return -1;
 }
 
 bool enter_at(int from) {

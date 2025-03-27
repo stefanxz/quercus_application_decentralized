@@ -5,15 +5,15 @@
 
 #define PAUSE 250 // in ms
 
-int send_request_movement(int module_id, char* tub_data) {
-    char data[13];
+int send_request_movement(int module_id, char* data) {
+    
     // printf("the id is: %d\n", get_own_id());
     data[SENDER] = get_own_id();
-    data[MESSAGE_TYPE] = REQUEST_MOVEMENT;
-    for (int i = 0; i < 10; i++) { data[i+2] = tub_data[i]; }
+    // data[MESSAGE_TYPE] = REQUEST_MOVEMENT;
+    // for (int i = 0; i < 10; i++) { data[i+2] = tub_data[i]; }
     // printf("net-12 // im sending it\n");
-    printf("I am sending data with sender: %d\n", data[SENDER]);
-    return send_packet(module_id, data, sizeof(data));
+    printf("I am sending data with sender: %d and dest:%d\n", data[SENDER], data[DESTINATION+MSG_HEAD]);
+    return send_packet(module_id, data, (RFID_LENGTH+MSG_HEAD));//HARDCODED, WATCHOUT
 }
 
 int send_updated_tub_location(int tub_id, int location_belt) {
@@ -51,7 +51,7 @@ int send_request_response(int module_id, int value) {
 }
 
 void copy_message(char* dest, char* src) {
-    for (int i = 0; i < 13; i++) {
+    for (int i = 0; i < RFID_LENGTH + MSG_HEAD; i++) {
         dest[i] = src[i];
     }
 }
@@ -86,7 +86,7 @@ int await_message(char** msg_ptr, int expected_type) {
             next_message_address(msg_ptr);
             type = (*msg_ptr)[MESSAGE_TYPE];
 
-            printf("Type: %d, Sender:%d\n", type, (*msg_ptr)[SENDER]);
+            printf("Type: %d, Sender:%d, Dest:%d, Tub_id: %d, Tub_plane:%d\n", type, (*msg_ptr)[SENDER], (*msg_ptr)[DESTINATION+MSG_HEAD],  (*msg_ptr)[TUB_ID+MSG_HEAD],  (*msg_ptr)[TUB_OR_PLANE+MSG_HEAD]);
             
             if(type == REQUEST_MOVEMENT) {
                 response = 1;
@@ -108,8 +108,7 @@ int await_message(char** msg_ptr, int expected_type) {
             e = next_event(); 
         }
     }
-
-    printf("Grindset, %d\n", response);
+    // printf("Grindset, %d\n", response);
     // This return is never handled, but it is here to prevent a warning
     return response;
 }
@@ -131,7 +130,9 @@ bool get_request(char* request) {
     char* msg;
     int response = await_message(&msg, REQUEST_MOVEMENT);
     
+
     if(response >= 0){
+        printf("Destination: %d, Sender: %d, Tub id: %d\n", msg[DESTINATION+MSG_HEAD], msg[SENDER], msg[TUB_ID + MSG_HEAD]);
         copy_message(request, msg);
         free(msg);
         return true;

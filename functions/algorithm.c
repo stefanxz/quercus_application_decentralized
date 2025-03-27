@@ -28,13 +28,14 @@ Tub create_tub(int id, bool passed_security, bool plane_dropoff, bool plane_arri
 
 bool check_plane_arrived(Module module, int tub_plane_id) { return module.plane_to_id[tub_plane_id] != 0; }
 
-int determine_destination(Module* module, bool sec_check_passed, bool sec_check_needed, bool plane_dropoff,
-						  int plane_id) {
-	return 7; // FAKE
-	if (sec_check_needed)
-		if (sec_check_passed) return module->quarantine_id;
-		else return module->security_id;
-	else if (plane_dropoff) return module->dropoff_id;
+int determine_destination(Module* module, bool sec_check_passed, bool sec_check_needed, bool plane_dropoff, int plane_id){
+	if(sec_check_needed)
+		if(sec_check_passed) return module -> quarantine_id;
+		else {
+			printf("wtf is going on\n");
+			return module -> security_id;
+		}
+	else if (plane_dropoff) return module -> dropoff_id;
 	else return check_plane_arrived(*module, plane_id) ? module->plane_to_id[plane_id] : module->storage_id;
 }
 
@@ -50,14 +51,13 @@ void save_RFID_data(Module* module) {
 	bool plane_dropoff = (bool)data[PLANE_OR_DROPOFF];
 
 	int plane_id = (int)data[PLANE_ID];
-
+	bool plane_arrived = module -> plane_to_id[plane_id];
 	int tub_destination = determine_destination(module, has_passed_security, security_bit, plane_dropoff, plane_id);
 	// write tub destination to module
 	// int tub_priority = -1;
-	// printf("Tub gets: id: %d, passed_sec:%d, sec_bit:%d, plane_dropoff:%d, plane_id:%d\n", tub_id,
-	// has_passed_security, security_bit, plane_dropoff, plane_id);
-	module->tub = create_tub(tub_id, has_passed_security, plane_dropoff, 1 /*FAKE*/, tub_destination, plane_id);
-	// send tub status message -> entry
+	// printf("Tub gets: id: %d, passed_sec:%d, sec_bit:%d, plane_dropoff:%d, plane_id:%d\n", tub_id, has_passed_security, security_bit, plane_dropoff, plane_id);
+	module -> tub = create_tub(tub_id, has_passed_security, plane_dropoff, plane_arrived, tub_destination, plane_id);
+	//send tub status message -> entry
 }
 
 void change_tub_status(/* Module module */) {
@@ -88,7 +88,8 @@ bool do_task(Module* module) {
 
 	if (task->to == OUT) {
 		printf("Tub %d to leave to module %d by %d\n", tub, module->next[task->from], task->from);
-		leave_at(module->next[task->from], task->from, task->request);
+		printf("request ptr: %d, request[2] ptr: %d\n", task -> request, task -> request);
+		leave_at(module->next[task->from], task->from, task -> request);
 	} else if (task->from == OUT) {
 		printf("Tub %d to enter module %d\n", tub, module->id);
 		enter_at(task->to);

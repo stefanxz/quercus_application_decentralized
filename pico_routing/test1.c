@@ -6,6 +6,7 @@ export int main(void) {
 	reset_module();
     init(&T1);
     subscribe_to_event(EVENT_MESSAGE_RECEIVED);
+    printf("alpha id: %d\n", this.security_id);
     while(1){
         in(&this);
         loop();

@@ -20,6 +20,11 @@ void init(Module* mod) {
 	this.current = mod->current;
 	this.next_free = mod->next_free;
 
+	this.security_id = mod-> security_id;
+	this.quarantine_id = mod-> quarantine_id;
+	this.storage_id = mod-> storage_id;
+	this.dropoff_id = mod-> dropoff_id;
+	
     this.id = mod->id;
     this.is_storage = mod->is_storage;
 
@@ -75,7 +80,7 @@ void handle_request() {
 	}
 
 	int origin = current_request[SENDER];
-	int end = this.id_lookup[(int) current_request[DESTINATION]];
+	int end = this.id_lookup[(int) current_request[DESTINATION+MSG_HEAD]];
 
 	Direction from;
 	Direction to;

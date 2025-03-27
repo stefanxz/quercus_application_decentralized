@@ -7,7 +7,7 @@ Module T1 = {
     //.plane_to_id = {-1, -1, -1, -1},
     .dropoff_id = -1,
     .quarantine_id = -1,
-    .security_id = -1,
+    .security_id = 7,
     .storage_id = 4,
     .is_storage = false,
     .current = 0,
@@ -16,7 +16,7 @@ Module T1 = {
 };
 Module T2 = {
     .id = 4,
-    .id_lookup = {-1, 0, 0, 5, 4, 5, 5, 5},
+    .id_lookup = {-1, 0, 0, 3, 4, 5, 5, 5},
     .direction_lookup = {OUT, OUT, OUT, LASER_RIGHT, OUT, LASER_LEFT, LASER_LEFT, LASER_LEFT},
     //.plane_to_id = {-1, -1, -1, -1},
     .dropoff_id = -1,
