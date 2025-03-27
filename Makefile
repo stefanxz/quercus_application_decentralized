@@ -34,10 +34,10 @@ WAMRC_PICO_OPTS = --target=thumbv6m --target-abi=eabi --cpu=cortex-m0 \
 WAMRC_PI_OPTS = --target=armv8a --target-abi=eabi --cpu=cortex-a53 \
 				--enable-builtin-intrinsics=all
 
-# Files
-# SRC_PI      = pi/main.c
-# WASM_PI     = $(SRC_PI).wasm
-# AOT_PI      = $(SRC_PI).aot
+#Files
+SRC_PI      = pi/main.c
+WASM_PI     = $(SRC_PI).wasm
+AOT_PI      = $(SRC_PI).aot
 
 SRC_PICO_IN      = pico_routing/test2.c
 WASM_PICO_IN     = $(SRC_PICO_IN).wasm

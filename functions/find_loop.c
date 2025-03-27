@@ -1,3 +1,4 @@
+#pragma once
 #define MAX_PATH_LENGTH 100
 #define MAX_CYCLES 10
 #define MAX_NODES 100

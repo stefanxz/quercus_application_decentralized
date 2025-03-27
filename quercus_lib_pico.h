@@ -23,7 +23,7 @@ extern void print(const char* str);
 extern void sleep(int ms);
 
 extern int get_own_id();
-extern int get_network_map(char* dest, int dest_size);
+extern char* get_network_map();
 
 extern void subscribe_to_event(int event_type);
 extern void unsubscribe_from_event(int event_type);
