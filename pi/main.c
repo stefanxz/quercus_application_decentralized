@@ -1,6 +1,7 @@
 #include "../quercus_lib_pico.h"
 
 #include "../libc_builtin.h"
+#include "../functions/graph.c"
 #include "../functions/graph.h"
 #include "../functions/network.h"
  
@@ -93,7 +94,10 @@ export int main(void) {
                 case REQUEST_RESPONSE:
                     printf("I am Pi, I should not be receiving movement request responses.\n");
                     break;
-                case PATHS_CONFIG:
+                case REQUEST_PATH_CONFIG:
+                    break;
+                default:
+                    break;
             }
         }
         e = next_event();

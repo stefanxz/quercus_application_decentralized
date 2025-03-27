@@ -1,195 +1,216 @@
+#include "graph.h"
 
-// Module modules[MAX_MODULES];
 ModulePi modules[MAX_MODULES];
 int count = 0;  
 int highest_id_module = 0;
 
-// 	if (strcmp(type, "tdefault") == 0) return 0;
-// 	if (strcmp(type, "tgate") == 0) return 1;
-// 	if (strcmp(type, "tcheck-in") == 0) return 2;
-// 	if (strcmp(type, "tsecurity") == 0) return 3;
-// 	if (strcmp(type, "tdrop-off") == 0) return 4;
-// 	if (strcmp(type, "tquarantine") == 0) return 5;
-// 	return -1;
-// }
+int map_type_to_int(const char *type) {
+    if (strcmp(type, "tdefault") == 0) return 0;
+    if (strcmp(type, "tgate") == 0) return 1;
+    if (strcmp(type, "tcheck-in") == 0) return 2;
+    if (strcmp(type, "tsecurity") == 0) return 3;
+    if (strcmp(type, "tdrop-off") == 0) return 4;
+    if (strcmp(type, "tquarantine") == 0) return 5;
+    return -1; 
+}
 
-// // Example string:
-// char* data = "0\n"
-// 			 "T1,tdefault,a11,b7,c2\n"
-// 			 "T2,tdefault,a1,b5,c3\n"
-// 			 "T3,tdefault,a2,b6,c4\n"
-// 			 "T4,tcheck-in,a0,b0,c3\n"
-// 			 "T5,tsecurity,a6,b2,c7\n"
-// 			 "T6,tsecurity,a8,b3,c5\n"
-// 			 "T7,tsecurity,a9,b5,c1\n"
-// 			 "T8,tquarantine,a96,b0,c6\n"
-// 			 "T9,tgate,a10,b0,c7\n"
-// 			 "T10,tgate,a0,b0,c9\n"
-// 			 "T11,tdrop-off,a1,b0,c0";
+// Example string:
+char *data =
+        "0\n"
+        "T1,tdefault,a11,b7,c2\n"
+        "T2,tdefault,a1,b5,c3\n"
+        "T3,tdefault,a2,b6,c4\n"
+        "T4,tcheck-in,a0,b0,c3\n"
+        "T5,tsecurity,a6,b2,c7\n"
+        "T6,tsecurity,a8,b3,c5\n"
+        "T7,tsecurity,a9,b5,c1\n"
+        "T8,tquarantine,a96,b0,c6\n"
+        "T9,tgate,a10,b0,c7\n"
+        "T10,tgate,a0,b0,c9\n"
+        "T11,tdrop-off,a1,b0,c0";
 
-// int parse_config(char* data) {
-// 	int i = 0;
-// 	int firstLineNumber = 0;
+int parse_config(char *data) {
+    int i = 0;
+    int firstLineNumber = 0;
 
-// 	// Read first line (number)
-// 	while (data[i] && data[i] != '\n') {
-// 		firstLineNumber = firstLineNumber * 10 + (data[i] - '0');
-// 		i++;
-// 	}
-// 	if (data[i] == '\n') i++; // Skip newline
+    // Read first line (number)
+    while (data[i] && data[i] != '\n') {
+        firstLineNumber = firstLineNumber * 10 + (data[i] - '0');
+        i++;
+    }
+    if (data[i] == '\n') i++;  // Skip newline
 
-// 	while (data[i]) {
-// 		// Parse line manually
-// 		int m_num = 0, a_val = 0, b_val = 0, c_val = 0;
-// 		char type_str[50];
-// 		int j = 0;
+    while (data[i]) {
+        // Parse line manually
+        int m_num = 0, a_val = 0, b_val = 0, c_val = 0;
+        char type_str[50];
+        int j = 0;
 
-// 		// Expecting: M<num>,
-// 		if (data[i] == 'T') {
-// 			i++;
-// 			while (data[i] >= '0' && data[i] <= '9') {
-// 				m_num = m_num * 10 + (data[i] - '0');
-// 				i++;
-// 			}
-// 		}
+        // Expecting: M<num>,
+        if (data[i] == 'T') {
+            i++;
+            while (data[i] >= '0' && data[i] <= '9') {
+                m_num = m_num * 10 + (data[i] - '0');
+                i++;
+            }
+        }
 
-// 		// Skip comma
-// 		if (data[i] == ',') i++;
+        // Skip comma
+        if (data[i] == ',') i++;
 
-// 		// Parse type string
-// 		j = 0;
-// 		while (data[i] && data[i] != ',') {
-// 			if (j < 49) type_str[j++] = data[i];
-// 			i++;
-// 		}
-// 		type_str[j] = '\0';
-// 		if (data[i] == ',') i++;
+        //Parse type string
+        j = 0;
+        while (data[i] && data[i] != ',') {
+            if (j < 49) type_str[j++] = data[i];
+            i++;
+        }
+        type_str[j] = '\0';
+        if (data[i] == ',') i++;
 
-// 		// Expecting: a<num>,
-// 		if (data[i] == 'a') i++;
-// 		while (data[i] >= '0' && data[i] <= '9') {
-// 			a_val = a_val * 10 + (data[i] - '0');
-// 			i++;
-// 		}
-// 		if (data[i] == ',') i++;
+        // Expecting: a<num>,
+        if (data[i] == 'a') i++;
+        while (data[i] >= '0' && data[i] <= '9') {
+            a_val = a_val * 10 + (data[i] - '0');
+            i++;
+        }
+        if (data[i] == ',') i++;
 
-// 		// Expecting: b<num>,
-// 		if (data[i] == 'b') i++;
-// 		while (data[i] >= '0' && data[i] <= '9') {
-// 			b_val = b_val * 10 + (data[i] - '0');
-// 			i++;
-// 		}
-// 		if (data[i] == ',') i++;
+        // Expecting: b<num>,
+        if (data[i] == 'b') i++;
+        while (data[i] >= '0' && data[i] <= '9') {
+            b_val = b_val * 10 + (data[i] - '0');
+            i++;
+        }
+        if (data[i] == ',') i++;
 
-// 		// Expecting: c<num>
-// 		if (data[i] == 'c') i++;
-// 		while (data[i] >= '0' && data[i] <= '9') {
-// 			c_val = c_val * 10 + (data[i] - '0');
-// 			i++;
-// 		}
+        // Expecting: c<num>
+        if (data[i] == 'c') i++;
+        while (data[i] >= '0' && data[i] <= '9') {
+            c_val = c_val * 10 + (data[i] - '0');
+            i++;
+        }
 
-// 		// Skip to next line
-// 		while (data[i] && data[i] != '\n')
-// 			i++;
-// 		if (data[i] == '\n') i++;
+        // Skip to next line
+        while (data[i] && data[i] != '\n') i++;
+        if (data[i] == '\n') i++;
 
-// 		// Store in modules
-// 		modules[m_num].id = m_num;
-// 		modules[m_num].type = map_type_to_int(type_str);
-// 		modules[m_num].a = a_val;
-// 		modules[m_num].b = b_val;
-// 		modules[m_num].c = c_val;
-// 		count++;
-// 		if (highest_id_module < m_num) {
-// 			highest_id_module = m_num;
-// 		}
-// 	}
+        // Store in modules
+        modules[m_num].id = m_num;
+        modules[m_num].type = map_type_to_int(type_str);
+        modules[m_num].a = a_val;
+        modules[m_num].b = b_val;
+        modules[m_num].c = c_val;
+        count++;
+        if (highest_id_module < m_num) {
+            highest_id_module = m_num;
+        }
+    }
 
-// 	return firstLineNumber;
-// }
+    return firstLineNumber;
+}
 
-// // Function to create a graph with `vertices` number of nodes
-// Graph* createGraph(int vertices) {
-// 	Graph* graph = (Graph*)malloc(sizeof(Graph));
-// 	graph->vertices = vertices;
+// Function to create a graph with `vertices` number of nodes
+Graph* createGraph(int vertices) {
+    Graph* graph = (Graph*)malloc(sizeof(Graph));
+    graph->vertices = vertices;
+    
+    // Allocate memory for adjacency lists
+    graph->adjLists = (Node**)malloc((vertices+1) * sizeof(Node*));
+    
+    // Initialize adjacency lists as empty
+    for (int i = 0; i <= vertices; i++)
+        graph->adjLists[i] = NULL;
 
-// 	// Allocate memory for adjacency lists
-// 	graph->adjLists = (Node**)malloc((vertices + 1) * sizeof(Node*));
+    return graph;
+}
 
-// 	// Initialize adjacency lists as empty
-// 	for (int i = 0; i <= vertices; i++)
-// 		graph->adjLists[i] = NULL;
+// Function to create a new adjacency list node
+Node* createNode(int vertex) {
+    Node* newNode = (Node*) malloc(sizeof(Node));
+    newNode->vertex = vertex;
+    newNode->next = NULL;
+    for(int i = 0; i < MAX_MODULES; i++){
+		newNode->dist[i] = 0;
+	}
+    return newNode;
+}
 
-// 	return graph;
-// }
+// Function to add an edge to an undirected graph
+void addEdge(Graph* graph, int src, int vertex) {
+    // Add edge from src to vertex
+    Node* newNode = createNode(vertex);
+    newNode->next = graph->adjLists[src];
+    graph->adjLists[src] = newNode;
+}
 
-// // Function to create a new adjacency list node
-// Node* createNode(int dest) {
-// 	Node* newNode = (Node*)malloc(sizeof(Node));
-// 	newNode->dest = dest;
-// 	newNode->next = NULL;
-// 	return newNode;
-// }
+// Function to remove an edge from the graph
+void removeEdge(Graph* graph, int src, int vertex) {
+    Node* temp = graph->adjLists[src];
+    Node* prev = NULL;
 
-// // Function to add an edge to an undirected graph
-// void addEdge(Graph* graph, int src, int dest) {
-// 	// Add edge from src to dest
-// 	Node* newNode = createNode(dest);
-// 	newNode->next = graph->adjLists[src];
-// 	graph->adjLists[src] = newNode;
-// }
+    // Search for the destination node in the adjacency list of the source
+    while (temp != NULL && temp->vertex != vertex) {
+        prev = temp;
+        temp = temp->next;
+    }
 
-// // Function to remove an edge from the graph
-// void removeEdge(Graph* graph, int src, int dest) {
-// 	Node* temp = graph->adjLists[src];
-// 	Node* prev = NULL;
+    // If the destination node is found, remove it
+    if (temp != NULL) {
+        if (prev != NULL) {
+            prev->next = temp->next;
+        } else {
+            graph->adjLists[src] = temp->next;
+        }
+        free(temp);
+    }
+}
 
-// 	// Search for the destination node in the adjacency list of the source
-// 	while (temp != NULL && temp->dest != dest) {
-// 		prev = temp;
-// 		temp = temp->next;
-// 	}
+// Function to print the adjacency list
+void printGraph(Graph* graph) {
+    for (int i = 0; i <= graph->vertices; i++) {
+        if (!modules[i/2].id) { continue; }
+        Node* temp = graph->adjLists[i];
+        printf("Adjacency list of vertex %d: ", i);
+        while (temp) {
+            printf("%d -> ", temp->vertex);
+            temp = temp->next;
+        }
+        printf("NULL\n");
+    }
+}
 
-// 	// If the destination node is found, remove it
-// 	if (temp != NULL) {
-// 		if (prev != NULL) {
-// 			prev->next = temp->next;
-// 		} else {
-// 			graph->adjLists[src] = temp->next;
-// 		}
-// 		free(temp);
-// 	}
-// }
+// Free memory for graph (NOT USED IN THIS FILE BUT MIGHT BE USEFUL LATER)
+void freeGraph(Graph* graph) {
+    for (int i = 0; i < graph->vertices; i++) {
+        Node* temp = graph->adjLists[i];
+        while (temp) {
+            Node* toFree = temp;
+            temp = temp->next;
+            free(toFree);
+        }
+    }
+    free(graph->adjLists);
+    free(graph);
+}
 
-// // Function to print the adjacency list
-// void printGraph(Graph* graph) {
-// 	for (int i = 0; i <= graph->vertices; i++) {
-// 		if (!modules[i / 2].id) {
-// 			continue;
-// 		}
-// 		Node* temp = graph->adjLists[i];
-// 		printf("Adjacency list of vertex %d: ", i);
-// 		while (temp) {
-// 			printf("%d -> ", temp->dest);
-// 			temp = temp->next;
-// 		}
-// 		printf("NULL\n");
-// 	}
-// }
+// Main function to test the adjacency list implementation
+Graph* convert_to_graph(char *layout, int vertex_type) {
+    parse_config(layout);
+    // Start a DFS from each node.
+    // The  only follows neighbors with id >= start so that each cycle's canonical representation is encountered once.
+    for (int i = 0; i < count; i++) {
+        int start = modules[i].id;
+        dfs(modules, count, start, start, 0);
+    }
+    
+    printf("Total unique cycles: %d\n", cycleCount);
 
-// // Free memory for graph (NOT USED IN THIS FILE BUT MIGHT BE USEFUL LATER)
-// void freeGraph(Graph* graph) {
-// 	for (int i = 0; i < graph->vertices; i++) {
-// 		Node* temp = graph->adjLists[i];
-// 		while (temp) {
-// 			Node* toFree = temp;
-// 			temp = temp->next;
-// 			free(toFree);
-// 		}
-// 	}
-// 	free(graph->adjLists);
-// 	free(graph);
-// }
+    Cycle largest_loop;
+    largest_loop.length = 0;
+    for (int i = 0; i < count; i++) {
+        if (cycleArr[i].length > largest_loop.length) {
+            largest_loop.length = cycleArr[i].length;
+            for (int j = 0; j < cycleArr[i].length; j++) { 
                 largest_loop.nodes[j] = cycleArr[i].nodes[j];
             }
         }
