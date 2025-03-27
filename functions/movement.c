@@ -88,7 +88,7 @@ int leave_at(int module_id, int exit_point, char* tub_data) {
 
 	for(int i = 0; i < 1000; i++) {
 		response = get_response();
-		printf("I am still standing.\n");
+		// printf("I am still standing.\n");
 		if (response > 0) {
 			printf("mov-95 // response got %d \n", response);
 			if (exit_point == LASER_LEFT) {
@@ -98,8 +98,9 @@ int leave_at(int module_id, int exit_point, char* tub_data) {
 			} else {
 				belt_small_set_speed(BELT_DOWN_SLOW);
 			}
-			sleep(5000); // TODO: Test this timing.
+			sleep(1000); // TODO: Test this timing.
 			reset_module();
+			printf("I AM RETURNING\n");
 			return response;
 		}
 		sleep(100);	
@@ -119,9 +120,9 @@ bool enter_at(int from) {
 	while (1) {
 		if (from == RFID && RFID_check_tag()) {
 			break;
-		} else if (from == LASER_LEFT && laser_left_detect()) {
+		} else if (from == LASER_LEFT && !laser_left_detect()) {
 			break;
-		} else if (from == LASER_RIGHT && laser_right_detect()) {
+		} else if (from == LASER_RIGHT && !laser_right_detect()) {
 			break;
 		}
 		sleep(10);

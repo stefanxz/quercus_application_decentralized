@@ -92,19 +92,18 @@ void handle_request() {
 	}
 
 	// Add logic for more complicated scheduling here:
-
-	// Receive tub at one of your endpoints:
-	add_task(&this, OUT, from, current_request);
-
 	// TODO: Implement not always responding with a go-ahead to a request
 	printf("I am sending the response. Origin = %d\n", origin);
 	send_request_response(origin, 1);
 	
-	if (end != this.id) {
+	// Receive tub at one of your endpoints:
+	add_task(&this, OUT, from, current_request);
+	
+	// if (end != this.id) {
 		// If the tub is not for you, send it to the next module.
-		add_task(&this, from, to, current_request);
-		add_task(&this, to, OUT, current_request);
-	}
+	add_task(&this, from, to, current_request);
+	add_task(&this, to, OUT, current_request);
+	// }
 }
 	
 
@@ -112,6 +111,7 @@ void loop() {
 	if(no_tasks(&this)) { 
 		// printf("No tasks.\n");
 		if (get_request(&current_request)) handle_request();
+		sleep(1000);
 	} else{
 		do_task(&this);
 	}

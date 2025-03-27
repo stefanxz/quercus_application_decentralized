@@ -99,6 +99,7 @@ bool do_task(Module* module) {
 	module->tasks[module->current].from = OUT;
 	module->tasks[module->current].to = OUT;
 	module->current = (module->current + 1) % 7;
+	printf("current: %d, next_free: %d\n", module->current, module->next_free);
 	return true;
 }
 

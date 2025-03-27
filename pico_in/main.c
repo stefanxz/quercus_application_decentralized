@@ -14,8 +14,6 @@ State state;
 
 int in(Module* module) {
 	char* msg;
-	led_set_color(0xff0000);
-	// sleep(5000);
 	led_set_color(COLOR_CYAN);
 	// while(true) {
 		if (RFID_check_tag()) {

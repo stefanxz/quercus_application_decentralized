@@ -1,16 +1,13 @@
 #include "main.c"
 #include "test_constants.h"
 
-Module this;
-State state;
-Request current_request;
-
 export int main(void) {
-    // init(&T4);
+    reset_module();
+    init(&T4);
+    subscribe_to_event(EVENT_MESSAGE_RECEIVED);
 
-    // loop();
-    
     while(1){
-
+        loop();
+        sleep(100);
     }
 }

@@ -76,7 +76,7 @@ void decode_request(Request* request, char* data) {
 }
 
 int handle_request_response(char* msg) {
-    return  msg[2];
+    return  msg[MESSAGE_TYPE];
 }
 
 int handle_plane_status(char* msg) {
@@ -119,31 +119,33 @@ int await_message(char** msg_ptr, int expected_type) {
         }
         e = next_event(); 
     }
-    printf("Grindset\n");
+    printf("Grindset, %d\n", response);
     // This return is never handled, but it is here to prevent a warning
     return response;
 }
 
 bool get_response() {
     char* msg;
-    printf("I am waiting for a response.\n");
+    // printf("I am waiting for a response.\n");
     int response = await_message(&msg, REQUEST_RESPONSE);
-    if(response > 0) free(msg);
+    // printf("You make my head spin right round\n");
+    if(response >= 0) free(msg);
+    // printf("When you go down, down\n");
+    // sleep(1000);
     return (response == NON ? false : true);
 }
 
 bool get_request(Request* request) {
     char* msg;
-
-    // msg[0] = (char)-7;
-    // msg[1] = (char)-77;
-    
     int response = await_message(&msg, REQUEST_MOVEMENT);
-    printf("msg has: %d, %d, %d\n", (int)msg[SENDER], (int)msg[MESSAGE_TYPE], (int)msg[2]);
-    decode_request(request, msg);
-    // msg[0] = (char)0;
-    // msg[1] = (char)0;
-    sleep(1000);
-    free(msg);
+    
+    // printf("Epic solo incoming: \n");
+    // sleep(200);
+    if(response >= 0){
+        decode_request(request, msg);
+        free(msg);
+    } 
+    // printf("Freebird\n");
+    // sleep(1000);
     return (response == NON ? false : true);
 }
