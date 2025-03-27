@@ -6,8 +6,6 @@
 
 #include "../functions/network.h"
 
-#include <stdbool.h>
-
 #define COLOR_CYAN 0x00FFFF
 
 State state;
