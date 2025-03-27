@@ -80,11 +80,12 @@ int handle_tub_config(char* msg) {
 	return 0;
 }
 
-int await_message(Module* module, char** msg_ptr, int expected, bool forever) {
+int await_message(Module* module, char** msg_ptr, int expected, bool persistent) {
 	int response = NON;
 	char type;
 
-	for (int i = 0; i < 10 || forever; i++) {
+	for (int i = 0; i < 10 || persistent; i++) {
+		//printf("im jaking it\n");
 		sleep(PAUSE);
 
 		EventType e = next_event();

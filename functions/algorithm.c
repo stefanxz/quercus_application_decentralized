@@ -86,7 +86,7 @@ bool request_to_leave(Module* module, int next_id, char* request) {
 	int response;
 
 	// Send 10 times or until success:
-	for (int i = 0; i < 10 && send_request_movement(module->id, request) < 0; i++) {
+	for (int i = 0; i < 10 && send_request_movement(next_id, request) < 0; i++) {
 		printf("move // packet loss\n");
 		sleep(100);
 	}

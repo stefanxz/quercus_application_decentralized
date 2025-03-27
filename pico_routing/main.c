@@ -58,6 +58,7 @@ void handle_storage(Direction from, Direction to) {
 		}
 	} else {
 		// If RFID is full or needs to be passed through, move tub to adjacent storage module.
+		state.is_storing = false;
 		if (state.at[from] != NON) {
 			add_task(&this, from, this.next_storage, current_request);
 			add_task(&this, this.next_storage, OUT, current_request);
@@ -84,6 +85,7 @@ void handle_request() {
 	int end = this.id_lookup[current_request[REQ_DEST_ID]];
 
 	Direction from;
+	// TODO: Look into this
 	Direction to;
 
 	for (int i = 0; i < 3; i++) {
@@ -96,7 +98,7 @@ void handle_request() {
 		}
 	}
 
-	if (this.is_storage) {
+	if (this.is_storage && state.is_storing) {
 		handle_storage(from, to);
 	}
 
@@ -108,19 +110,31 @@ void handle_request() {
 	// Receive tub at one of your endpoints:
 	add_task(&this, OUT, from, current_request);
 
-	// if (end != this.id) {
-	// If the tub is not for you, send it to the next module.
+	if(end == this.id) {
+		printf("sad griddy :( \n");
+		state.is_storing = true;
+		return;
+	}
 	add_task(&this, from, to, current_request);
 	add_task(&this, to, OUT, current_request);
-	// }
+}
+
+void update_state() {
+	int from = this.tasks[this.current].from;
+	int to = this.tasks[this.current].to;
+
+	if(from != OUT) state.at[from] = NON;
+	if(to != OUT) state.at[to] = this.tasks[this.current].request[REQ_TUB_ID];
+	printf("state: %d, %d, %d", state.at[0], state.at[1], state.at[2]);
 }
 
 void loop() {
 	if (no_tasks(&this)) {
 		// printf("No tasks.\n");
 		if (await_request(&this, &current_request)) handle_request();
-		sleep(1000);
+		sleep(500);
 	} else {
+		update_state(&this);
 		do_task(&this);
 	}
 }
