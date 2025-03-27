@@ -17,7 +17,8 @@ enum MESSAGE_TYPE {
 
 enum MESSAGE_BLOCK {
     SENDER = 0,
-    MESSAGE_TYPE = 1
+    MESSAGE_TYPE = 1,
+    MSG_HEAD = 2
 };
 
 // Sends a message to request movement to a module with 'module_id' and with the specific 'tub_data'.

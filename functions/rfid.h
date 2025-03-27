@@ -6,8 +6,8 @@
 const int BLOCK_SIZE = 4;
 
 enum RFID_DATA {
-	TUB_PLANE = 0,
-	PLANE_DROPOFF = 1,
+	TUB_OR_PLANE = 0,
+	PLANE_OR_DROPOFF = 1,
 	PLANE_ID = 2,
 	PAYLOAD = 3,
 	DEPARTURE_TIME = 4,
@@ -17,7 +17,7 @@ enum RFID_DATA {
 	PLANE_ARRIVED = 8,
 	DESTINATION = 9,
     PLANE_DIRECTION = 10, // 0 = outgoing, 1 = incoming
-    END_OF_ENUM = 11
+    RFID_LENGTH = 11
 };
 
 // Retrieve data from the rfid based on the provided type, returns the first byte of the requested data block.

@@ -8,7 +8,7 @@
 
 Module this;
 State state;
-Request current_request;
+char current_request[MSG_HEAD + RFID_LENGTH];
 
 void init(Module* mod) {
 	Task empty = {.from = OUT, .to = OUT};
@@ -65,14 +65,17 @@ void handle_storage(Direction from, Direction to) {
 }
 
 void handle_request() {
+	int plane_arrived = current_request[MSG_HEAD + PLANE_ARRIVED];
+	int plane_id = current_request[MSG_HEAD + PLANE_ID];
 
 	// Reroute tub if its plane has arrived
-	if(!current_request.plane_arrived && this.plane_to_id[current_request.plane_id] != 0) {
-		current_request.destination = this.plane_to_id[current_request.plane_id];
-		current_request.plane_arrived = true;
+	if(!plane_arrived && this.plane_to_id[plane_id] != 0) {
+		current_request[MSG_HEAD + DESTINATION]= this.plane_to_id[plane_id];
+		current_request[MSG_HEAD + PLANE_ARRIVED] = 1;
 	}
-	int origin = current_request.sender_id;
-	int end = this.id_lookup[current_request.destination];
+
+	int origin = current_request[SENDER];
+	int end = this.id_lookup[(int) current_request[DESTINATION]];
 
 	Direction from;
 	Direction to;

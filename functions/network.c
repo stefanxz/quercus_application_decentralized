@@ -3,7 +3,7 @@
 #include "algorithm.h"
 #include "rfid.h"
 
-#define TIMEOUT 50
+#define PAUSE 250 // in ms
 
 int send_request_movement(int module_id, char* tub_data) {
     char data[13];
@@ -50,29 +50,10 @@ int send_request_response(int module_id, int value) {
     return send_packet(module_id, data, sizeof(data));
 }
 
-char* encode_request(Request* request) {
-    char data[END_OF_ENUM];
-    data[PLANE_DROPOFF] = request->plane_or_drop_off;
-    data[PLANE_ID] = request->plane_id;
-    data[PAYLOAD] = request->payload;
-    data[DEPARTURE_TIME] = request->departure_time;
-    data[TUB_ID] = request->tub_id;
-    data[SECURITY] = request->security_status;
-    data[PLANE_ARRIVED] = request->plane_arrived;
-    data[DESTINATION] = request->destination;
-    return &data;
-}
-
-void decode_request(Request* request, char* data) {
-    request->sender_id = data[SENDER];
-    request->plane_or_drop_off = data[PLANE_DROPOFF+2];
-    request->plane_id = data[PLANE_ID+2];
-    request->payload = data[PAYLOAD+2];
-    request->departure_time = data[DEPARTURE_TIME+2];
-    request->tub_id = data[TUB_ID+2];
-    request->security_status = data[SECURITY+2];
-    request->plane_arrived = data[PLANE_ARRIVED+2];
-    request->destination = data[DESTINATION+2];
+void copy_message(char* dest, char* src) {
+    for (int i = 0; i < 13; i++) {
+        dest[i] = src[i];
+    }
 }
 
 int handle_request_response(char* msg) {
@@ -93,32 +74,41 @@ int handle_tub_config(char* msg) {
 }
 
 int await_message(char** msg_ptr, int expected_type) {
-    int response = -1;
+    int response = NON;
     char type;
-    EventType e = next_event();
-    while (e == EVENT_MESSAGE_RECEIVED) {
-        next_message_address(msg_ptr);
-        type = (*msg_ptr)[MESSAGE_TYPE];
-        printf("Type: %d, Sender:%d\n", type, (*msg_ptr)[SENDER]);
-        
-        if(type == REQUEST_MOVEMENT) {
-            response = 1;
-        } 
-        else if (type == REQUEST_RESPONSE) {
-            response = handle_request_response(*msg_ptr);
-        } else if (type == PLANE_STATUS) {
-            response = handle_plane_status(*msg_ptr);
-        } else if (type == PATHS_CONFIG) {
-            response = handle_paths_config(*msg_ptr);
-        } else if (type == TUB_CONFIG) {
-            response = handle_tub_config(*msg_ptr);
+
+    for (int i = 0; i < 10; i++) {
+        sleep(PAUSE);
+
+        EventType e = next_event();
+        // Sift mailbox for messages
+        while (e == EVENT_MESSAGE_RECEIVED) {
+            next_message_address(msg_ptr);
+            type = (*msg_ptr)[MESSAGE_TYPE];
+
+            printf("Type: %d, Sender:%d\n", type, (*msg_ptr)[SENDER]);
+            
+            if(type == REQUEST_MOVEMENT) {
+                response = 1;
+            } else if (type == REQUEST_RESPONSE) {
+                response = handle_request_response(*msg_ptr);
+            } else if (type == PLANE_STATUS) {
+                response = handle_plane_status(*msg_ptr);
+            } else if (type == PATHS_CONFIG) {
+                response = handle_paths_config(*msg_ptr);
+            } else if (type == TUB_CONFIG) {
+                response = handle_tub_config(*msg_ptr);
+            }
+
+            // If you get the message you need, return it
+            if (expected_type == type) {
+                // printf("net-113 // expected response got, return\n");
+                return response;
+            }
+            e = next_event(); 
         }
-        if (expected_type == type) {
-            // printf("net-113 // expected response got, return\n");
-            return response;
-        }
-        e = next_event(); 
     }
+
     printf("Grindset, %d\n", response);
     // This return is never handled, but it is here to prevent a warning
     return response;
@@ -129,23 +119,23 @@ bool get_response() {
     // printf("I am waiting for a response.\n");
     int response = await_message(&msg, REQUEST_RESPONSE);
     // printf("You make my head spin right round\n");
-    if(response >= 0) free(msg);
-    // printf("When you go down, down\n");
-    // sleep(1000);
-    return (response == NON ? false : true);
+    if(response >= 0) {
+        free(msg);
+        return true;
+    } else {
+        return false;
+    }
 }
 
-bool get_request(Request* request) {
+bool get_request(char* request) {
     char* msg;
     int response = await_message(&msg, REQUEST_MOVEMENT);
     
-    // printf("Epic solo incoming: \n");
-    // sleep(200);
     if(response >= 0){
-        decode_request(request, msg);
+        copy_message(request, msg);
         free(msg);
-    } 
-    // printf("Freebird\n");
-    // sleep(1000);
-    return (response == NON ? false : true);
+        return true;
+    } else {
+        return false;
+    }
 }

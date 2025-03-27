@@ -18,7 +18,7 @@ int get_rfid_data(int type) {
 int get_entrance_rfid_data(char* rfid_data) {
 	if (!RFID_check_tag()) return -1;
 	char block_data[BLOCK_SIZE];
-	for (int i = 0; i < END_OF_ENUM; ++i) {
+	for (int i = 0; i < RFID_LENGTH; ++i) {
 		RFID_read_data_block((int)block_data, i);
 		rfid_data[i] = block_data[0];
 	}
@@ -53,7 +53,7 @@ int set_security_passed(int flag) {
 
 int set_plane_arrived() {
 	if (!RFID_check_tag()) return -1;
-	if (!get_rfid_data(PLANE_DROPOFF)) return -2;
+	if (!get_rfid_data(PLANE_OR_DROPOFF)) return -2;
 	char data[BLOCK_SIZE];
 	data[0] = 0x1;
 	RFID_write_data_block((int)data, PLANE_ARRIVED);

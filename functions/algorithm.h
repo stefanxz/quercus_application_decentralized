@@ -13,29 +13,10 @@ typedef enum Direction {
 	OUT = 3
 } Direction;
 
-// Structure for Request
-typedef struct Request {
-	int sender_id;
-
-	// RFID info of tub
-    bool plane_or_drop_off;
-	int plane_id;
-    bool payload;
-	int departure_time;
-	int tub_id;
-	bool security;
-	bool security_status;
-    bool plane_arrived;
-	int destination;
-
-	// Raw data of the request
-	char * raw_data;
-} Request;
-
 typedef struct {
 	Direction to;
 	Direction from;
-	Request request;
+	char request[13]; // MSG_HEAD + RFID_LENGTH
 } Task; // structure for a task
 
 typedef struct Tub {

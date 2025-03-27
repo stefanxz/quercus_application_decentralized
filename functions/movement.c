@@ -1,10 +1,9 @@
 #pragma once
-// #include "movement.h"
+
+#include <stdbool.h>
 #include "algorithm.h"
 
 #include "network.c"
-
-#include <stdbool.h>
 
 const int ARM_LEFT = 60;
 const int ARM_RIGHT = 105;
@@ -24,6 +23,9 @@ void reset_module() {
 	led_set_color(LED_RED);
 	belt_small_set_speed(BELT_OFF);
 	belt_big_set_speed(BELT_OFF);
+
+	// Wait a little before resetting the arm
+	sleep(100);
 	servo_angle_set(ARM_NEUTRAL);
 }
 
@@ -77,34 +79,40 @@ int leave_at(int module_id, int exit_point, char* tub_data) {
 	
 	// Platform fails to send packet:
 	// for(int i = 0; i < 10; i++) {
-		int resp = send_request_movement(module_id, tub_data);
-		if(resp < 0) {
-			printf("mov-80 // failed move request cause %d\n", resp);
-		}
+		// int resp = send_request_movement(module_id, tub_data);
+		// if(resp < 0) {
+		// 	printf("mov-80 // failed move request cause %d\n", resp);
+		// }
 	// }
-
     int response;
-	int loop_count = 0;
 
-	for(int i = 0; i < 1000; i++) {
-		response = get_response();
-		// printf("I am still standing.\n");
-		if (response > 0) {
-			printf("mov-95 // response got %d \n", response);
-			if (exit_point == LASER_LEFT) {
-				belt_big_set_speed(BELT_LEFT_SLOW);
-			} else if (exit_point == LASER_RIGHT) {
-				belt_big_set_speed(BELT_RIGHT_SLOW);
-			} else {
-				belt_small_set_speed(BELT_DOWN_SLOW);
-			}
-			sleep(1000); // TODO: Test this timing.
-			reset_module();
-			printf("I AM RETURNING\n");
-			return response;
+	// Send request to move:
+	int resp = send_request_movement(module_id, tub_data);
+	if(resp < 0) {
+		printf("move // packet loss\n");
+	}
+
+	// Wait for response to arrive and acquire it:
+	response = get_response();
+
+	if (response > 0) {
+		printf("move // response got %d \n", response);
+		if (exit_point == LASER_LEFT) {
+			belt_big_set_speed(BELT_LEFT_SLOW);
+		} else if (exit_point == LASER_RIGHT) {
+			belt_big_set_speed(BELT_RIGHT_SLOW);
+		} else {
+			belt_small_set_speed(BELT_DOWN_SLOW);
 		}
-		sleep(100);	
-    }
+
+		// Wait for tub to leave:
+		sleep(1000);
+
+		reset_module();
+		return response;
+	}
+
+	// If no response is ever received, return -1:
 	return -1;
 }
 
@@ -117,7 +125,7 @@ bool enter_at(int from) {
 		belt_big_set_speed(BELT_LEFT_SLOW);
 	}
 
-	while (1) {
+	for (int i = 0; i < 1000; i++) {
 		if (from == RFID && RFID_check_tag()) {
 			break;
 		} else if (from == LASER_LEFT && !laser_left_detect()) {
