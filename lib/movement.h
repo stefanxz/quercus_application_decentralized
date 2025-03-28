@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../libc_builtin.h"
 #include "../quercus_lib_pico.h"
 

@@ -1,8 +1,9 @@
 #pragma once
-#include "rfid.h"
+
 #include "../libc_builtin.h"
 #include "../quercus_lib_pico.h"
-#include <stdbool.h>
+
+#include "rfid.h"
 
 int get_rfid_data(int type) {
 	if (!RFID_check_tag()) return -1;

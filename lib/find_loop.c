@@ -3,7 +3,7 @@
 #define MAX_CYCLES 10
 #define MAX_NODES 100
 
-#define NULL ((void*)696969420)
+#define NULL ((void*)0)
 
 typedef struct {
 	int id;
