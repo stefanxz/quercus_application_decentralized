@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "../functions/find_loop.c"
 
 ModulePi modules[MAX_MODULES];
 int count = 0;  
@@ -29,7 +30,7 @@ char *data =
         "T10,tgate,a0,b0,c9\n"
         "T11,tdrop-off,a1,b0,c0";
 
-int parse_config(char *data) {
+int parse_config(char* data) {
     int i = 0;
     int firstLineNumber = 0;
 
@@ -194,7 +195,7 @@ void freeGraph(Graph* graph) {
 }
 
 // Main function to test the adjacency list implementation
-Graph* convert_to_graph(char *layout, int vertex_type) {
+Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
     parse_config(layout);
     // Start a DFS from each node.
     // The  only follows neighbors with id >= start so that each cycle's canonical representation is encountered once.
@@ -205,20 +206,19 @@ Graph* convert_to_graph(char *layout, int vertex_type) {
     
     printf("Total unique cycles: %d\n", cycleCount);
 
-    Cycle largest_loop;
-    largest_loop.length = 0;
+    largest_cycle->length = 0;
     for (int i = 0; i < count; i++) {
-        if (cycleArr[i].length > largest_loop.length) {
-            largest_loop.length = cycleArr[i].length;
+        if (cycleArr[i].length > largest_cycle -> length) {
+            largest_cycle->length = cycleArr[i].length;
             for (int j = 0; j < cycleArr[i].length; j++) { 
-                largest_loop.nodes[j] = cycleArr[i].nodes[j];
+                largest_cycle->nodes[j] = cycleArr[i].nodes[j];
             }
         }
     }
 
     printf("The longest cycle is:\n");
-    for (int i = 0; i < largest_loop.length; i++) {
-        printf("%d ", largest_loop.nodes[i]);
+    for (int i = 0; i < largest_cycle->length; i++) {
+        printf("%d ", largest_cycle->nodes[i]);
     }
     printf("\n");
     if (vertex_type == DOUBLE_VERTEX){
@@ -255,23 +255,23 @@ Graph* convert_to_graph(char *layout, int vertex_type) {
         //printGraph(graph);
         //printf("\n");
         int next_node;
-        for (int i = largest_loop.length-1; i >= 0; i--) {
+        for (int i = largest_cycle -> length-1; i >= 0; i--) {
             if (i == 0) {
-                next_node = largest_loop.nodes[largest_loop.length-1];
+                next_node = largest_cycle->nodes[largest_cycle -> length-1];
             } else {
-                next_node = largest_loop.nodes[i-1];
+                next_node = largest_cycle-> nodes[i-1];
             }
-            if (modules[largest_loop.nodes[i]].a == next_node || modules[largest_loop.nodes[i]].c == next_node) {
-                if (modules[next_node].a == largest_loop.nodes[i] || modules[next_node].c == largest_loop.nodes[i]){
-                    removeEdge(graph, largest_loop.nodes[i]*2, next_node*2);
+            if (modules[largest_cycle -> nodes[i]].a == next_node || modules[largest_cycle -> nodes[i]].c == next_node) {
+                if (modules[next_node].a == largest_cycle -> nodes[i] || modules[next_node].c == largest_cycle -> nodes[i]){
+                    removeEdge(graph, largest_cycle -> nodes[i]*2, next_node*2);
                 } else {
-                    removeEdge(graph, largest_loop.nodes[i]*2, next_node*2+1);
+                    removeEdge(graph, largest_cycle -> nodes[i]*2, next_node*2+1);
                 }
-            } else if(modules[largest_loop.nodes[i]].b == next_node){
-                if (modules[next_node].a == largest_loop.nodes[i] || modules[next_node].c == largest_loop.nodes[i]){
-                    removeEdge(graph, largest_loop.nodes[i]*2+1, next_node*2);
+            } else if(modules[largest_cycle -> nodes[i]].b == next_node){
+                if (modules[next_node].a == largest_cycle -> nodes[i] || modules[next_node].c == largest_cycle -> nodes[i]){
+                    removeEdge(graph, largest_cycle -> nodes[i]*2+1, next_node*2);
                 } else {
-                    removeEdge(graph, largest_loop.nodes[i]*2+1, next_node*2+1);
+                    removeEdge(graph, largest_cycle -> nodes[i]*2+1, next_node*2+1);
                 }
             }
         }
@@ -295,16 +295,16 @@ Graph* convert_to_graph(char *layout, int vertex_type) {
             }
         }
         int next_node;
-        for (int i = largest_loop.length-1; i >= 0; i--) {
+        for (int i = largest_cycle -> length-1; i >= 0; i--) {
             if (i == 0) {
-                next_node = largest_loop.nodes[largest_loop.length-1];
+                next_node = largest_cycle -> nodes[largest_cycle -> length-1];
             } else {
-                next_node = largest_loop.nodes[i-1];
+                next_node = largest_cycle -> nodes[i-1];
             }
-            if (modules[largest_loop.nodes[i]].a == next_node || modules[largest_loop.nodes[i]].c == next_node) {
-                removeEdge(graph, largest_loop.nodes[i], next_node);
-            } else if(modules[largest_loop.nodes[i]].b == next_node){
-                removeEdge(graph, largest_loop.nodes[i], next_node);
+            if (modules[largest_cycle -> nodes[i]].a == next_node || modules[largest_cycle -> nodes[i]].c == next_node) {
+                removeEdge(graph, largest_cycle -> nodes[i], next_node);
+            } else if(modules[largest_cycle -> nodes[i]].b == next_node){
+                removeEdge(graph, largest_cycle -> nodes[i], next_node);
             }
         }
         printGraph(graph);

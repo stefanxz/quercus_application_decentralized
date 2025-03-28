@@ -121,6 +121,7 @@ bool do_task(Module* module) {
 	} else if (task->from == OUT) {
 		printf("Tub %d to enter module %d\n", tub_id, module->id);
 		enter_at(task->to);
+		send_request_response(task->request[MSG_SENDER], 1);
 	} else {
 		printf("Tub %d hits the griddy from to %d to %d\n", tub_id, task->from, task->to);
 		move_within_module(tub_id, task->from, task->to);

@@ -34,4 +34,4 @@ typedef struct Graph {
 } Graph;
 
 // Converts the module 'layout' into a graph given the specific 'vertex_type'.
-Graph* convert_to_graph(char* layout, int vertex_type);
+Graph* convert_to_graph(char* layout, int vertex_type, Cycle* largest_cycle);

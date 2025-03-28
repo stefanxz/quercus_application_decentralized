@@ -16,7 +16,6 @@ void bfs(Graph* graph, int startVertex, int* predecessors)
 	
     while (!isEmpty(queue))
     {
-        printQueue(queue);
         int currentVertex = dequeue(&queue);
         printf("Visited %d\n", currentVertex);
  
@@ -41,7 +40,7 @@ void bfs(Graph* graph, int startVertex, int* predecessors)
 	}
 }
 
-void fillLookUpTable(int** lookUp, struct Graph* graph){
+void fillLookUpTable(uint8_t** lookUp, struct Graph* graph){
 	for(int i = 0; i < MAX_MODULES; i++){
 		for(int j = 0; j < MAX_MODULES; j++){
 			lookUp[i][j] = -1;
@@ -62,47 +61,62 @@ void fillLookUpTable(int** lookUp, struct Graph* graph){
 	}
 }
 
+int handle_send_path_config(int sender, uint8_t* look_up, Cycle* cycle){
+    char message[2+ MAX_MODULES + cycle->length];
+    message[MSG_SENDER] = 0;
+    message[MSG_TYPE] = PATHS_CONFIG;
+    for(int i = 0; i < MAX_MODULES; i++){
+        message[i+2] = look_up[i];
+    }
+    for(int i = 0; i < cycle->length; i++){
+        message[i+2+MAX_MODULES] = cycle->nodes[i];
+    }
+    send_packet(sender, message, 2 + MAX_MODULES + cycle->length);
+    return 0;
+}
+
+
 export int main(void) {
-    int look_up[MAX_MODULES][MAX_MODULES];
+    printf("waduhek\n");
+    static uint8_t look_up[MAX_MODULES][MAX_MODULES];
 	Graph* graph;
+    Cycle largest_cycle;
+
     char* net_map = get_network_map();
     if(net_map == NULL) return -1;
-    int i = 0;
+    printf("%s\n", net_map);
 
-    while(net_map[i] != NULL){
-        printf("%c", net_map[i]);
-        i++;
-    }
-    printf("%d\n", net_map);
-
-    graph = convert_to_graph(net_map, SINGLE_VERTEX);
-    fillLookUpTable(look_up, graph);
-    EventType e = next_event();
-    while(1){
-        if(e == EVENT_MESSAGE_RECEIVED){
-            char* msg;
-            next_message_address(&msg);
-            int sender = msg[MSG_SENDER];
-            int type = msg[MSG_TYPE];
-            switch(type){
-                case PLANE_STATUS:
-                    printf("Plane status\n");
-                    break;
-                case REQUEST_MOVEMENT:
-                    printf("I am Pi, I should not be receiving movement requests.\n");
-                    break;
-                case REQUEST_RESPONSE:
-                    printf("I am Pi, I should not be receiving movement request responses.\n");
-                    break;
-                case REQUEST_PATH_CONFIG:
-                    break;
-                default:
-                    break;
-            }
-        }
-        e = next_event();
-        sleep(10);
-    }
+    graph = convert_to_graph(net_map, SINGLE_VERTEX, &largest_cycle);
+    // printf("WTF is a Kilometer: %d", largest_cycle.length);
+    // fillLookUpTable(look_up, graph);
+    // EventType e = next_event();
+    // while(1){
+    //     if(e == EVENT_MESSAGE_RECEIVED){
+    //         char* msg;
+    //         next_message_address(&msg);
+    //         int sender = msg[MSG_SENDER];
+    //         int type = msg[MSG_TYPE];
+    //         switch(type){
+    //             case PLANE_STATUS:
+    //                 printf("Plane status\n");
+    //                 break;
+    //             case REQUEST_MOVEMENT:
+    //                 printf("I am Pi, I should not be receiving movement requests.\n");
+    //                 break;
+    //             case REQUEST_RESPONSE:
+    //                 printf("I am Pi, I should not be receiving movement request responses.\n");
+    //                 break;
+    //             case REQUEST_PATH_CONFIG:
+    //                 printf("kablami\n");
+    //                 handle_send_path_config(sender, look_up[sender], cycleArr);
+    //                 break;
+    //             default:
+    //                 break;
+    //         }
+    //     }
+    //     e = next_event();
+    //     sleep(10);
+    // }
 
     return 0;
 }

@@ -18,8 +18,8 @@ WASM_OPTS = -target wasm32 -nostdlib \
 		   -Wl,--export-dynamic \
 		   -Os
 
-WASM_PI_OPTS = -Wl,-z,stack-size=8096 \
-			   -Wl,--max-memory=65536 \
+WASM_PI_OPTS = -Wl,-z,stack-size=809600 \
+			   -Wl,--max-memory=65536000 \
 
 WASM_PICO_OPTS = -Wl,-z,stack-size=8096 \
 				 -Wl,--max-memory=65536 \
@@ -31,7 +31,7 @@ WAMRC_OPTS = --xip
 WAMRC_PICO_OPTS = --target=thumbv6m --target-abi=eabi --cpu=cortex-m0 \
 				  --enable-builtin-intrinsics=all
 
-WAMRC_PI_OPTS = --target=armv8a --target-abi=eabi --cpu=cortex-a53 \
+WAMRC_PI_OPTS = --target=armv4 --target-abi=eabi --cpu=cortex-a53 \
 				--enable-builtin-intrinsics=all
 
 #Files
@@ -39,29 +39,29 @@ SRC_PI      = pi/main.c
 WASM_PI     = $(SRC_PI).wasm
 AOT_PI      = $(SRC_PI).aot
 
-SRC_PICO_IN      = pico_routing/test2.c
-WASM_PICO_IN     = $(SRC_PICO_IN).wasm
-AOT_PICO_IN      = $(SRC_PICO_IN).aot
+# SRC_PICO_IN      = pico_routing/test2.c
+# WASM_PICO_IN     = $(SRC_PICO_IN).wasm
+# AOT_PICO_IN      = $(SRC_PICO_IN).aot
 
-SRC_PICO_OUT      = pico_routing/test3.c
-WASM_PICO_OUT     = $(SRC_PICO_OUT).wasm
-AOT_PICO_OUT      = $(SRC_PICO_OUT).aot
+# SRC_PICO_OUT      = pico_routing/test3.c
+# WASM_PICO_OUT     = $(SRC_PICO_OUT).wasm
+# AOT_PICO_OUT      = $(SRC_PICO_OUT).aot
 
-SRC_PICO_ROUTING      = pico_routing/test4.c
-WASM_PICO_ROUTING     = $(SRC_PICO_ROUTING).wasm
-AOT_PICO_ROUTING      = $(SRC_PICO_ROUTING).aot
+# SRC_PICO_ROUTING      = pico_routing/test4.c
+# WASM_PICO_ROUTING     = $(SRC_PICO_ROUTING).wasm
+# AOT_PICO_ROUTING      = $(SRC_PICO_ROUTING).aot
 
-SRC_PICO_SECURITY      = pico_routing/test5.c
-WASM_PICO_SECURITY     = $(SRC_PICO_SECURITY).wasm
-AOT_PICO_SECURITY      = $(SRC_PICO_SECURITY).aot
+# SRC_PICO_SECURITY      = pico_routing/test5.c
+# WASM_PICO_SECURITY     = $(SRC_PICO_SECURITY).wasm
+# AOT_PICO_SECURITY      = $(SRC_PICO_SECURITY).aot
 
-SRC_PICO_PLANE      = pico_routing/test1.c
-WASM_PICO_PLANE     = $(SRC_PICO_PLANE).wasm
-AOT_PICO_PLANE      = $(SRC_PICO_PLANE).aot
+# SRC_PICO_PLANE      = pico_routing/test1.c
+# WASM_PICO_PLANE     = $(SRC_PICO_PLANE).wasm
+# AOT_PICO_PLANE      = $(SRC_PICO_PLANE).aot
 
-SRC_PICO_WRITER      = pico_writer/main.c
-WASM_PICO_WRITER     = $(SRC_PICO_WRITER).wasm
-AOT_PICO_WRITER      = $(SRC_PICO_WRITER).aot
+# SRC_PICO_WRITER      = pico_writer/main.c
+# WASM_PICO_WRITER     = $(SRC_PICO_WRITER).wasm
+# AOT_PICO_WRITER      = $(SRC_PICO_WRITER).aot
 
 
 # Default target builds all AOT binaries

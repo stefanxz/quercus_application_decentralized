@@ -44,31 +44,49 @@ void init(Module* mod) {
 	this.next[0] = mod->next[0];
 	this.next[1] = mod->next[1];
 	this.next[2] = mod->next[2];
+
+	this.next_storage = mod->next_storage;
 }
 
-void handle_storage(Direction from, Direction to) {
-	// If RFID is empty, move tub to side of RFID
-	if (from < RFID && to < RFID && state.at[RFID] == NON) {
-		if (state.at[from] != NON) {
-			add_task(&this, from, RFID, current_request);
-		} else if (state.at[to] != NON) {
-			add_task(&this, to, RFID, current_request);
-		} else {
-			return;
-		}
-	} else {
-		// If RFID is full or needs to be passed through, move tub to adjacent storage module.
-		state.is_storing = false;
-		if (state.at[from] != NON) {
-			add_task(&this, from, this.next_storage, current_request);
-			add_task(&this, this.next_storage, OUT, current_request);
-		} else if (state.at[to] != NON) {
-			add_task(&this, to, this.next_storage, current_request);
-			add_task(&this, this.next_storage, OUT, current_request);
-		} else {
-			return;
-		}
+void handle_storage(Direction from) {
+	if(state.at[this.next_storage] != NON) {
+		printf("HEEEAYAYAYAAY, %d\n", this.next_storage);
+		add_task(&this, this.next_storage, OUT, current_request);	
 	}
+	if(state.at[from] != NON) {
+		printf("WHATS GOING ON %d\n", this.next_storage);
+		add_task(&this, from, this.next_storage, current_request);
+	}
+
+	// If RFID is empty, move tub to side of RFID
+	// if (from < RFID && to < RFID && state.at[RFID] == NON) {
+	// 	printf("RFID is free.\n");
+	// 	//STINKY asf
+	// 	if (state.at[from] != NON) {
+	// 		printf("I am villainous: %d\n", from);
+	// 		add_task(&this, from, RFID, current_request);
+	// 	} else if (state.at[to] != NON) {
+	// 		printf("I am evil: %d\n", to);
+	// 		add_task(&this, to, RFID, current_request);
+	// 	} else {
+	// 		return;
+	// 	}
+	// } else {
+	// 	// If RFID is full or needs to be passed through, move tub to adjacent storage module.
+	// 	state.is_storing = false;
+	// 	if (state.at[from] != NON) {
+	// 		printf("nyahahaha: %d, %d\n", from, this.next_storage);
+	// 		add_task(&this, from, this.next_storage, current_request);
+	// 		add_task(&this, this.next_storage, OUT, current_request);
+	// 	} else if (state.at[to] != NON) {
+	// 		printf("muhahaha: %d, %d\n", to, this.next_storage);
+	// 		add_task(&this, to, this.next_storage, current_request);
+	// 		add_task(&this, this.next_storage, OUT, current_request);
+	// 	} else {
+	// 		printf("I should really not be here\n");
+	// 		return;
+	// 	}
+	// }
 }
 
 void handle_request() {
@@ -98,14 +116,11 @@ void handle_request() {
 		}
 	}
 
-	if (this.is_storage && state.is_storing) {
-		handle_storage(from, to);
-	}
+	handle_storage(from);
 
 	// Add logic for more complicated scheduling here:
 	// TODO: Implement not always responding with a go-ahead to a request
 	printf("I am sending the response. Origin = %d\n", origin);
-	send_request_response(origin, 1);
 
 	// Receive tub at one of your endpoints:
 	add_task(&this, OUT, from, current_request);
@@ -125,23 +140,16 @@ void update_state() {
 
 	if(from != OUT) state.at[from] = NON;
 	if(to != OUT) state.at[to] = this.tasks[this.current].request[REQ_TUB_ID];
-	printf("state: %d, %d, %d", state.at[0], state.at[1], state.at[2]);
+	printf("state: %d, %d, %d\n", state.at[0], state.at[1], state.at[2]);
 }
 
 void loop() {
 	if (no_tasks(&this)) {
 		// printf("No tasks.\n");
 		if (await_request(&this, &current_request)) handle_request();
-		sleep(500);
+		sleep(200);
 	} else {
 		update_state(&this);
 		do_task(&this);
 	}
 }
-
-// export int main(void) {
-// 	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
-// 	for (int i = 0; i < 100000000; i++) {
-// 		loop();
-// 	}
-// }

@@ -84,7 +84,7 @@ int await_message(Module* module, char** msg_ptr, int expected, bool persistent)
 	int response = NON;
 	char type;
 
-	for (int i = 0; i < 10 || persistent; i++) {
+	for (int i = 0; i < 40 || persistent; i++) {
 		//printf("im jaking it\n");
 		sleep(PAUSE);
 
@@ -140,7 +140,7 @@ bool await_request(Module* module, char* request) {
 	int response = await_message(module, &msg, REQUEST_MOVEMENT, false);
 
 	if (response >= 0) {
-		printf("Destination: %d, Sender: %d, Tub id: %d\n", msg[REQ_DEST_TYPE], msg[MSG_SENDER], msg[REQ_TUB_ID]);
+		printf("Destination Type: %d, Sender: %d, Tub id: %d\n", msg[REQ_DEST_TYPE], msg[MSG_SENDER], msg[REQ_TUB_ID]);
 		copy_message(request, msg);
 		free(msg);
 		return true;

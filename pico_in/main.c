@@ -14,8 +14,8 @@ State state;
 int in(Module* module) {
 	char* msg;
 	led_set_color(COLOR_CYAN);
-	
 	if (RFID_check_tag()) {
+		sleep(100);
 		if(get_rfid_data(TUB_OR_PLANE) == 1){
 			int plane_id = get_rfid_data(PLANE_ID);
 			bool plane_has_arrived = module -> plane_to_id[plane_id] == module -> id;
