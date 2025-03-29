@@ -1,23 +1,7 @@
 #pragma once
 
-#include "algorithm.h"
-#include <stdbool.h>
-
+#include "movement.h"
 #include "network.c"
-
-const int ARM_LEFT = 60;
-const int ARM_RIGHT = 105;
-const int ARM_NEUTRAL = 0;
-
-const int LED_RED = 0xff0000;
-const int LED_GREEN = 0x00ff00;
-const int LED_BLUE = 0x0000ff;
-
-const int BELT_OFF = 0;
-const int BELT_LEFT_SLOW = 20;
-const int BELT_RIGHT_SLOW = -20;
-const int BELT_DOWN_SLOW = 20;
-const int BELT_UP_SLOW = -20;
 
 void reset_module() {
 	led_set_color(LED_RED);

@@ -1,8 +1,6 @@
 #pragma once
 
 #include <stdbool.h>
-#include "../libc_builtin.h"
-#include "../quercus_lib_pico.h"
 
 enum MessageTypes {
 	NONE = 0,
