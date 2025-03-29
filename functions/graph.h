@@ -3,7 +3,7 @@
 
 #define MAX_PATH_LENGTH 100
 #define MAX_CYCLES 10
-#define MAX_MODULES 100
+#define MAX_MODULES 50
 
 typedef enum GRAPH {
 	SINGLE_VERTEX = 0,

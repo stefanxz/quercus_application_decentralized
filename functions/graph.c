@@ -17,7 +17,7 @@ int map_type_to_int(const char *type) {
 
 // Example string:
 char *data =
-        "0\n"
+        "1\n"
         "T1,tdefault,a11,b7,c2\n"
         "T2,tdefault,a1,b5,c3\n"
         "T3,tdefault,a2,b6,c4\n"
@@ -29,6 +29,16 @@ char *data =
         "T9,tgate,a10,b0,c7\n"
         "T10,tgate,a0,b0,c9\n"
         "T11,tdrop-off,a1,b0,c0";
+
+        // Example string:
+char *data2 =
+    "2\n"
+    "M3,tdefault,a4,b0,c0\n"
+    "M4,tdefault,a5,b7,c3\n"
+    "M7,tdefault,a4,b6,c0\n"
+    "M6,tdefault,a7,b5,c8\n"
+    "M5,tdefault,a6,b4,c0\n"
+    "M8,tdefault,a6,b0,c0";
 
 int parse_config(char* data) {
     int i = 0;
@@ -48,7 +58,7 @@ int parse_config(char* data) {
         int j = 0;
 
         // Expecting: M<num>,
-        if (data[i] == 'T') {
+        if (data[i] == 'M') {
             i++;
             while (data[i] >= '0' && data[i] <= '9') {
                 m_num = m_num * 10 + (data[i] - '0');
@@ -122,6 +132,9 @@ Graph* createGraph(int vertices) {
     for (int i = 0; i <= vertices; i++)
         graph->adjLists[i] = NULL;
 
+    for (int i = 0; i <= vertices; i++){
+        graph->visited[i] = 0;
+    }
     return graph;
 }
 
@@ -169,7 +182,7 @@ void removeEdge(Graph* graph, int src, int vertex) {
 // Function to print the adjacency list
 void printGraph(Graph* graph) {
     for (int i = 0; i <= graph->vertices; i++) {
-        if (!modules[i/2].id) { continue; }
+        if (!modules[i].id) { continue; }
         Node* temp = graph->adjLists[i];
         printf("Adjacency list of vertex %d: ", i);
         while (temp) {
@@ -197,14 +210,15 @@ void freeGraph(Graph* graph) {
 // Main function to test the adjacency list implementation
 Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
     parse_config(layout);
+
     // Start a DFS from each node.
     // The  only follows neighbors with id >= start so that each cycle's canonical representation is encountered once.
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < highest_id_module; i++) {
         int start = modules[i].id;
-        dfs(modules, count, start, start, 0);
+        dfs(modules, highest_id_module, start, start, 0);
     }
     
-    printf("Total unique cycles: %d\n", cycleCount);
+    // printf("Total unique cycles: %d\n", cycleCount);
 
     largest_cycle->length = 0;
     for (int i = 0; i < count; i++) {
@@ -216,11 +230,11 @@ Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
         }
     }
 
-    printf("The longest cycle is:\n");
-    for (int i = 0; i < largest_cycle->length; i++) {
-        printf("%d ", largest_cycle->nodes[i]);
-    }
-    printf("\n");
+    // printf("The longest cycle is:\n");
+    // for (int i = 0; i < largest_cycle->length; i++) {
+    //     printf("%d ", largest_cycle->nodes[i]);
+    // }
+    // printf("\n");
     if (vertex_type == DOUBLE_VERTEX){
         Graph* graph = createGraph(highest_id_module * 2+1);
         for (int i = 0; i <= highest_id_module; i++) {
@@ -277,13 +291,14 @@ Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
         }
         //printGraph(graph);
         return graph;
-    } else {
+    } else {     
+        printf("Test: %d\n", modules[3].a);
         Graph* graph = createGraph(highest_id_module);
         for (int i = 0; i <= highest_id_module; i++) {
             if (!modules[i].id) { continue; }
             // Long belt left
             if (modules[i].a) {
-                    addEdge(graph, i, modules[i].a);
+                addEdge(graph, i, modules[i].a);
             }
             // Long belt right
             if (modules[i].c) {
@@ -307,7 +322,7 @@ Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
                 removeEdge(graph, largest_cycle -> nodes[i], next_node);
             }
         }
-        printGraph(graph);
+        // printGraph(graph);
         return graph;
     }
 }
@@ -357,11 +372,15 @@ void printQueue(Node *queue)
  
 int route_find(int from, int to, int* predec) {
 	while (1){
+        if(predec[to] <= 0) {
+            return -1;
+        }
 		if(predec[to] == from) {
 			return to;
 	  	} else {
 			to = predec[to];
 	  	}
+        sleep(100);
 	}
 	return -1;
 }
