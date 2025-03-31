@@ -31,7 +31,7 @@ int in(Module* module) {
 
 			request[REQ_PLANE_ID] = module -> tub.plane_id;
 			request[REQ_PLANE_ARRIVED] = module -> tub.plane_arrived;
-			request[REQ_DEST_ID] = 6; // hardcoded
+			request[REQ_DEST_ID] = determine_destination(); // hardcoded
 			request[REQ_DEST_TYPE] = STORAGE;
 
 			// FIX

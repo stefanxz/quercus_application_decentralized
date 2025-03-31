@@ -3,9 +3,8 @@
 #include "network.h"
 #include "essentials.h"
 
-#define PAUSE 250 // in ms
-
 int send_request_movement(int module_id, char* data) {
+	printf("I get here\n");
 	data[MSG_SENDER] = get_own_id();
 	printf("net // req with sender: %d and dest:%d\n", data[MSG_SENDER], data[REQ_DEST_ID]);
 	return send_packet(module_id, data, (REQ_LENGTH)); // HARDCODED, WATCHOUT
@@ -45,4 +44,9 @@ int send_request_response(int module_id, int value) {
 	data[MSG_TYPE] = REQUEST_RESPONSE;
 	data[2] = value;
 	return send_packet(module_id, data, sizeof(data));
+}
+
+int send_request_path_config(){
+	char data[2] = {get_own_id(), REQUEST_PATH_CONFIG};
+	return send_packet(0, data, sizeof(data));
 }

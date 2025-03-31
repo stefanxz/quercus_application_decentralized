@@ -4,7 +4,7 @@
 
 export int main(void) {
 	reset_module();
-    init(&T1);
+    init();
     subscribe_to_event(EVENT_MESSAGE_RECEIVED);
     while(1){
         in(&this);

@@ -3,9 +3,7 @@
 
 export int main(void) {
 	reset_module();
-    init(&T2);
-    subscribe_to_event(EVENT_MESSAGE_RECEIVED);
-
+    init();
     while(1){
         loop();
         sleep(100);

@@ -40,16 +40,16 @@ int bfs(Graph* graph, int startVertex, int* predecessors)
             temp = temp->next;
         }
     }
-	for(int i = 1; i < MAX_MODULES; i++){
+	for(int i = 1; i < MAX_NUMBER_OF_MODULES; i++){
         graph->visited[i] = 0;
 	}
     return 0;
 }
 
-void fillLookUpTable(uint8_t look_up[MAX_MODULES][MAX_MODULES], struct Graph* graph){
+void fillLookUpTable(uint8_t look_up[MAX_NUMBER_OF_MODULES][MAX_NUMBER_OF_MODULES], struct Graph* graph){
     
     for(int i = 1; i < highest_id_module+1; i++){
-        int predecessors[MAX_MODULES];
+        int predecessors[MAX_NUMBER_OF_MODULES];
         for (int j = 0; j < highest_id_module+1; j++) {
             predecessors[j] = 0;
         }
@@ -67,21 +67,21 @@ void fillLookUpTable(uint8_t look_up[MAX_MODULES][MAX_MODULES], struct Graph* gr
 }
 
 int handle_send_path_config(int sender, uint8_t* look_up, Cycle* cycle){
-    char message[2+ MAX_MODULES + cycle->length];
+    char message[2+ MAX_NUMBER_OF_MODULES + cycle->length];
     message[MSG_SENDER] = 0;
     message[MSG_TYPE] = PATHS_CONFIG;
-    for(int i = 0; i < MAX_MODULES; i++){
+    for(int i = 0; i < MAX_NUMBER_OF_MODULES; i++){
         message[i+2] = look_up[i];
     }
     for(int i = 0; i < cycle->length; i++){
-        message[i+2+MAX_MODULES] = cycle->nodes[i];
+        message[i+2+MAX_NUMBER_OF_MODULES] = cycle->nodes[i];
     }
-    send_packet(sender, message, 2 + MAX_MODULES + cycle->length);
+    send_packet(sender, message, 2 + MAX_NUMBER_OF_MODULES + cycle->length);
     return 0;
 }
 
 export int main(void) {
-    static uint8_t look_up[MAX_MODULES][MAX_MODULES] = {0};
+    static uint8_t look_up[MAX_NUMBER_OF_MODULES][MAX_NUMBER_OF_MODULES] = {0};
 	Graph* graph;
     Cycle largest_cycle;
 

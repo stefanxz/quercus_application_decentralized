@@ -29,7 +29,7 @@ export int main(void) {
 		if(RFID_check_tag()){
 			int counter = 0;
 			int direction = get_rfid_data(PLANE_DIRECTION);
-			while(RFID_check_tag) {
+			while(RFID_check_tag()) {
 				int new_direction = get_rfid_data(PLANE_DIRECTION);
 				if(direction == new_direction) counter++;
 				else counter = 0;

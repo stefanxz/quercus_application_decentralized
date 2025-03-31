@@ -1,6 +1,6 @@
-#include "functions/movement.c"
-#include "functions/network.c"
-#include "functions/rfid.c"
+#include "./lib/movement.c"
+#include "./lib/network.c"
+#include "./lib/rfid.c"
 #include "libc_builtin.h"
 #include "quercus_lib_pico.h"
 

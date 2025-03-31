@@ -3,7 +3,7 @@
 
 #define MAX_PATH_LENGTH 100
 #define MAX_CYCLES 10
-#define MAX_MODULES 50
+#define MAX_NUMBER_OF_MODULES 50
 
 typedef enum GRAPH {
 	SINGLE_VERTEX = 0,
@@ -22,13 +22,13 @@ typedef struct ModulePi{
 // Structure for an adjacency list node
 typedef struct Node {
     int vertex;
-    int dist[MAX_MODULES];
+    int dist[MAX_NUMBER_OF_MODULES];
     struct Node* next;
 } Node;
 
 // Structure for an adjacency list
 typedef struct Graph {
-    int visited[MAX_MODULES];
+    int visited[MAX_NUMBER_OF_MODULES];
     int vertices;
     Node** adjLists; // Array of linked lists
 } Graph;

@@ -35,9 +35,9 @@ WAMRC_PI_OPTS = --target=armv4 --target-abi=eabi --cpu=cortex-a53 \
 				--enable-builtin-intrinsics=all
 
 #Files
-# SRC_PI      = pi/main.c
-# WASM_PI     = $(SRC_PI).wasm
-# AOT_PI      = $(SRC_PI).aot
+SRC_PI      = pi.c
+WASM_PI     = $(SRC_PI).wasm
+AOT_PI      = $(SRC_PI).aot
 
 SRC_PICO_IN      = test/test1.c
 WASM_PICO_IN     = $(SRC_PICO_IN).wasm

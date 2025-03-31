@@ -2,13 +2,14 @@
 
 #include <stdbool.h>
 
+#define PAUSE 250
 enum MessageTypes {
 	NONE = 0,
 	REQUEST_MOVEMENT = 1,
 	REQUEST_RESPONSE = 2,
 	PLANE_STATUS = 3,
 	TUB_STATUS = 4,
-	PATHS_CONFIG = 5,
+	PATH_CONFIG = 5,
 	REQUEST_PATH_CONFIG = 6,
 	TUB_CONFIG = 7
 };

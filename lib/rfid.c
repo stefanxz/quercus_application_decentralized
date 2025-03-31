@@ -2,8 +2,8 @@
 
 #include "../libc_builtin.h"
 #include "../quercus_lib_pico.h"
-
 #include "rfid.h"
+#include "essentials.h"
 
 int get_rfid_data(int type) {
 	if (!RFID_check_tag()) return -1;
@@ -68,3 +68,31 @@ int set_destination(int dest) {
 	RFID_write_data_block((int)data, DESTINATION);
 	return 0;
 }
+
+//FIX move from here
+bool check_plane_arrived(Module module, int tub_plane_id) { return module.plane_to_id[tub_plane_id] != 0; }
+
+//FIX move from here
+void determine_destination(Module* module, bool sec_check_passed, bool sec_check_needed, bool plane_dropoff,
+	int plane_id, int* destination, int* destination_type) {
+	if (sec_check_needed) {
+		if (sec_check_passed) {
+			*destination_type = QUARANTINE;
+			*destination = module->nearest[QUARANTINE];
+		} else {
+			*destination_type = SECURITY;
+			*destination = module->nearest[SECURITY];
+		} 
+	} else if (plane_dropoff) {
+		*destination_type = DROPOFF;
+		*destination = module->nearest[DROPOFF];
+	} else if (check_plane_arrived(*module, plane_id)) {
+		*destination_type = PLANE;
+		*destination = module->plane_to_id[plane_id];
+	} else {
+		*destination_type = STORAGE;
+		*destination = module->nearest[STORAGE];
+	}
+	printf("reading: %d, %d\n", *destination, *destination_type);
+}
+

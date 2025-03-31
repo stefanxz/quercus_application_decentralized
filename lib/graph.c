@@ -1,44 +1,21 @@
 #include "graph.h"
-#include "../functions/find_loop.c"
+#include "find_loop.c"
+#include "essentials.h"
 
-ModulePi modules[MAX_MODULES];
+ModulePi modules[MAX_NUMBER_OF_MODULES];
 int count = 0;  
 int highest_id_module = 0;
 
 int map_type_to_int(const char *type) {
-    if (strcmp(type, "tdefault") == 0) return 0;
-    if (strcmp(type, "tgate") == 0) return 1;
-    if (strcmp(type, "tcheck-in") == 0) return 2;
-    if (strcmp(type, "tsecurity") == 0) return 3;
-    if (strcmp(type, "tdrop-off") == 0) return 4;
-    if (strcmp(type, "tquarantine") == 0) return 5;
+    if (strcmp(type, "tgate") == 0) return PLANE;
+    if (strcmp(type, "tdrop-off") == 0) return DROPOFF;
+    if (strcmp(type, "tsecurity") == 0) return SECURITY;
+    if (strcmp(type, "tquarantine") == 0) return QUARANTINE;
+    if (strcmp(type, "tdefault") == 0) return 5;
+    if (strcmp(type, "tcheck-in") == 0) return 6;
     return -1; 
 }
 
-// Example string:
-char *data =
-        "1\n"
-        "T1,tdefault,a11,b7,c2\n"
-        "T2,tdefault,a1,b5,c3\n"
-        "T3,tdefault,a2,b6,c4\n"
-        "T4,tcheck-in,a0,b0,c3\n"
-        "T5,tsecurity,a6,b2,c7\n"
-        "T6,tsecurity,a8,b3,c5\n"
-        "T7,tsecurity,a9,b5,c1\n"
-        "T8,tquarantine,a96,b0,c6\n"
-        "T9,tgate,a10,b0,c7\n"
-        "T10,tgate,a0,b0,c9\n"
-        "T11,tdrop-off,a1,b0,c0";
-
-        // Example string:
-char *data2 =
-    "2\n"
-    "M3,tdefault,a4,b0,c0\n"
-    "M4,tdefault,a5,b7,c3\n"
-    "M7,tdefault,a4,b6,c0\n"
-    "M6,tdefault,a7,b5,c8\n"
-    "M5,tdefault,a6,b4,c0\n"
-    "M8,tdefault,a6,b0,c0";
 
 int parse_config(char* data) {
     int i = 0;
@@ -143,7 +120,7 @@ Node* createNode(int vertex) {
     Node* newNode = (Node*) malloc(sizeof(Node));
     newNode->vertex = vertex;
     newNode->next = NULL;
-    for(int i = 0; i < MAX_MODULES; i++){
+    for(int i = 0; i < MAX_NUMBER_OF_MODULES; i++){
 		newNode->dist[i] = 0;
 	}
     return newNode;
@@ -215,7 +192,7 @@ Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
     // The  only follows neighbors with id >= start so that each cycle's canonical representation is encountered once.
     for (int i = 0; i < highest_id_module; i++) {
         int start = modules[i].id;
-        dfs(modules, highest_id_module, start, start, 0);
+        dfs(modules, highest_id_module+1, start, start, 0);
     }
     
     // printf("Total unique cycles: %d\n", cycleCount);
@@ -235,96 +212,39 @@ Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
     //     printf("%d ", largest_cycle->nodes[i]);
     // }
     // printf("\n");
-    if (vertex_type == DOUBLE_VERTEX){
-        Graph* graph = createGraph(highest_id_module * 2+1);
-        for (int i = 0; i <= highest_id_module; i++) {
-            if (!modules[i].id) { continue; }
-            // Long belt left
-            if (modules[i].a) {
-                if (modules[modules[i].a].a == i || modules[modules[i].a].c == i) {
-                    addEdge(graph, i*2, modules[i].a*2);
-                } else {
-                    addEdge(graph, i*2, modules[i].a*2+1);
-                }
-            }
-            // Long belt right
-            if (modules[i].c) {
-                if (modules[modules[i].c].a == i || modules[modules[i].c].c == i) {
-                    addEdge(graph, i*2, modules[i].c*2);
-                } else {
-                    addEdge(graph, i*2, modules[i].c*2+1);
-                }
-            }
-            // Short belt
-            if (modules[i].b) {
-                if (modules[modules[i].b].a == i || modules[modules[i].b].c == i) {
-                    addEdge(graph, i*2+1, modules[i].b*2);
-                } else {
-                    addEdge(graph, i*2+1, modules[i].b*2+1);
-                }
-            }
-            addEdge(graph, i*2, i*2+1);
-            addEdge(graph, i*2+1 , i*2);
+    Graph* graph = createGraph(highest_id_module);
+    for (int i = 0; i <= highest_id_module; i++) {
+        if (!modules[i].id) { continue; }
+        // Long belt left
+        if (modules[i].a) {
+            addEdge(graph, i, modules[i].a);
         }
-        //printGraph(graph);
-        //printf("\n");
-        int next_node;
-        for (int i = largest_cycle -> length-1; i >= 0; i--) {
-            if (i == 0) {
-                next_node = largest_cycle->nodes[largest_cycle -> length-1];
-            } else {
-                next_node = largest_cycle-> nodes[i-1];
-            }
-            if (modules[largest_cycle -> nodes[i]].a == next_node || modules[largest_cycle -> nodes[i]].c == next_node) {
-                if (modules[next_node].a == largest_cycle -> nodes[i] || modules[next_node].c == largest_cycle -> nodes[i]){
-                    removeEdge(graph, largest_cycle -> nodes[i]*2, next_node*2);
-                } else {
-                    removeEdge(graph, largest_cycle -> nodes[i]*2, next_node*2+1);
-                }
-            } else if(modules[largest_cycle -> nodes[i]].b == next_node){
-                if (modules[next_node].a == largest_cycle -> nodes[i] || modules[next_node].c == largest_cycle -> nodes[i]){
-                    removeEdge(graph, largest_cycle -> nodes[i]*2+1, next_node*2);
-                } else {
-                    removeEdge(graph, largest_cycle -> nodes[i]*2+1, next_node*2+1);
-                }
-            }
+        // Long belt right
+        if (modules[i].c) {
+            addEdge(graph, i, modules[i].c);
         }
-        //printGraph(graph);
-        return graph;
-    } else {     
-        printf("Test: %d\n", modules[3].a);
-        Graph* graph = createGraph(highest_id_module);
-        for (int i = 0; i <= highest_id_module; i++) {
-            if (!modules[i].id) { continue; }
-            // Long belt left
-            if (modules[i].a) {
-                addEdge(graph, i, modules[i].a);
-            }
-            // Long belt right
-            if (modules[i].c) {
-                addEdge(graph, i, modules[i].c);
-            }
-            // Short belt
-            if (modules[i].b) {
-                addEdge(graph, i, modules[i].b);
-            }
+        // Short belt
+        if (modules[i].b) {
+            addEdge(graph, i, modules[i].b);
         }
-        int next_node;
-        for (int i = largest_cycle -> length-1; i >= 0; i--) {
-            if (i == 0) {
-                next_node = largest_cycle -> nodes[largest_cycle -> length-1];
-            } else {
-                next_node = largest_cycle -> nodes[i-1];
-            }
-            if (modules[largest_cycle -> nodes[i]].a == next_node || modules[largest_cycle -> nodes[i]].c == next_node) {
-                removeEdge(graph, largest_cycle -> nodes[i], next_node);
-            } else if(modules[largest_cycle -> nodes[i]].b == next_node){
-                removeEdge(graph, largest_cycle -> nodes[i], next_node);
-            }
-        }
-        // printGraph(graph);
-        return graph;
     }
+    int next_node;
+    for (int i = largest_cycle -> length-1; i >= 0; i--) {
+        if (i == 0) {
+            next_node = largest_cycle -> nodes[largest_cycle -> length-1];
+        } else {
+            next_node = largest_cycle -> nodes[i-1];
+        }
+        if (modules[largest_cycle -> nodes[i]].a == next_node || modules[largest_cycle -> nodes[i]].c == next_node) {
+            sleep(1000);
+            removeEdge(graph, largest_cycle -> nodes[i], next_node);
+        } else if(modules[largest_cycle -> nodes[i]].b == next_node){
+            sleep(1000);
+            removeEdge(graph, largest_cycle -> nodes[i], next_node);
+        }
+    }
+    // printGraph(graph);
+    return graph;
 }
 
 
