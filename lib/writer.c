@@ -106,9 +106,9 @@ int write(){
         //make plane
         if(RFID_check_tag()){
             led_set_color(0x00ff00);
-            setup_plane(3, 1);
+            // setup_plane(3, 1);
+            setup_tub(1, -1, 1, 2, 1);
             return 0;
-            // setup_tub(0, 4, 0, 1, 0);
         }
         sleep(100);
     }

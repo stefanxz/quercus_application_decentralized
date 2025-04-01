@@ -20,7 +20,7 @@ int8_t task_new = 0;
 
 int8_t is_storing(){
 	for(int i = 0; i < 3; i++){
-		if(state.at[i] > 0) {
+		if(state.at[i] != NON) {
 			return i;
 		}
 	}
@@ -122,9 +122,9 @@ void init() {
 	
 	get_path_config(this.id_lookup, this.dir_lookup, storage_cycle, this.nearest, this.next);
 	
-	printf("id_look_up: %d, %d, %d, %d, %d\n", this.id_lookup[3], this.id_lookup[4], this.id_lookup[5], this.id_lookup[6], this.id_lookup[7]);
-	printf("dir_look_up: %d, %d, %d, %d, %d\n", this.dir_lookup[3], this.dir_lookup[4], this.dir_lookup[5], this.dir_lookup[6], this.dir_lookup[7]);
-	printf("next: %d, %d, %d\n", this.next[0], this.next[1], this.next[2]);
+	// printf("id_look_up: %d, %d, %d, %d, %d\n", this.id_lookup[3], this.id_lookup[4], this.id_lookup[5], this.id_lookup[6], this.id_lookup[7]);
+	// printf("dir_look_up: %d, %d, %d, %d, %d\n", this.dir_lookup[3], this.dir_lookup[4], this.dir_lookup[5], this.dir_lookup[6], this.dir_lookup[7]);
+	// printf("next: %d, %d, %d\n", this.next[0], this.next[1], this.next[2]);
 	// Initialize the module's state
 	state.at[RFID] = NON;
 	state.at[LASER_LEFT] = NON;

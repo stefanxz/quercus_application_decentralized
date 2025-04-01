@@ -57,7 +57,7 @@ int handle_request_movement(char* msg) {
 		if (this.next[i] == end) to = i;
 	}
 
-	if (this.is_storage && is_storing()>0) {
+	if (this.is_storage && is_storing() != NON) {
 		handle_storage(from, msg);
 	}
 
@@ -67,7 +67,11 @@ int handle_request_movement(char* msg) {
 	if (end == this.id) {
 		if(msg[REQ_DEST_TYPE] == STORAGE && this.is_storage) {
 			this.tub.plane_id = plane;
-		} else if (msg[REQ_DEST_TYPE] == PLANE && msg[REQ_DEST_ID] == this.id){
+		} else if (msg[REQ_DEST_TYPE] == SECURITY) {
+			this.should_check = true;
+			add_task(from, RFID, msg);
+		} else {
+			printf("I am so confused rn.\n");
 			add_task(from, RFID, msg);
 			add_task(RFID, OUT, msg);
 		}
@@ -93,7 +97,7 @@ int handle_plane_status(char* msg) {
 		printf("I got a plane update, %d, %d\n", msg[ARR_PLANE_ID], msg[ARR_MODULE_ID]);
 		//HEAVILY RELIES ON ONLY A SINGLE TUB ON MODULE/IN SYSTEM
 		Direction from;
-		if(is_storing() > 0) {
+		if(is_storing() != NON) {
 			from = is_storing();
 			if(this.tub.plane_id == msg[ARR_PLANE_ID]){
 				reroute_stored_tub(from, msg[ARR_MODULE_ID]);

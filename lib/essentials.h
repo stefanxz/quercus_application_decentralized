@@ -8,6 +8,22 @@
 
 #include <stdbool.h>
 
+// common colors
+#define COLOR_RED 0xFF0000
+#define COLOR_GREEN 0x00FF00
+#define COLOR_BLUE 0x0000FF
+#define COLOR_WHITE 0xFFFFFF
+#define COLOR_BLACK 0x000000
+// mixed colors
+#define COLOR_YELLOW 0xFFFF00
+#define COLOR_CYAN 0x00FFFF
+#define COLOR_MAGENTA 0xFF00FF
+#define COLOR_ORANGE 0xFFA500
+#define COLOR_PURPLE 0xFF00FF
+#define COLOR_PINK 0xFFC0CB
+#define COLOR_GRAY 0x808080
+#define COLOR_BROWN 0xA52A2A
+
 typedef enum Direction {
 	LASER_LEFT = 0,
 	LASER_RIGHT = 1,
@@ -51,6 +67,7 @@ typedef struct Module {
 	uint8_t nearest[5]; // Module IDs of nearest destinations. We index by ModuleType.
 
 	bool is_storage;	  // Indicates whether this module has storage responsibilities.
+	bool should_check;
 	Direction to_storage; // Indicates in which direction there is another storage module.
 
 	Tub tub;

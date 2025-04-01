@@ -7,7 +7,6 @@
 
 #define COLOR_CYAN 0x00FFFF
 
-// FAKE HAS TO BE IMPLEMENTED
 int broadcast_plane_status(int plane_id, int module_id) {
 	char data[ARR_LENGTH];
 	data[MSG_SENDER] = module_id;
@@ -30,9 +29,36 @@ Tub create_tub(int id, bool passed_security, bool plane_dropoff, bool plane_arri
 }
 
 
-/// @brief Saves the data of a tub to the given module.
-/// @param module pointer to the Module that receives the rfid readings.
-void save_RFID_data(Module* module) {
+//FIX move from here
+bool check_plane_arrived(int tub_plane_id) { return this.plane_to_id[tub_plane_id] != 0; }
+
+//FIX move from here
+void determine_destination(bool sec_check_passed, bool sec_check_needed, bool plane_dropoff,
+	int plane_id, int* destination, int* destination_type) {
+	if (sec_check_needed) {
+		if (sec_check_passed) {
+			*destination_type = QUARANTINE;
+			*destination = this.nearest[QUARANTINE];
+		} else {
+			*destination_type = SECURITY;
+			*destination = this.nearest[SECURITY];
+		} 
+	} else if (plane_dropoff) {
+		*destination_type = DROPOFF;
+		*destination = this.nearest[DROPOFF];
+	} else if (check_plane_arrived(plane_id)) {
+		*destination_type = PLANE;
+		*destination = this.plane_to_id[plane_id];
+	} else {
+		*destination_type = STORAGE;
+		*destination = this.nearest[STORAGE];
+	}
+	printf("reading: %d, %d\n", *destination, *destination_type);
+}
+
+
+/// @brief Saves the data of a tub to this module.
+void save_RFID_data() {
 	// tub detected
 	char data[RFID_LENGTH];
 	get_entrance_rfid_data(data);
@@ -42,55 +68,45 @@ void save_RFID_data(Module* module) {
 	bool plane_dropoff = (bool)data[PLANE_OR_DROPOFF];
 
 	int plane_id = (int)data[PLANE_ID];
-	bool plane_arrived = module->plane_to_id[plane_id];
+	bool plane_arrived = this.plane_to_id[plane_id];
 	int tub_destination_id;
 	int tub_destination_type;
-	determine_destination(module, has_passed_security, security_bit, plane_dropoff, plane_id, &tub_destination_id, &tub_destination_type);
+	determine_destination(has_passed_security, security_bit, plane_dropoff, plane_id, &tub_destination_id, &tub_destination_type);
 	// write tub destination to module
 	// int tub_priority = -1;
 	// printf("Tub gets: id: %d, passed_sec:%d, sec_bit:%d, plane_dropoff:%d, plane_id:%d\n", tub_id,
 	// has_passed_security, security_bit, plane_dropoff, plane_id);
-	module->tub = create_tub(tub_id, has_passed_security, plane_dropoff, plane_arrived, tub_destination_id, tub_destination_type, plane_id);
+	this.tub = create_tub(tub_id, has_passed_security, plane_dropoff, plane_arrived, tub_destination_id, tub_destination_type, plane_id);
 	// send tub status message -> entry
 }
 
-void change_tub_status(/* Module module */) {
-	// set_security_passed(1);
-	// set_needs_security(1 /* get_payload() */);
-	// set_destination(1 /* determine_destination(module, get_payload(), 1, module.tub.plane_dropoff,
-	// module.tub.plane_id)*/);
-}
-
-int in(Module* module) {
+int in() {
 	char* msg;
 	led_set_color(COLOR_CYAN);
 	if (RFID_check_tag()) {
 		sleep(100);
 		if (get_rfid_data(TUB_OR_PLANE) == 1) {
-			printf("dogpoop\n");
 			return 0;
 		} else {
-			save_RFID_data(module);
+			save_RFID_data();
 			char request[REQ_LENGTH];
-			request[MSG_SENDER] = module->id;
+			request[MSG_SENDER] = this.id;
 			request[MSG_TYPE] = REQUEST_MOVEMENT;
 
-			// FIX
-			request[REQ_TUB_ID] = module->tub.id;
+			request[REQ_TUB_ID] = this.tub.id;
 
-			request[REQ_PLANE_ID] = module->tub.plane_id;
-			request[REQ_PLANE_ARRIVED] = module->tub.plane_arrived;
-			request[REQ_DEST_ID] = module->tub.destination_id;
+			request[REQ_PLANE_ID] = this.tub.plane_id;
+			request[REQ_PLANE_ARRIVED] = this.tub.plane_arrived;
+			request[REQ_DEST_ID] = this.tub.destination_id;
 			//FIX
-			request[REQ_DEST_TYPE] = module->tub.destination_type;
+			request[REQ_DEST_TYPE] = this.tub.destination_type;
 
 			// FIX
-			request[REQ_SECURITY] = module->tub.passed_security;
-			request[REQ_PAYLOAD] = -17; // FAKE
-			add_task(RFID, module->dir_lookup[module->tub.destination_id], request);
-			add_task(module->dir_lookup[module->tub.destination_id], OUT, request);
+			request[REQ_SECURITY] = this.tub.passed_security;
+			add_task(RFID, this.dir_lookup[this.tub.destination_id], request);
+			add_task(this.dir_lookup[this.tub.destination_id], OUT, request);
 
-			state.at[RFID] = module->tub.id;
+			state.at[RFID] = this.tub.id;
 		}
 	}
 }
