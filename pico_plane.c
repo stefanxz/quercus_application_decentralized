@@ -56,6 +56,18 @@ void determine_destination(bool sec_check_passed, bool sec_check_needed, bool pl
 	printf("reading: %d, %d\n", *destination, *destination_type);
 }
 
+//Might want to make this a bit more complex.
+void determine_priority(Tub* tub){
+	if(tub->destination_type == PLANE) {
+		tub->priority = PRIO_HI;
+	}
+	else if(tub -> destination_type == STORAGE){
+		tub->priority = PRIO_LO;
+	} else {
+		tub->priority = PRIO_ME;
+	}
+	printf("Tub %d is assigned priorit: %d\n", tub->id, tub->priority);
+}
 
 /// @brief Saves the data of a tub to this module.
 void save_RFID_data() {
@@ -72,12 +84,9 @@ void save_RFID_data() {
 	int tub_destination_id;
 	int tub_destination_type;
 	determine_destination(has_passed_security, security_bit, plane_dropoff, plane_id, &tub_destination_id, &tub_destination_type);
-	// write tub destination to module
-	// int tub_priority = -1;
-	// printf("Tub gets: id: %d, passed_sec:%d, sec_bit:%d, plane_dropoff:%d, plane_id:%d\n", tub_id,
-	// has_passed_security, security_bit, plane_dropoff, plane_id);
+	
 	this.tub = create_tub(tub_id, has_passed_security, plane_dropoff, plane_arrived, tub_destination_id, tub_destination_type, plane_id);
-	// send tub status message -> entry
+	determine_priority(&this.tub);
 }
 
 int in() {

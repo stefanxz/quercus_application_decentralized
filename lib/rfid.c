@@ -7,9 +7,6 @@
 
 int get_rfid_data(int type) {
 	if (!RFID_check_tag()) return -1;
-	if (type == PAYLOAD) {
-		// TODO: Check whether module is security
-	}
 
 	char data[BLOCK_SIZE];
 	RFID_read_data_block((int)data, type);

@@ -31,6 +31,12 @@ typedef enum Direction {
 	OUT = 3,
 } Direction;
 
+typedef enum Priority {
+	PRIO_LO = 0,
+	PRIO_ME = 1,
+	PRIO_HI = 2,
+} Priority;
+
 typedef enum DestinationType {
 	PLANE = 0,
 	DROPOFF = 1,
@@ -50,7 +56,7 @@ typedef struct Tub {
 	int plane_id;
 	int destination_id;
 	int destination_type;
-
+	Priority priority;
 	bool passed_security;
 	bool plane_dropoff;
 	bool plane_arrived;
