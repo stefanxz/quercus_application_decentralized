@@ -7,6 +7,10 @@
 
 #define COLOR_CYAN 0x00FFFF
 
+/// @brief Send a packet to the Pi to indicate the status of a plane.
+/// @param plane_id ID of the plane to be updated.
+/// @param module_id ID of the module sending the update.
+/// @return 0 on success, < 0 on failure.
 int broadcast_plane_status(int plane_id, int module_id) {
 	char data[ARR_LENGTH];
 	data[MSG_SENDER] = module_id;
@@ -56,7 +60,7 @@ void determine_destination(bool sec_check_passed, bool sec_check_needed, bool pl
 	printf("reading: %d, %d\n", *destination, *destination_type);
 }
 
-//Might want to make this a bit more complex.
+// Might want to make this a bit more complex.
 void determine_priority(Tub* tub){
 	if(tub->destination_type == PLANE) {
 		tub->priority = PRIO_HI;

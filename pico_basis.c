@@ -10,7 +10,6 @@
 #include <stdbool.h>
 
 const Task empty = {.to = OUT, .from = OUT};
-
 Module this;
 State state;
 
@@ -18,6 +17,9 @@ Task tasks[MAX_TASKS];
 int8_t task_current = 0;
 int8_t task_new = 0;
 
+/// @brief Checks if the module is storing a tub
+/// @details The function checks the state of the module to determine if it is currently storing a tub.
+/// @return ID of the tub that is currently being stored in the module
 int8_t is_storing(){
 	for(int i = 0; i < 3; i++){
 		if(state.at[i] != NON) {
@@ -27,65 +29,62 @@ int8_t is_storing(){
 	return NON;
 }
 
-int await_path_config_message(char** msg_ptr, bool persistent) {
-	int response = NON;
-	char type;
-	do {
-		EventType e = next_event();
-		// Sift mailbox for messages:
-		while (e == EVENT_MESSAGE_RECEIVED) {
-			next_message_address(msg_ptr);
-			type = (*msg_ptr)[MSG_TYPE];
-			if (type == REQUEST_MOVEMENT) {
-				// complicated decision as to whether to accept or reject the request here i guess
-			} else if (type == REQUEST_RESPONSE) {
-				// response = handle_request_response(*msg_ptr);
-			} else if (type == PLANE_STATUS) {
-				// response = handle_plane_status(*msg_ptr);
-			} else if (type == PATH_CONFIG) {
-				response = 1;
-			} else if (type == TUB_CONFIG) {
-				// response = handle_tub_config(*msg_ptr);
-			}
-
-			// If you get the message you need, return it
-			if (type == PATH_CONFIG) {
-				return response;
-			}
-			e = next_event();
-
-			sleep(PAUSE);
-		}
-	} while (persistent);
-	return response;
-}
-
- int await_request_path_config(uint8_t* id_look_up, uint8_t* direction_look_up, uint8_t* storage_cycle, uint8_t* nearest_dest, uint8_t* next){
+/// @brief 
+/// @param id_look_up the ID lookup table to be filled in
+/// @param direction_look_up 
+/// @param storage_cycle 
+/// @param nearest_dest 
+void await_request_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_cycle, uint8_t* nearest, uint8_t* next){
 	char* msg;
-	int response = await_path_config_message(&msg, true);
-	uint8_t sender = msg[0];
+	char type;
+
+	// Wait for the path config message from the Pi module until you get it
+	// if any other message is received, ignore it.
+	EventType e = next_event();
+	while (true) {
+		next_message_address(&msg);
+		type = msg[MSG_TYPE];
+
+		// If you get the message you need, return it
+		if (type == PATH_CONFIG) {
+			break;
+		}
+		e = next_event();
+
+		sleep(PAUSE);
+	}
+
+	uint8_t sender = msg[MSG_SENDER];
 	if(sender != 0) {
 		printf("Path config received but not from Pi.\n");
 	}
-	if (response >= 0) {
-		memcpy(id_look_up, msg+2, MAX_NUMBER_OF_MODULES);
-		memcpy(direction_look_up, msg+2+MAX_NUMBER_OF_MODULES, MAX_NUMBER_OF_MODULES);
-		memcpy(storage_cycle, msg+2+MAX_NUMBER_OF_MODULES*2, MAX_NUMBER_OF_MODULES);
-		memcpy(nearest_dest, msg+2+MAX_NUMBER_OF_MODULES*3, NUMBER_OF_DEST_TYPES);
-		memcpy(next, msg+2+MAX_NUMBER_OF_MODULES*3+NUMBER_OF_DEST_TYPES, 3);
-		free(msg);
-		return 1;
-	} else {
-		return 0;
-	}
+
+	// Copy the data from the message to the lookup tables and variables
+	memcpy(id_lookup, msg+2, MAX_NUMBER_OF_MODULES);
+	memcpy(dir_lookup, msg+2+MAX_NUMBER_OF_MODULES, MAX_NUMBER_OF_MODULES);
+	memcpy(storage_cycle, msg+2+MAX_NUMBER_OF_MODULES*2, MAX_NUMBER_OF_MODULES);
+	memcpy(nearest, msg+2+MAX_NUMBER_OF_MODULES*3, NUMBER_OF_DEST_TYPES);
+	memcpy(next, msg+2+MAX_NUMBER_OF_MODULES*3+NUMBER_OF_DEST_TYPES, 3);
+	free(msg);
 }
 
-int get_path_config(uint8_t* id_look_up, uint8_t* direction_look_up, uint8_t* storage_cycle, uint8_t* nearest_dest, uint8_t* next){
+/// @brief Sends a request for the path configuration to the Pi module, await the response, handle it.
+/// @details The function sends a message to the Pi module requesting the path configuration.
+/// It then waits for a response and processes the received data.
+/// @param id_lookup the ID lookup table to be filled in
+/// @param dir_lookup the direction lookup table to be filled in
+/// @param storage_cycle the storage cycle table to be filled in
+/// @param nearest the nearest destination table to be filled in
+/// @param next the next module table to be filled in
+int get_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_cycle, uint8_t* nearest, uint8_t* next){
 	send_request_path_config();
-	await_request_path_config(id_look_up, direction_look_up, storage_cycle, nearest_dest, next);
-	
+	await_request_path_config(id_lookup, dir_lookup, storage_cycle, nearest, next);	
 }
 
+/// @brief Checks if the module shouldb be a storage module.
+/// @param storage_cycle the current storage cycle of the layout
+/// @param id module ID to check
+/// @return 
 bool is_storage(uint8_t storage_cycle[MAX_NUMBER_OF_MODULES], uint8_t id){
 	for (int i = 0; i < MAX_NUMBER_OF_MODULES; i++) {
 		if(id == storage_cycle[i]) return 1;
@@ -93,7 +92,10 @@ bool is_storage(uint8_t storage_cycle[MAX_NUMBER_OF_MODULES], uint8_t id){
 	return 0;
 }
 
-int sys_check(){
+/// @brief Perform a system check by verifying the status of the laser and RFID sensors, and resetting the module.
+/// @details The function checks the status of the laser and RFID sensors. 
+// If any of them are not functioning properly, it prints an error message.
+void sys_check() {
 	if(!laser_left_detect()) {
 		printf("Laser left aint good\n");
 	}
@@ -110,9 +112,13 @@ int sys_check(){
 	belt_big_set_speed(BELT_DOWN_SLOW);
 	sleep(200);
 	reset_module();
-	return 0;
 }
 
+/// @brief Initializes the module by checking the system, setting up the ID, and subscribing to events.
+/// @details The function initializes the module by checking the system, setting up the ID, and subscribing to events. 
+/// It also retrieves the path configuration and sets the initial state of the module.
+/// @return void
+/// @note This function is called at the beginning of the program to set up the module.
 void init() {
 	sys_check();
 	this.id = get_own_id();
@@ -122,10 +128,6 @@ void init() {
 	
 	get_path_config(this.id_lookup, this.dir_lookup, storage_cycle, this.nearest, this.next);
 	
-	// printf("id_look_up: %d, %d, %d, %d, %d\n", this.id_lookup[3], this.id_lookup[4], this.id_lookup[5], this.id_lookup[6], this.id_lookup[7]);
-	// printf("dir_look_up: %d, %d, %d, %d, %d\n", this.dir_lookup[3], this.dir_lookup[4], this.dir_lookup[5], this.dir_lookup[6], this.dir_lookup[7]);
-	// printf("next: %d, %d, %d\n", this.next[0], this.next[1], this.next[2]);
-	// Initialize the module's state
 	state.at[RFID] = NON;
 	state.at[LASER_LEFT] = NON;
 	state.at[LASER_RIGHT] = NON;
@@ -145,34 +147,39 @@ void init() {
 		tasks[i] = empty;
 	}
 
-	printf("I am done with the setup.\n");
+	printf("I am done with the setup. My ID is %d\n", this.id);
 	sleep(10);
 }
 
-// CHANGE FAST AF
+/// @brief Updates the state after a task is completed.
+/// @param from the "from" direction of the task
+/// @param to the "to" direction of the task
+/// @param tub_id the ID of the tub that was processed
+/// @details The function updates the state of the module by setting the "from" direction to NON and 
+// the "to" direction to the tub ID to indicate that the tub has moved to that position.
 void update_state(Direction from, Direction to, int tub_id) {
 	if(from != OUT) state.at[from] = NON;
 	if(to != OUT) state.at[to] = tub_id;
 }
 
-void copy_message(char* request, char* msg) {
-	for (int i = 0; i < REQ_LENGTH; i++) {
-		request[i] = msg[i];
-	}
-}
-
-bool add_task(Direction from, Direction to, char* request) {
+/// @brief Adds a task to the task ring buffer.
+/// @param from which endpoint of the module the tub moves from
+/// @param to which endpoint of the module the tub moves to
+/// @param request related request that led to the addition of this task
+void add_task(Direction from, Direction to, char* request) {
 	printf("adding task: %d, %d\n", from, to, request);
 	Task task;
 	task.to = to;
 	task.from = from;
 
-	// POTENTIALLY SMELLY
-	copy_message(task.request, request);
+	// POTENTIALLY SMELLY CODE
+	memcpy(task.request, request, REQ_LENGTH);
 
 	tasks[task_new] = task;
 	task_new = (task_new + 1) % MAX_TASKS;
-	return true;
 }
 
+/// @brief Checks if there are no tasks to be done in the ring buffer.
+/// @details The function checks if the current task index is equal to the new task index.
+/// @return true if there are no tasks, false otherwise
 bool no_tasks() { return (task_current == task_new); }

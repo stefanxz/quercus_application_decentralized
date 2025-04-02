@@ -1,9 +1,9 @@
 #pragma once
 #include "pico_basis.c"
 
-/*
-	STORAGE LOGIC
-*/
+/// @brief Take care of stored tubs in the module.
+/// @param from direction from which a new tub is coming
+/// @param msg related request message to new tub's arrival
 void handle_storage(Direction from, char* msg) {
 	if (state.at[this.to_storage] != NON) {
 		add_task(this.to_storage, OUT, msg);
@@ -13,6 +13,9 @@ void handle_storage(Direction from, char* msg) {
 	}
 }
 
+/// @brief 
+/// @param from 
+/// @param destination_id 
 void reroute_stored_tub(Direction from, uint8_t destination_id) {
 	printf("I am rerouting\n");
 	char request[REQ_LENGTH];
@@ -27,11 +30,9 @@ void reroute_stored_tub(Direction from, uint8_t destination_id) {
 	add_task(to, OUT, request);
 }
 
-/*
-	NETWORK TOP LAYER SHIT - HANDLE REQUESTS, ECT.
-*/
-
-
+/// @brief Handle an incoming request for movement.
+/// @param msg 
+/// @return 
 int handle_request_movement(char* msg) {
 	int plane_arrived = msg[REQ_PLANE_ARRIVED];
 	int plane = msg[REQ_PLANE_ID];
@@ -52,11 +53,13 @@ int handle_request_movement(char* msg) {
 	Direction from;
 	Direction to;
 
+	// Find the module endpoint at which of the origin and destination are located:
 	for (int i = 0; i < 3; i++) {
 		if (this.next[i] == origin) from = i;
 		if (this.next[i] == end) to = i;
 	}
 
+	// Check if the module is a storage module and has something stored:
 	if (this.is_storage && is_storing() != NON) {
 		handle_storage(from, msg);
 	}

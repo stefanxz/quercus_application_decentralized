@@ -6,6 +6,9 @@ ModulePi modules[MAX_NUMBER_OF_MODULES];
 int count = 0;  
 int highest_id_module = 0;
 
+/// @brief 
+/// @param type 
+/// @return 
 int map_type_to_int(const char *type) {
     if (strcmp(type, "tgate") == 0) return PLANE;
     if (strcmp(type, "tdrop-off") == 0) return DROPOFF;
@@ -16,7 +19,9 @@ int map_type_to_int(const char *type) {
     return -1; 
 }
 
-
+/// @brief 
+/// @param data 
+/// @return 
 int parse_config(char* data) {
     int i = 0;
     int firstLineNumber = 0;
@@ -97,7 +102,9 @@ int parse_config(char* data) {
     return firstLineNumber;
 }
 
-// Function to create a graph with `vertices` number of nodes
+/// @brief Create a graph with the given number of vertices.
+/// @param vertices number of vertices in the graph
+/// @return Pointer to the created graph.
 Graph* createGraph(int vertices) {
     Graph* graph = (Graph*)malloc(sizeof(Graph));
     graph->vertices = vertices;
