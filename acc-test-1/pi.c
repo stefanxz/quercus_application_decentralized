@@ -1,10 +1,9 @@
-#include "quercus_lib_pico.h"
-
-#include "libc_builtin.h"
-#include "lib/network.h"
-#include "lib/graph.c"
-#include "lib/graph.h"
-#include "lib/essentials.h"
+#include "../quercus_lib_pico.h"
+#include "../libc_builtin.h"
+#include "../lib/network.h"
+#include "../lib/graph.c"
+#include "../lib/graph.h"
+#include "../lib/essentials.h"
 
 int bfs(Graph* graph, int startVertex, int* predecessors, Cycle* largest_cycle, uint8_t nearest_dest[NUMBER_OF_DEST_TYPES])
 {

@@ -1,8 +1,10 @@
+#Layout 4
 pi    pi.c
-pico2 test/test1.c
-pico3 test/test2.c
-pico4 test/test2.c
-pico5 test/test2.c
-pico6 test/test2.c
-pico7 test/test2.c
-pico8 test/test2.c
+pico1 acc-test-1/gate.c
+pico2 acc-test-1/default.c
+pico3 acc-test-1/security.c
+pico4 acc-test-1/default.c
+pico5 acc-test-1/default.c
+pico6 acc-test-1/security.c
+pico7 acc-test-1/default.c
+pico8 acc-test-1/default.c

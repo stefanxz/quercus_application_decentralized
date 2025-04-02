@@ -102,7 +102,7 @@ int in() {
 			return 0;
 		} else {
 			if(is_storing() > NON) {
-				printf("SOMETHING WENT WRONG!\n");
+				printf("SOMETHING WENT WRONG! I am storing at %d\n", is_storing());
 				handle_storage(RFID);
 			}
 			save_RFID_data();

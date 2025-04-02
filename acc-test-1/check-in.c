@@ -1,5 +1,5 @@
 #include "../pico_routing.c"
-#include "test_constants.h"
+#include "../pico_plane.c"
 #include "../examples.c"
 
 export int main(void) {

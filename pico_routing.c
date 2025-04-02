@@ -23,7 +23,6 @@ void handle_storage(Direction from) {
 /// @param from 
 /// @param destination_id 
 void reroute_stored_tub(Direction from, uint8_t destination_id, DestinationType dest_type) {
-	printf("I am rerouting to destination: %d\n", destination_id);
 	char request[REQ_LENGTH];
 	request[MSG_SENDER] = this.id;
 	request[MSG_TYPE] = REQUEST_MOVEMENT;
@@ -36,6 +35,8 @@ void reroute_stored_tub(Direction from, uint8_t destination_id, DestinationType 
 	add_task(to, OUT, request);
 
 }
+
+
 
 /// @brief Handle an incoming request for movement.
 /// @param msg 
@@ -245,29 +246,59 @@ bool request_to_leave(int next_id, char* request) {
 	return await_response();
 }
 
+void clear_tub_data(Tub* tub){
+	tub->id = NON;
+	tub->destination_id = NON;
+	tub->destination_type = NON;
+	tub->plane_id = NON;
+}
+
+void save_tub_from_request(Tub* tub, char req[REQ_LENGTH]){
+	tub->id = req[REQ_TUB_ID];
+	tub->destination_id = req[REQ_DEST_ID];
+	tub->destination_type = req[REQ_DEST_TYPE];
+	tub->plane_id = req[REQ_PLANE_ID];
+	//Rest of the fields are not necessary.
+}
+
 bool do_task() {
 	Task task = tasks[task_current];
 	int tub_id = task.request[REQ_TUB_ID];
-	if (task.to == OUT && task.from == OUT) printf("We are doing an empty task, fml\n");
+	if (task.to == OUT && task.from == OUT) printf("I am doing an empty task, not good.\n");
 
 	if (task.to == OUT) {
 		printf("Tub %d to leave to module %d by %d\n", tub_id, this.next[task.from], task.from);
 
 		int next_id = this.next[task.from];
 		if(this.next[task.from] == 0) {
+			clear_tub_data(&this.tub[task.from]);
 			leave_at(task.from);
 		} else if (request_to_leave(next_id, task.request)) {
+			clear_tub_data(&this.tub[task.from]);
 			leave_at(task.from);
 		} else {
 			return false;
 		}
 	} else if (task.from == OUT) {
 		printf("Tub %d to enter module %d\n", tub_id, this.id);
-		send_request_response(task.request[MSG_SENDER], true);
+		
+		while(send_request_response(task.request[MSG_SENDER], true) < 0) {
+			printf("response \\ packet loss");
+			sleep(100);
+		};
+		save_tub_from_request(&this.tub[task.to], task.request);
 		enter_at(task.to);
 		printf("I am sending the response. Origin = %d\n", task.request[MSG_SENDER]);
 	} else {
+		
+		printf("I am reaching the security thing: %d\n", task.request[REQ_DEST_TYPE]);
+		if(task.request[REQ_DEST_TYPE] == SECURITY) {
+			this.should_check = 1;
+		}
+
 		printf("Tub %d hits the griddy from to %d to %d\n", tub_id, task.from, task.to);
+		clear_tub_data(&this.tub[task.from]);
+		save_tub_from_request(&this.tub[task.to], task.request);
 		move_within_module(tub_id, task.from, task.to);
 	}
 
@@ -275,8 +306,8 @@ bool do_task() {
 	task_current = (task_current + 1) % MAX_TASKS;
 
 	update_state(task.from, task.to, task.request[REQ_TUB_ID]);
-	printf("current: %d, next_free: %d\n", task_current, task_new);
 	return true;
+
 }
 
 

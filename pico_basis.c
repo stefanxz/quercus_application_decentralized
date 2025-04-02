@@ -181,6 +181,7 @@ void add_task(Direction from, Direction to, char* request) {
 	// POTENTIALLY SMELLY CODE
 	memcpy(task.request, request, REQ_LENGTH);
 
+	printf("task request: %d, %d, %d, %d\n", request[MSG_SENDER], request[REQ_TUB_ID], request[REQ_DEST_TYPE], request[REQ_DEST_ID]);
 	tasks[task_new] = task;
 	task_new = (task_new + 1) % MAX_TASKS;
 }

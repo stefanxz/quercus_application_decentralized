@@ -1,12 +1,9 @@
 #include "../pico_routing.c"
-#include "test_constants.h"
-#include "../examples.c"
 
 export int main(void) {
+	reset_module();
     init();
-
     while(1){
-        in();
         loop();
         sleep(100);
     }
