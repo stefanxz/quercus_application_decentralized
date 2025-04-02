@@ -42,15 +42,18 @@ void await_request_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t*
 	// if any other message is received, ignore it.
 	EventType e = next_event();
 	while (true) {
-		next_message_address(&msg);
-		type = msg[MSG_TYPE];
+		printf("I am waiting for the path config response\n");
+		if(e == EVENT_MESSAGE_RECEIVED) {
+			next_message_address(&msg);
+			type = msg[MSG_TYPE];
 
-		// If you get the message you need, return it
-		if (type == PATH_CONFIG) {
-			break;
+			// If you get the message you need, return it
+			if (type == PATH_CONFIG) {
+				break;
+			}
 		}
-		e = next_event();
 
+		e = next_event();
 		sleep(PAUSE);
 	}
 
