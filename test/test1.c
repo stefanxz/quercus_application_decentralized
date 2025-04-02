@@ -8,7 +8,6 @@ int check_for_plane(){
         if (get_rfid_data(TUB_OR_PLANE)) {
             return 1;
 		}
-
     }
     return 0;
 }

@@ -41,7 +41,7 @@ int send_request_response(int module_id, int value) {
 	char data[3];
 	data[MSG_SENDER] = get_own_id();
 	data[MSG_TYPE] = REQUEST_RESPONSE;
-	data[2] = value;
+	data[MSG_VALUE] = value;
 	return send_packet(module_id, data, sizeof(data));
 }
 

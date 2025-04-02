@@ -75,7 +75,7 @@ void leave_at(int exit) {
 	}
 
 	// Wait for tub to leave:
-	sleep(3000);
+	sleep(1500);
 	reset_module();
 }
 

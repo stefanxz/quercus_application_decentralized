@@ -85,8 +85,8 @@ void save_RFID_data() {
 	int tub_destination_type;
 	determine_destination(has_passed_security, security_bit, plane_dropoff, plane_id, &tub_destination_id, &tub_destination_type);
 	
-	this.tub = create_tub(tub_id, has_passed_security, plane_dropoff, plane_arrived, tub_destination_id, tub_destination_type, plane_id);
-	determine_priority(&this.tub);
+	this.tub[RFID] = create_tub(tub_id, has_passed_security, plane_dropoff, plane_arrived, tub_destination_id, tub_destination_type, plane_id);
+	determine_priority(&this.tub[RFID]);
 }
 
 int in() {
@@ -97,25 +97,29 @@ int in() {
 		if (get_rfid_data(TUB_OR_PLANE) == 1) {
 			return 0;
 		} else {
+			if(is_storing() > NON) {
+				printf("SOMETHING WENT WRONG!\n");
+				handle_storage(RFID);
+			}
 			save_RFID_data();
 			char request[REQ_LENGTH];
 			request[MSG_SENDER] = this.id;
 			request[MSG_TYPE] = REQUEST_MOVEMENT;
 
-			request[REQ_TUB_ID] = this.tub.id;
+			request[REQ_TUB_ID] = this.tub[RFID].id;
 
-			request[REQ_PLANE_ID] = this.tub.plane_id;
-			request[REQ_PLANE_ARRIVED] = this.tub.plane_arrived;
-			request[REQ_DEST_ID] = this.tub.destination_id;
+			request[REQ_PLANE_ID] = this.tub[RFID].plane_id;
+			request[REQ_PLANE_ARRIVED] = this.tub[RFID].plane_arrived;
+			request[REQ_DEST_ID] = this.tub[RFID].destination_id;
 			//FIX
-			request[REQ_DEST_TYPE] = this.tub.destination_type;
+			request[REQ_DEST_TYPE] = this.tub[RFID].destination_type;
 
 			// FIX
-			request[REQ_SECURITY] = this.tub.passed_security;
-			add_task(RFID, this.dir_lookup[this.tub.destination_id], request);
-			add_task(this.dir_lookup[this.tub.destination_id], OUT, request);
+			// request[REQ_SECURITY] = this.tub[RFID].passed_security;
+			add_task(RFID, this.dir_lookup[this.tub[RFID].destination_id], request);
+			add_task(this.dir_lookup[this.tub[RFID].destination_id], OUT, request);
 
-			state.at[RFID] = this.tub.id;
+			state.at[RFID] = this.tub[RFID].id;
 		}
 	}
 }

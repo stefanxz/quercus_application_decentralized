@@ -3,7 +3,7 @@
 #define MAX_NUMBER_OF_MODULES 50
 #define MAX_NUMBER_OF_PLANES 256
 #define NON -1
-#define MAX_TASKS 32
+#define MAX_TASKS 64
 #define NUMBER_OF_DEST_TYPES 5
 
 #include <stdbool.h>
@@ -76,7 +76,7 @@ typedef struct Module {
 	bool should_check;
 	Direction to_storage; // Indicates in which direction there is another storage module.
 
-	Tub tub;
+	Tub tub[3]; //Array of tubs, indexed by their position
 } Module; // structure for a module containing its essential fields
 
 typedef struct {

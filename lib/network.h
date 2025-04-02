@@ -38,15 +38,6 @@ enum ArrivalsContent {
 	ARR_LENGTH = 5
 };
 
-enum LayoutContent {
-	CON_LASER_LEFT = 2,
-	CON_LASER_RIGHT = 3,
-	CON_RFID = 4,
-	CON_STORAGE = 5,
-	CON_LOOKUP = 6,
-	CON_LENGTH = 7
-};
-
 // Sends a message to request movement to a module with 'module_id' and with the specific 'tub_data'.
 int send_request_movement(int module_id, char* tub_data);
 
