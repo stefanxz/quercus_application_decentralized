@@ -3,6 +3,7 @@
 #include "movement.h"
 #include "network.c"
 
+/// @brief Reset the module to its default state: LED red, belts off, arm neutral.
 void reset_module() {
 	led_set_color(LED_RED);
 	belt_small_set_speed(BELT_OFF);
@@ -17,6 +18,10 @@ void reset_module() {
 	servo_angle_set(ARM_NEUTRAL);
 }
 
+/// @brief Move the tub within the module from one endpoint to another.
+/// @param tub_id The ID of the tub that is moving.
+/// @param from The starting endpoint (LASER_LEFT, LASER_RIGHT, RFID).
+/// @param to The destination endpoint (LASER_LEFT, LASER_RIGHT, RFID).
 void move_within_module(int tub_id, int from, int to) {
 	if (from == to) return;
 	led_set_color(LED_GREEN);
@@ -44,7 +49,7 @@ void move_within_module(int tub_id, int from, int to) {
 		}
 	}
 
-	// TODO: Implement timeout
+	// TODO: Implement timeout?
 	while (1) {
 		if (to == RFID && RFID_check_tag()) {
 			break;
@@ -63,6 +68,8 @@ void move_within_module(int tub_id, int from, int to) {
 	}
 }
 
+/// @brief Push a tub out of the module at a specific exit point.
+/// @param exit the exit point from which the tub leaves (LASER_LEFT, LASER_RIGHT, RFID).
 void leave_at(int exit) {
 	led_set_color(LED_GREEN);
 
@@ -79,7 +86,10 @@ void leave_at(int exit) {
 	reset_module();
 }
 
-bool enter_at(int entrance) {
+
+/// @brief Take on a tub at a specific entrance point.
+/// @param entrance the entrance point where the tub enters (LASER_LEFT, LASER_RIGHT, RFID).
+void enter_at(int entrance) {
 	if (entrance == RFID) {
 		belt_small_set_speed(BELT_UP_SLOW);
 	} else if (entrance == LASER_LEFT) {
@@ -100,5 +110,4 @@ bool enter_at(int entrance) {
 		sleep(10);
 	}
 	reset_module();
-	return true;
 }

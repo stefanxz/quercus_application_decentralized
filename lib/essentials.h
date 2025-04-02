@@ -22,8 +22,9 @@
 #define COLOR_PURPLE 0xFF00FF
 #define COLOR_PINK 0xFFC0CB
 #define COLOR_GRAY 0x808080
-#define COLOR_BROWN 0xA52A2A
+#define COLOR_BROWN 0xA52A2A
 
+// Module endpoints encoded as directions. Out is not a direction, but a special additional value.
 typedef enum Direction {
 	LASER_LEFT = 0,
 	LASER_RIGHT = 1,
@@ -31,12 +32,14 @@ typedef enum Direction {
 	OUT = 3,
 } Direction;
 
+// Priority levels for the tubs. The higher the number, the higher the priority.
 typedef enum Priority {
 	PRIO_LO = 0,
 	PRIO_ME = 1,
 	PRIO_HI = 2,
 } Priority;
 
+// Types of destinations for the tubs.
 typedef enum DestinationType {
 	PLANE = 0,
 	DROPOFF = 1,
@@ -45,12 +48,14 @@ typedef enum DestinationType {
 	QUARANTINE = 4,
 } DestinationType;
 
+// Task structures for the modules. Each module has a list of tasks to perform.
 typedef struct {
 	Direction to;
 	Direction from;
 	char request[13]; // MSG_HEAD + RFID_LENGTH
 } Task;				  // structure for a task
 
+// Tub structure that contains all related information about a tub.
 typedef struct Tub {
 	int id;
 	int plane_id;
@@ -62,6 +67,7 @@ typedef struct Tub {
 	bool plane_arrived;
 } Tub;
 
+// Module structure that contains all related fields of a module.
 typedef struct Module {
 	int id;
 
@@ -79,7 +85,8 @@ typedef struct Module {
 	Tub tub[3]; //Array of tubs, indexed by their position
 } Module; // structure for a module containing its essential fields
 
+// Structure for the state of the module. It contains the current state of the module and the tub.
 typedef struct {
 	int at[3];
-} State; // structure for the state of the modules
+} State;
 

@@ -1,31 +1,27 @@
 #pragma once
 #include "pico_basis.c"
 
-/*
-	STORAGE LOGIC
-*/
+/// @brief Take care of stored tubs in the module.
+/// @param from direction from which a new tub is coming
 void handle_storage(Direction from) {
 	char stor_req[REQ_LENGTH];
-	// bool remove_from_belt = 0;
-	// if((from  == LASER_LEFT || from == LASER_RIGHT) && (this.to_storage == LASER_LEFT || this.to_storage == LASER_RIGHT)){
-	// 	printf("I shall remove tub from belt\n");
 	Direction pos_stored_tub = is_storing();
+	
 	stor_req[MSG_SENDER] = this.id;
 	stor_req[MSG_TYPE] = REQUEST_MOVEMENT;
 	stor_req[REQ_TUB_ID] = this.tub[pos_stored_tub].id;
 	stor_req[REQ_PLANE_ID] = this.tub[pos_stored_tub].plane_id;
 	stor_req[REQ_DEST_TYPE] = STORAGE;
 	stor_req[REQ_DEST_ID] = this.next[this.to_storage];
-		// remove_from_belt = 1;
-	// }
-	// if (state.at[this.to_storage] != NON) {
-	// }
-	// if (state.at[from] != NON) {
-		add_task(pos_stored_tub, this.to_storage, stor_req);
-		add_task(this.to_storage, OUT, stor_req);
-	// }
+	
+	add_task(pos_stored_tub, this.to_storage, stor_req);
+	add_task(this.to_storage, OUT, stor_req);
+
 }
 
+/// @brief 
+/// @param from 
+/// @param destination_id 
 void reroute_stored_tub(Direction from, uint8_t destination_id, DestinationType dest_type) {
 	printf("I am rerouting to destination: %d\n", destination_id);
 	char request[REQ_LENGTH];
@@ -38,15 +34,14 @@ void reroute_stored_tub(Direction from, uint8_t destination_id, DestinationType 
 	to = this.dir_lookup[this.id_lookup[destination_id]];
 	add_task(from, to, request);
 	add_task(to, OUT, request);
+
 }
 
-/*
-	NETWORK TOP LAYER SHIT - HANDLE REQUESTS, ECT.
-*/
-
-
+/// @brief Handle an incoming request for movement.
+/// @param msg 
+/// @return 
 int handle_request_movement(char* msg) {
-
+	
 	int plane_arrived = msg[REQ_PLANE_ARRIVED];
 	int plane = msg[REQ_PLANE_ID];
 
@@ -160,6 +155,13 @@ int handle_plane_status(char* msg) {
 	
 	printf("Something is wrong with the plane schedule.\n");
 	return -1;
+
+}
+
+
+int handle_tub_config(char* msg) {
+	// return set_tub_id(msg[2]);
+	return 0;
 }
 
 int await_message(char** msg_ptr, int expected, bool persistent) {
@@ -168,11 +170,12 @@ int await_message(char** msg_ptr, int expected, bool persistent) {
 	do {
 		EventType e = next_event();
 		// Sift mailbox for messages:
-		printf("I am jaking it. %d\n", expected);
-		sleep(1000);
 		while (e == EVENT_MESSAGE_RECEIVED) {
 			next_message_address(msg_ptr);
 			type = (*msg_ptr)[MSG_TYPE];
+
+			printf("Type: %d, Sender:%d, Dest:%d, Tub_id: %d\n", type, (*msg_ptr)[MSG_SENDER],
+				   (*msg_ptr)[REQ_DEST_ID], (*msg_ptr)[REQ_TUB_ID]);
 
 			if (type == REQUEST_MOVEMENT) {
 				// complicated decision as to whether to accept or reject the request here i guess
@@ -200,6 +203,7 @@ int await_message(char** msg_ptr, int expected, bool persistent) {
 }
 
 int await_response() {
+	printf("I am waiting for a response\n");
 	char* msg;
 	int response = await_message(&msg, REQUEST_RESPONSE, true);
 	if (response >= 0) {
@@ -231,69 +235,39 @@ int await_request_movement() {
 bool request_to_leave(int next_id, char* request) {
 	led_set_color(LED_GREEN);
 
-	printf("I am sending a request to module: %d, %d\n", next_id, request[REQ_DEST_ID]);
+	printf("I am sending a request to module: %d\n", next_id);
 	// Send 10 times or until success:
 	for (int i = 0; i < 10 && send_request_movement(next_id, request) < 0; i++) {
-		printf("request // packet loss\n");
+		printf("move // packet loss\n");
 		sleep(100);
 	}
 
 	return await_response();
 }
 
-void clear_tub_data(Tub* tub){
-	tub->id = NON;
-	tub->destination_id = NON;
-	tub->destination_type = NON;
-	tub->plane_id = NON;
-}
-
-void save_tub_from_request(Tub* tub, char req[REQ_LENGTH]){
-	tub->id = req[REQ_TUB_ID];
-	tub->destination_id = req[REQ_DEST_ID];
-	tub->destination_type = req[REQ_DEST_TYPE];
-	tub->plane_id = req[REQ_PLANE_ID];
-	//Rest of the fields are not necessary.
-}
-
 bool do_task() {
 	Task task = tasks[task_current];
 	int tub_id = task.request[REQ_TUB_ID];
-	if (task.to == OUT && task.from == OUT) printf("I am doing an empty task, not good.\n");
+	if (task.to == OUT && task.from == OUT) printf("We are doing an empty task, fml\n");
 
 	if (task.to == OUT) {
 		printf("Tub %d to leave to module %d by %d\n", tub_id, this.next[task.from], task.from);
 
 		int next_id = this.next[task.from];
 		if(this.next[task.from] == 0) {
-			clear_tub_data(&this.tub[task.from]);
 			leave_at(task.from);
 		} else if (request_to_leave(next_id, task.request)) {
-			clear_tub_data(&this.tub[task.from]);
 			leave_at(task.from);
 		} else {
 			return false;
 		}
 	} else if (task.from == OUT) {
 		printf("Tub %d to enter module %d\n", tub_id, this.id);
-		
-		while(send_request_response(task.request[MSG_SENDER], true) < 0) {
-			printf("response \\ packet loss");
-			sleep(100);
-		};
-		save_tub_from_request(&this.tub[task.to], task.request);
+		send_request_response(task.request[MSG_SENDER], true);
 		enter_at(task.to);
 		printf("I am sending the response. Origin = %d\n", task.request[MSG_SENDER]);
 	} else {
-		
-		printf("I am reaching the security thing: %d\n", task.request[REQ_DEST_TYPE]);
-		if(task.request[REQ_DEST_TYPE] == SECURITY) {
-			this.should_check = 1;
-		}
-
 		printf("Tub %d hits the griddy from to %d to %d\n", tub_id, task.from, task.to);
-		clear_tub_data(&this.tub[task.from]);
-		save_tub_from_request(&this.tub[task.to], task.request);
 		move_within_module(tub_id, task.from, task.to);
 	}
 
@@ -309,8 +283,7 @@ bool do_task() {
 void loop() {
 	if (no_tasks()) {
 		await_request_movement();
-	}
-	while(!no_tasks()) {
+	} else {
 		do_task();
 	}
 }
