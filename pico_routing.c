@@ -107,7 +107,10 @@ int handle_plane_status(char* msg) {
 		//save that the plane is coming.
 		this.plane_to_id[msg[ARR_PLANE_ID]] = msg[ARR_MODULE_ID];
 		printf("I got a plane update, %d, %d\n", msg[ARR_PLANE_ID], msg[ARR_MODULE_ID]);
-		
+		if(!no_tasks()) {
+			printf("I am doing something, the next guy will deal with the plane.\n");
+			return 2;
+		}
 		int pos = this.dir_lookup[msg[ARR_MODULE_ID]];
 		if(this.tub[pos].id != NON){
 			if(this.tub[pos].plane_id == msg[ARR_PLANE_ID]){
@@ -116,9 +119,9 @@ int handle_plane_status(char* msg) {
 				reroute_stored_tub(pos, msg[ARR_MODULE_ID], PLANE);
 			}
 			else{
-				printf("I am rerouting a tub stored at direction towards the plane to next storage.\n");
+				printf("The plane is not for my tub.\n");
 				//if not move it along the storage loop.
-				reroute_stored_tub(pos, this.next[this.to_storage], STORAGE);
+				// reroute_stored_tub(pos, this.next[this.to_storage], STORAGE);
 			}
 		}
 		int new_pos = pos+1;
@@ -139,7 +142,8 @@ int handle_plane_status(char* msg) {
 				}
 				else{
 					//if not move it along the storage loop.
-					reroute_stored_tub(new_pos, this.next[this.to_storage], STORAGE);
+					// reroute_stored_tub(new_pos, this.next[this.to_storage], STORAGE);
+					printf("Plane came, but not for my tub.\n");
 				}
 			}
 			new_pos++;

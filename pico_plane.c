@@ -82,13 +82,14 @@ void save_RFID_data() {
 	bool has_passed_security = (bool)data[PASSED_SECURITY];
 	bool security_bit = (bool)data[NEEDS_SECURITY];
 	bool plane_dropoff = (bool)data[PLANE_OR_DROPOFF];
+	
 
 	int plane_id = (int)data[PLANE_ID];
 	bool plane_arrived = this.plane_to_id[plane_id];
 	int tub_destination_id;
 	int tub_destination_type;
 	determine_destination(has_passed_security, security_bit, plane_dropoff, plane_id, &tub_destination_id, &tub_destination_type);
-	
+	printf("I am going to destination: %d with type: %d\n", tub_destination_id, tub_destination_type);
 	this.tub[RFID] = create_tub(tub_id, has_passed_security, plane_dropoff, plane_arrived, tub_destination_id, tub_destination_type, plane_id);
 	determine_priority(&this.tub[RFID]);
 }
