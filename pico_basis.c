@@ -123,6 +123,7 @@ void sys_check() {
 /// @note This function is called at the beginning of the program to set up the module.
 void init() {
 	sys_check();
+	led_set_color(COLOR_YELLOW);
 	this.id = get_own_id();
 	uint8_t storage_cycle[MAX_NUMBER_OF_MODULES];
 	led_set_color(0xff7700);
@@ -152,6 +153,8 @@ void init() {
 	for(int i = 0; i < 3; i++) {
 		this.tub[i].id = NON;
 	}
+	
+	led_set_color(COLOR_RED);
 
 	printf("I am done with the setup.\n");
 	sleep(10);

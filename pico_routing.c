@@ -47,9 +47,10 @@ int handle_request_movement(char* msg) {
 	int plane = msg[REQ_PLANE_ID];
 
 	// Reroute tub if its plane has arrived
-	if (!plane_arrived && this.plane_to_id[plane] != 0) {
+	if (!plane_arrived && this.plane_to_id[plane] != 0 && msg[REQ_DEST_TYPE] == STORAGE) {
 		msg[REQ_DEST_ID] = this.plane_to_id[plane];
 		msg[REQ_PLANE_ARRIVED] = 1;
+		msg[REQ_DEST_TYPE] = PLANE;
 	}
 
 	int origin = msg[MSG_SENDER];

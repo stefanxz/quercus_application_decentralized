@@ -35,7 +35,7 @@ Tub create_tub(int id, bool passed_security, bool plane_dropoff, bool plane_arri
 
 
 //FIX move from here
-bool check_plane_arrived(int tub_plane_id) { return this.plane_to_id[tub_plane_id] != 0; }
+bool check_plane_arrived(int tub_plane_id) { return this.plane_to_id[tub_plane_id] > 0; }
 
 //FIX move from here
 void determine_destination(bool sec_check_passed, bool sec_check_needed, bool plane_dropoff,
