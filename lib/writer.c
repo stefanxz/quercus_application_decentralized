@@ -105,92 +105,93 @@ void setup_tub(int tub_id, int needs_security, int plane_dropoff, int plane_id, 
 
 int write() {
 	printf("I am le writerr\n");
+    int i = 0;
 	while (true) {
 		// make plane
-		if (RFID_check_tag()) {
-			led_set_color(0x00ff00);
-			switch (i) {
-			case 0:
-				// Plane 0
-				setup_plane(69, 1);
-				printf("setup plane 1");
-				break;
-			case 1:
-				// Plane 1
-				setup_plane(17, 0);
-				printf("setup plane 2");
-				break;
-			case 2:
-				// Tub 1
-				setup_tub(1, 0, 0, 17, 1);
-				printf("setup tub 1");
-				break;
-			case 3:
-				// Tub 2
-				setup_tub(2, 0, 0, 17, 1);
-				printf("setup tub 2");
-				break;
-			case 4:
-				// Tub 3
-				setup_tub(3, 0, 1, 17, 1);
-				printf("setup tub 3");
-				break;
-			case 5:
-				// Tub 4
-				setup_tub(4, 1, 1, 17, 1);
-				printf("setup tub 4");
-				break;
-			case 6:
-				// Tub 5
-				setup_tub(5, 1, 0, 17, 1);
-				printf("setup tub 5");
-				break;
-			case 7:
-				// Tub 6
-				setup_tub(6, 1, 0, 17, 1);
-				printf("setup tub 6");
-				break;
-			case 8:
-				// Tub 7
-				setup_tub(7, 1, 1, 17, 1);
-				printf("setup tub 7");
-				break;
-			case 9:
-				// Tub 8
-				setup_tub(8, 0, 0, 17, 1);
-				printf("setup tub 8");
-				break;
-			case 10:
-				// Tub 9
-				setup_tub(9, 0, 0, 17, 1);
-				printf("setup tub 9");
-				break;
-			case 11:
-				// Tub 10
-				setup_tub(10, 1, 0, 17, 0);
-				printf("setup tub 10");
-				break;
-			case 12:
-				// Tub 11
-				setup_tub(11, 1, 0, 17, 1);
-				printf("setup tub 11");
-				break;
-			case 13:
-				// Tub 12
-				setup_tub(12, 1, 0, 17, 1);
-				printf("setup tub 12");
-				break;
-			default:
-				// Should never reach here
-				break;
-			}
-			i++;
-			// set led to smth else
-			led_set_color(0x0000ff);
-			// wait for 5 seconds
-			sleep(3000);
-		}
-		sleep(100);
+    if (RFID_check_tag()) {
+        led_set_color(0x00ff00);
+        switch (i) {
+        case 0:
+            // Plane 1
+            setup_plane(69, 1);
+            printf("setup plane 1");
+            break;
+        case 1:
+            // Plane 2
+            setup_plane(17, 0);
+            printf("setup plane 2");
+            break;
+        case 2:
+            // Tub 1
+            setup_tub(1, 0, 0, 17, 1);
+            printf("setup tub 1");
+            break;
+        case 3:
+            // Tub 2
+            setup_tub(2, 0, 0, 17, 1);
+            printf("setup tub 2");
+            break;
+        case 4:
+            // Tub 3
+            setup_tub(3, 0, 1, 17, 1);
+            printf("setup tub 3");
+            break;
+        case 5:
+            // Tub 4
+            setup_tub(4, 1, 1, 17, 1);
+            printf("setup tub 4");
+            break;
+        case 6:
+            // Tub 5
+            setup_tub(5, 1, 0, 17, 1);
+            printf("setup tub 5");
+            break;
+        case 7:
+            // Tub 6
+            setup_tub(6, 1, 0, 17, 1);
+            printf("setup tub 6");
+            break;
+        case 8:
+            // Tub 7
+            setup_tub(7, 1, 1, 17, 1);
+            printf("setup tub 7");
+            break;
+        case 9:
+            // Tub 8
+            setup_tub(8, 0, 0, 17, 1);
+            printf("setup tub 8");
+            break;
+        case 10:
+            // Tub 9
+            setup_tub(9, 0, 0, 17, 1);
+            printf("setup tub 9");
+            break;
+        case 11:
+            // Tub 10
+            setup_tub(10, 1, 0, 17, 0);
+            printf("setup tub 10");
+            break;
+        case 12:
+            // Tub 11
+            setup_tub(11, 1, 0, 17, 1);
+            printf("setup tub 11");
+            break;
+        case 13:
+            // Tub 12
+            setup_tub(12, 1, 0, 17, 1);
+            printf("setup tub 12");
+            break;
+        default:
+            // Should never reach here
+            break;
+    }
+        i++;
+        // set led to smth else
+        led_set_color(0x0000ff);
+        // wait for 5 seconds
+        sleep(3000);
+	}
+	sleep(100);
 	}
 	led_set_color(0x0000ff);
 }

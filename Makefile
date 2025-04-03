@@ -35,33 +35,29 @@ WAMRC_PI_OPTS = --target=armv4 --target-abi=eabi --cpu=cortex-a53 \
 				--enable-builtin-intrinsics=all
 
 #Files
-SRC_PI      = acc-test-1/pi.c
+SRC_PI      = test/pi.c
 WASM_PI     = $(SRC_PI).wasm
 AOT_PI      = $(SRC_PI).aot
 
-SRC_PICO_IN      = acc-test-1/check-in.c
+SRC_PICO_IN      = test/check-in.c
 WASM_PICO_IN     = $(SRC_PICO_IN).wasm
 AOT_PICO_IN      = $(SRC_PICO_IN).aot
 
-# SRC_PICO_OUT      = test/test3.c
-# WASM_PICO_OUT     = $(SRC_PICO_OUT).wasm
-# AOT_PICO_OUT      = $(SRC_PICO_OUT).aot
-
-SRC_PICO_ROUTING      = acc-test-1/default.c
+SRC_PICO_ROUTING      = test/default.c
 WASM_PICO_ROUTING     = $(SRC_PICO_ROUTING).wasm
 AOT_PICO_ROUTING      = $(SRC_PICO_ROUTING).aot
 
-SRC_PICO_SECURITY      = acc-test-1/security.c
+SRC_PICO_SECURITY      = test/security.c
 WASM_PICO_SECURITY     = $(SRC_PICO_SECURITY).wasm
 AOT_PICO_SECURITY      = $(SRC_PICO_SECURITY).aot
 
-SRC_PICO_PLANE      = acc-test-1/gate.c
+SRC_PICO_PLANE      = test/gate.c
 WASM_PICO_PLANE     = $(SRC_PICO_PLANE).wasm
 AOT_PICO_PLANE      = $(SRC_PICO_PLANE).aot
 
-# SRC_PICO_WRITER      = pico_writer/main.c
-# WASM_PICO_WRITER     = $(SRC_PICO_WRITER).wasm
-# AOT_PICO_WRITER      = $(SRC_PICO_WRITER).aot
+SRC_PICO_WRITER      = lib/writer.c
+WASM_PICO_WRITER     = $(SRC_PICO_WRITER).wasm
+AOT_PICO_WRITER      = $(SRC_PICO_WRITER).aot
 
 
 # Default target builds all AOT binaries
