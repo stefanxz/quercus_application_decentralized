@@ -18,6 +18,32 @@ void reset_module() {
 	servo_angle_set(ARM_NEUTRAL);
 }
 
+
+// wiggles the arm to free the tub
+void the_wiggler() {
+    float angle = servo_angle_get();
+    for (int i = 0; i < 31; ++i) {
+        servo_angle_set(angle + 5);
+        sleep(50);
+        servo_angle_set(angle - 5);
+        sleep(50);
+    }
+    servo_angle_set(angle);
+}
+
+void wiggle() {
+
+    float angle = servo_angle_get();
+    servo_angle_set(angle + 5);
+    sleep(50);
+    servo_angle_set(angle - 5);
+    sleep(50);
+
+    servo_angle_set(angle);
+}
+
+
+
 /// @brief Move the tub within the module from one endpoint to another.
 /// @param tub_id The ID of the tub that is moving.
 /// @param from The starting endpoint (LASER_LEFT, LASER_RIGHT, RFID).
@@ -50,6 +76,7 @@ void move_within_module(int tub_id, int from, int to) {
 	}
 
 	// TODO: Implement timeout?
+    int start_wait_time = get_uptime(); // uptime in ms
 	while (1) {
 		if (to == RFID && RFID_check_tag()) {
 			break;
@@ -58,7 +85,12 @@ void move_within_module(int tub_id, int from, int to) {
 		} else if (to == LASER_RIGHT && !laser_right_detect()) {
 			break;
 		}
-		sleep(10);
+        int curr_wait_time = get_uptime();
+        if (curr_wait_time - start_wait_time > 4000) { // 4 seconds
+            wiggle();
+        } else {
+            sleep(10);
+        }
 	}
 	sleep(20);
 	reset_module();

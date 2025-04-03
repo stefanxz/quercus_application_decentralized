@@ -24,6 +24,7 @@ extern void sleep(int ms);
 
 extern int get_own_id();
 extern char* get_network_map();
+extern int get_uptime();
 
 extern void subscribe_to_event(int event_type);
 extern void unsubscribe_from_event(int event_type);
