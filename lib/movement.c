@@ -77,7 +77,8 @@ void move_within_module(int tub_id, int from, int to) {
 
 	// TODO: Implement timeout?
     int start_wait_time = get_uptime(); // uptime in ms
-	while (1) {
+    float servo_angle = servo_angle_get();
+	for (int i = 0; true; i++) {
 		if (to == RFID && RFID_check_tag()) {
 			break;
 		} else if (to == LASER_LEFT && !laser_left_detect()) {
@@ -87,11 +88,15 @@ void move_within_module(int tub_id, int from, int to) {
 		}
         int curr_wait_time = get_uptime();
         if (curr_wait_time - start_wait_time > 4000) { // 4 seconds
-            wiggle();
-        } else {
-            sleep(10);
+            if (i % 10 == 0) {
+                servo_angle_set(servo_angle + 5);
+            } else if (i % 10 == 5) {
+                servo_angle_set(servo_angle - 5);
+            }
         }
+        sleep(10);
 	}
+    servo_angle_set(servo_angle);
 	sleep(20);
 	reset_module();
 
