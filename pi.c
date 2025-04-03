@@ -112,7 +112,7 @@ int send_path_config(int sender, uint8_t current_look_up[MAX_NUMBER_OF_MODULES][
     return send_packet(sender, message, sizeof(message));
 }
 
-int broadcast_plane_status(int sender, char plane_id){
+int broadcast_plane_status(int sender, char plane_id, int dep_time){
     for(int i = 0; i < MAX_NUMBER_OF_MODULES; ++i){
         //sender already knows
         if(modules[i].id == sender) continue;
@@ -124,6 +124,7 @@ int broadcast_plane_status(int sender, char plane_id){
         data[MSG_TYPE] = PLANE_STATUS;
         data[ARR_PLANE_ID] = plane_id;
         data[ARR_MODULE_ID] = sender;
+        data[ARR_DEP_TIME] = dep_time;
 
         send_packet(modules[i].id, data, sizeof(data));
     }
@@ -153,7 +154,7 @@ export int main(void) {
             switch(type){
                 case PLANE_STATUS:
                     printf("I have received a plane update from: %d, with plane id: %d \n", sender, msg[ARR_PLANE_ID]);
-                    printf("%d \n", broadcast_plane_status(sender, msg[ARR_PLANE_ID]));
+                    printf("%d \n", broadcast_plane_status(sender, msg[ARR_PLANE_ID], msg[ARR_DEP_TIME]));
                     break;
                 case REQUEST_MOVEMENT:
                     printf("I am Pi, I should not be receiving movement requests.\n");
@@ -169,6 +170,7 @@ export int main(void) {
                     break;
             }
         }
+        //free(&msg); ??? zashto tova go nqmashe??
         e = next_event();
         sleep(100);
     }

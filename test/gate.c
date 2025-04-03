@@ -24,7 +24,7 @@ export int main(void) {
             if(this.plane_to_id[new_plane_id] == this.id){
                 plane_direction = 0;
                 this.plane_to_id[new_plane_id] = 0;
-                broadcast_plane_status(new_plane_id, this.id);
+                broadcast_plane_status(new_plane_id, -1, this.id);
 
                 led_set_color(LED_BLUE);
                 sleep(2000);
@@ -34,10 +34,11 @@ export int main(void) {
         } else if(!plane_direction && new_gate_status == 1) {
             printf("Plane is not here and I am detecting a new one.\n");
             int new_plane_id = get_rfid_data(PLANE_ID);
+            int new_plane_dep_time = get_rfid_data(DEPARTURE_TIME);
             if(get_rfid_data(PLANE_DIRECTION) == 0) plane_direction = -1;
             else plane_direction = 1;
             this.plane_to_id[new_plane_id] = this.id;
-            broadcast_plane_status(new_plane_id, this.id);
+            broadcast_plane_status(new_plane_id, new_plane_dep_time, this.id);
 
             led_set_color(LED_BLUE);
             sleep(2000);

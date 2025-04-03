@@ -34,7 +34,7 @@ enum RequestsContent {
 enum ArrivalsContent {
 	ARR_PLANE_ID = 2,
 	ARR_MODULE_ID = 3,
-	ARR_DIRECTION = 4,
+	ARR_DEP_TIME = 4,
 	ARR_LENGTH = 5
 };
 

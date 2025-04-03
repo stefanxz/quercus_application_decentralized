@@ -106,9 +106,9 @@ int handle_plane_status(char* msg) {
 	if(this.plane_to_id[msg[ARR_PLANE_ID]] == 0) {
 		//save that the plane is coming.
 		this.plane_to_id[msg[ARR_PLANE_ID]] = msg[ARR_MODULE_ID];
-		printf("I got a plane update, %d, %d\n", msg[ARR_PLANE_ID], msg[ARR_MODULE_ID]);
+		printf("I got a plane update: plane %d landed on %d with departure time %d\n", msg[ARR_PLANE_ID], msg[ARR_MODULE_ID], msg[ARR_DEP_TIME]);
 		if(!no_tasks()) {
-			printf("I am doing something, the next guy will deal with the plane.\n");
+			printf("I am doing something, the next module will deal with the plane.\n");
 			return 2;
 		}
 		int pos = this.dir_lookup[msg[ARR_MODULE_ID]];
@@ -152,7 +152,7 @@ int handle_plane_status(char* msg) {
 	}
 
 	if (this.plane_to_id[msg[ARR_PLANE_ID]] != 0 && this.plane_to_id[msg[ARR_PLANE_ID]] == msg[ARR_MODULE_ID]){
-		printf("Destroy me daddy\n");
+		printf("Plane %d at module %d left.\n", msg[ARR_PLANE_ID], msg[ARR_MODULE_ID]);
 		this.plane_to_id[msg[ARR_PLANE_ID]] = 0;
 		return 0;
 		//More logic to handle planes leaving might be needed.

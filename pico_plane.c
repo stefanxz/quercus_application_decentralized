@@ -11,12 +11,13 @@
 /// @param plane_id ID of the plane to be updated.
 /// @param module_id ID of the module sending the update.
 /// @return 0 on success, < 0 on failure.
-int broadcast_plane_status(int plane_id, int module_id) {
+int broadcast_plane_status(int plane_id, int dep_time, int module_id) {
 	char data[ARR_LENGTH];
 	data[MSG_SENDER] = module_id;
 	data[MSG_TYPE] = PLANE_STATUS;
 	data[ARR_PLANE_ID] = plane_id;
 	data[ARR_MODULE_ID] = module_id;
+	data[ARR_DEP_TIME] = dep_time;
 	return send_packet(0, data, sizeof(data));
 }
 
