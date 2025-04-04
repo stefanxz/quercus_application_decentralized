@@ -99,7 +99,7 @@ int in() {
 	char* msg;
 	led_set_color(COLOR_CYAN);
 	if (RFID_check_tag()) {
-		sleep(100);
+		sleep(PAUSE);
 		if (get_rfid_data(TUB_OR_PLANE) == 1) {
 			return 0;
 		} else {

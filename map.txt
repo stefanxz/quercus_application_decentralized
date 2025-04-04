@@ -1,9 +1,9 @@
 pi    test/pi.c
-pico1 test/check-in.c
+pico1 test/gate.c
 pico2 test/default.c
-pico3 test/default.c
-pico4 test/gate.c
+pico3 test/security.c
+pico4 test/default.c
 pico5 test/default.c
 pico6 test/security.c
-pico7 test/security.c
+pico7 test/gate.c
 pico8 test/default.c

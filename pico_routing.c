@@ -201,23 +201,28 @@ int await_message(char** msg_ptr, int expected, bool persistent) {
 				return response;
 			}
 			e = next_event();
-
-			sleep(PAUSE);
+			//sleep between messages;
+			sleep(50);
 		}
+		//sleep between checking the mailbox;
+		sleep(PAUSE);
 	} while (persistent);
 	return response;
 }
 
-int await_response() {
-	printf("I am waiting for a response\n");
+bool await_response() {
+	printf("|| waiting for response...\n");
 	char* msg;
-	int response = await_message(&msg, REQUEST_RESPONSE, true);
-	if (response >= 0) {
-		free(msg);
-		return 1;
-	} else {
-		return 0;
+	int response;
+	
+	for (int i = 0; i < 60; i++){
+		response = await_message(&msg, REQUEST_RESPONSE, false);
+		if (response >= 0) {
+			free(msg);
+			return 1;
+		}
 	}
+	return 0;
 }
 
 int await_request_movement() {
@@ -241,14 +246,22 @@ int await_request_movement() {
 bool request_to_leave(int next_id, char* request) {
 	led_set_color(LED_GREEN);
 
-	printf("I am sending a request to module: %d\n", next_id);
-	// Send 10 times or until success:
-	for (int i = 0; i < 10 && send_request_movement(next_id, request) < 0; i++) {
-		printf("move // packet loss\n");
-		sleep(100);
-	}
+	while(true) {
+		printf("am requesting to module: %d\n", next_id);
+		// Send 10 times or until success:
+		while(send_request_movement(next_id, request) < 0) {
+			printf("|| my packet got lost\n");
+			sleep(100);
+		}
 
-	return await_response();
+		if (await_response()) {
+			printf("|| got response from %d\n", next_id);
+			return true;
+		}
+		// Timeout:
+		printf("|| got no response for 1 gazillion years from %d\n", next_id);
+		sleep(500);
+	}
 }
 
 void clear_tub_data(Tub* tub){
@@ -296,7 +309,6 @@ bool do_task() {
 		printf("I am sending the response. Origin = %d\n", task.request[MSG_SENDER]);
 	} else {
 		
-		printf("I am reaching the security thing: %d\n", task.request[REQ_DEST_TYPE]);
 		if(task.request[REQ_DEST_TYPE] == SECURITY) {
 			this.should_check = 1;
 		}

@@ -100,9 +100,6 @@ void move_within_module(int tub_id, int from, int to) {
 	sleep(20);
 	reset_module();
 
-	if (tub_id >= 0) {
-		send_updated_tub_location(tub_id, to);
-	}
 }
 
 /// @brief Push a tub out of the module at a specific exit point.
