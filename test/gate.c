@@ -44,7 +44,7 @@ export int main(void) {
             sleep(2000);
         }
         if(plane_direction == 1){
-            in(&this);
+            in();
         }
         led_set_color(0xffffff);
         loop();

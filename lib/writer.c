@@ -1,7 +1,7 @@
 #include "../libc_builtin.h"
 #include "../quercus_lib_pico.h"
 
-#include "./rfid.h"
+#include "rfid.c"
 
 void setup_plane(int plane_id, bool incoming) {
 	led_set_color(0x0000ff);
@@ -194,4 +194,24 @@ int write() {
 	sleep(100);
 	}
 	led_set_color(0x0000ff);
+}
+int read_tub(){
+    led_set_color(0x0000ff);
+	char data[RFID_LENGTH];
+	// SET TUB_PLANE
+    get_entrance_rfid_data(data);
+    printf("1: %d\n, 2: %d\n,3: %d\n,4: %d\n,5: %d\n,6: %d\n,7: %d\n,8: %d\n,9: %d\n,10: %d\n,11: %d\n", 
+    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10]);
+}
+
+export int main(){
+    while(true){
+        if(RFID_check_tag()){
+            led_set_color(0x00ff00);
+            setup_tub(10, 1, 0, 17, 0);
+            printf("I have finished setting up\n");
+            read_tub();
+            break;
+        }
+    }   
 }

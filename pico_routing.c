@@ -215,13 +215,13 @@ bool await_response() {
 	char* msg;
 	int response;
 	
-	for (int i = 0; i < 60; i++){
-		response = await_message(&msg, REQUEST_RESPONSE, false);
+	// for (int i = 0; i < 60; i++){
+		response = await_message(&msg, REQUEST_RESPONSE, true);
 		if (response >= 0) {
 			free(msg);
 			return 1;
 		}
-	}
+	// }
 	return 0;
 }
 
