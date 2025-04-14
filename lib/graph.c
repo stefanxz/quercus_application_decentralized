@@ -23,7 +23,7 @@ int map_type_to_int(const char *type) {
 /// @param val Pointer to the integer value to be assigned.
 /// @param data The string containing the data to be parsed.
 /// @param index Pointer to the current index in the string.
-void parse_value_data(int* val, char* data, int* index){
+void parse_value_data(int* val, char* data, int* index) {
     while (data[*index] >= '0' && data[*index] <= '9') {
         *val = *val * 10 + (data[*index] - '0');
         *index++;
@@ -205,7 +205,7 @@ Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
         dfs(modules, highest_id_module+1, start, start, 0);
     }
     
-    // printf("Total unique cycles: %d\n", cycleCount);
+    printf("Total unique cycles: %d\n", cycleCount);
 
     largest_cycle->length = 0;
     for (int i = 0; i < count; i++) {
@@ -217,11 +217,11 @@ Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
         }
     }
 
-    // printf("The longest cycle is:\n");
-    // for (int i = 0; i < largest_cycle->length; i++) {
-    //     printf("%d ", largest_cycle->nodes[i]);
-    // }
-    // printf("\n");
+    printf("The longest cycle is:\n");
+    for (int i = 0; i < largest_cycle->length; i++) {
+        printf("%d ", largest_cycle->nodes[i]);
+    }
+    printf("\n");
     Graph* graph = createGraph(highest_id_module);
     for (int i = 0; i <= highest_id_module; i++) {
         if (!modules[i].id) { continue; }
@@ -258,7 +258,7 @@ Graph* convert_to_graph(char *layout, int vertex_type, Cycle* largest_cycle) {
 }
 
 
-int isEmpty(struct node *queue)
+int isEmpty(Node *queue)
 {
     return queue == 0;
 }
