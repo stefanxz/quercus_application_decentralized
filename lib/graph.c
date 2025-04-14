@@ -6,9 +6,9 @@ ModulePi modules[MAX_NUMBER_OF_MODULES];
 int count = 0;  
 int highest_id_module = 0;
 
-/// @brief 
-/// @param type 
-/// @return 
+/// @brief Maps the type string to an integer value.
+/// @param type A string representing the type of the module.
+/// @return An integer value corresponding to the type string, or -1 if the type is not recognized.
 int map_type_to_int(const char *type) {
     if (strcmp(type, "tgate") == 0) return PLANE;
     if (strcmp(type, "tdrop-off") == 0) return DROPOFF;
@@ -18,6 +18,14 @@ int map_type_to_int(const char *type) {
     if (strcmp(type, "tcheck-in") == 0) return 6;
     return -1; 
 }
+
+void parse_value_data(int* val, char* data, int* index){
+    while (data[*index] >= '0' && data[*index] <= '9') {
+        *val = *val * 10 + (data[*index] - '0');
+        *index++;
+    }
+}
+
 
 /// @brief 
 /// @param data 
@@ -62,26 +70,17 @@ int parse_config(char* data) {
 
         // Expecting: a<num>,
         if (data[i] == 'a') i++;
-        while (data[i] >= '0' && data[i] <= '9') {
-            a_val = a_val * 10 + (data[i] - '0');
-            i++;
-        }
+        parse_value_data(&a_val, data, &i);
         if (data[i] == ',') i++;
 
         // Expecting: b<num>,
         if (data[i] == 'b') i++;
-        while (data[i] >= '0' && data[i] <= '9') {
-            b_val = b_val * 10 + (data[i] - '0');
-            i++;
-        }
+        parse_value_data(&b_val, data, &i);
         if (data[i] == ',') i++;
 
         // Expecting: c<num>
         if (data[i] == 'c') i++;
-        while (data[i] >= '0' && data[i] <= '9') {
-            c_val = c_val * 10 + (data[i] - '0');
-            i++;
-        }
+        parse_value_data(&a_val, data, &i);
 
         // Skip to next line
         while (data[i] && data[i] != '\n') i++;

@@ -2,11 +2,13 @@
 #include "pico_basis.c"
 
 /// @brief Take care of stored tubs in the module.
-/// @param from direction from which a new tub is coming
-void handle_storage(Direction from) {
+void handle_storage() {
+	// Create a request to send to the next module
 	char stor_req[REQ_LENGTH];
+	// Get the position of the stored tub on the module
 	Direction pos_stored_tub = is_storing();
 	
+	// Fill the request to send to the next module
 	stor_req[MSG_SENDER] = this.id;
 	stor_req[MSG_TYPE] = REQUEST_MOVEMENT;
 	stor_req[REQ_TUB_ID] = this.tub[pos_stored_tub].id;
@@ -14,23 +16,28 @@ void handle_storage(Direction from) {
 	stor_req[REQ_DEST_TYPE] = STORAGE;
 	stor_req[REQ_DEST_ID] = this.next[this.to_storage];
 	
+	// Reroute the tub from its initial position towards the next module
 	add_task(pos_stored_tub, this.to_storage, stor_req);
 	add_task(this.to_storage, OUT, stor_req);
 
 }
 
-/// @brief 
-/// @param from 
-/// @param destination_id 
+/// @brief Handles routing logic from a source 'from' to a specified destination 'destination_id'.
+/// @param from The source from which the routing process begins.
+/// @param destination_id The unique identifier of the destination to route to.
 void reroute_stored_tub(Direction from, uint8_t destination_id, DestinationType dest_type) {
+	// Create and fill the request to send to the next module
 	char request[REQ_LENGTH];
 	request[MSG_SENDER] = this.id;
 	request[MSG_TYPE] = REQUEST_MOVEMENT;
 	request[REQ_TUB_ID] = state.at[from];
 	request[REQ_DEST_TYPE] = dest_type;
 	request[REQ_DEST_ID] = destination_id;
-	Direction to;
-	to = this.dir_lookup[this.id_lookup[destination_id]];
+
+	// Determine the direction to the destination
+	Direction to = this.dir_lookup[this.id_lookup[destination_id]];
+
+	// Reroute the tub from its initial position towards the next module
 	add_task(from, to, request);
 	add_task(to, OUT, request);
 
@@ -38,11 +45,12 @@ void reroute_stored_tub(Direction from, uint8_t destination_id, DestinationType 
 
 
 
-/// @brief Handle an incoming request for movement.
-/// @param msg 
-/// @return 
+/// @brief Library for handling routing in the Quercus decentralized application.
+/// @param msg The incoming message containing movement request details.
+/// @return Returns a status code indicating the success or failure of the operation.
 int handle_request_movement(char* msg) {
 	
+	// Get the plane arrival status and the plane ID from the message
 	int plane_arrived = msg[REQ_PLANE_ARRIVED];
 	int plane = msg[REQ_PLANE_ID];
 
@@ -53,78 +61,109 @@ int handle_request_movement(char* msg) {
 		msg[REQ_DEST_TYPE] = PLANE;
 	}
 
+	// Get the sender and destination IDs from the message
 	int origin = msg[MSG_SENDER];
 	int end = this.id_lookup[msg[REQ_DEST_ID]];
+
+	// Check if the sender id is valid
 	if(end < 1) {
-		printf("skibidi request received: %d\n", end);
+		printf("Bad request received: %d\n", end);
 		return -1;
 	} 
 
 	Direction from;
 	Direction to;
 	
+	// Determine the beginning and final positions of the tub
 	for (int i = 0; i < 3; i++) {
 		if (this.next[i] == origin) from = i;
 		if (this.next[i] == end) to = i;
 	}
+
+	// If the sender is this module, set the source position to RFID
 	if(origin == this.id) from = RFID;
 
+	// If the current module is storage and if a tub is being stored
 	if (this.is_storage && is_storing() != NON) {
 		printf("I will handle storage\n");
-		handle_storage(from);
+		// Handle the stored tub
+		handle_storage();
 	}
 
 	// Receive tub at one of your endpoints:
 	add_task(OUT, from, msg);
 
+	// If the destination is the current module
 	if (end == this.id) {
+		// If the destination type is storage and the current module is a storage module
 		if(msg[REQ_DEST_TYPE] == STORAGE && this.is_storage) {
+			// Store the tub at the position it is at
 			printf("Saving plane id %d to position %d\n", plane, from);
 			this.tub[from].plane_id = plane;
 		} else if (msg[REQ_DEST_TYPE] == SECURITY) {
+			// If the destination type is security, send the tub to the RFID
 			add_task(from, RFID, msg);
 		} else {
+			// The tub should exit the system
 			add_task(from, RFID, msg);
 			add_task(RFID, OUT, msg);
 		}
 		return 0;
 	}
+	// If the destination is not the current module, route the tub to the next module
 	add_task(from, to, msg);
 	add_task(to, OUT, msg);
 
-	// TODO: Implement not always giving the go-ahead
 	return 0;
 }
 
+/// @brief Handles the response to a request movement message.
 int handle_request_response(char* msg) { 
 	return msg[MSG_VALUE]; 
 }
 
+/// @brief Handles the status of a plane, including its arrival and departure.
+/// @param msg The incoming message containing plane status details.
+/// @return Returns 2 if it noted the plane arrival but is already busy and will not handle the arrival;
+///
+/// 		Returns 1 if it can already reroute its tub towards the landed plane;
+///
+///			Returns 0 if the plane was leaving;
+///
+/// 		Returns -1 if an error occurred with the plane schedule.
 int handle_plane_status(char* msg) {
+	// If the message sender is not the Pi
 	if (msg[MSG_SENDER] != 0) {
 		return NON;
 	}
+	// If the plane has not been saved in the system yet
 	if(this.plane_to_id[msg[ARR_PLANE_ID]] == 0) {
-		//save that the plane is coming.
+		// Save that the plane is coming.
 		this.plane_to_id[msg[ARR_PLANE_ID]] = msg[ARR_MODULE_ID];
 		printf("I got a plane update: plane %d landed on %d with departure time %d\n", msg[ARR_PLANE_ID], msg[ARR_MODULE_ID], msg[ARR_DEP_TIME]);
+		
+		// If the module is busy, it will not handle the plane.
 		if(!no_tasks()) {
 			printf("I am doing something, the next module will deal with the plane.\n");
 			return 2;
 		}
+		// Save the direction towards the plane
 		int pos = this.dir_lookup[msg[ARR_MODULE_ID]];
+		
+		// If a tub is stored at the position towards the plane
 		if(this.tub[pos].id != NON){
+			// If that tub has to go to the plane, route it there.
 			if(this.tub[pos].plane_id == msg[ARR_PLANE_ID]){
 				printf("I am rerouting a tub stored at direction towards the plane to it.\n");
-				//if that tub has to go to the plane, route it there.
+				// If that tub has to go to the plane, route it there.
 				reroute_stored_tub(pos, msg[ARR_MODULE_ID], PLANE);
 			}
 			else{
 				printf("The plane is not for my tub.\n");
-				//if not move it along the storage loop.
-				// reroute_stored_tub(pos, this.next[this.to_storage], STORAGE);
 			}
 		}
+
+		// Iterate over all positions in the module to check if there are any stored tubs
 		int new_pos = pos+1;
 		while(new_pos != pos){
 			
@@ -133,17 +172,16 @@ int handle_plane_status(char* msg) {
 				continue;
 			}
 
+			// IF there is a tub at the position
 			if(this.tub[new_pos].id != NON){
 				printf("plane_id %d at pos %d\n", this.tub[new_pos].plane_id, new_pos);
 				sleep(100);
+				// If that tub has to go to the plane, route it there.
 				if(this.tub[new_pos].plane_id == msg[ARR_PLANE_ID]){
-					//if that tub has to go to the airplane, route it there.
-					printf("i am rerouting a tub stored at %d towards %d\n", new_pos, msg[ARR_MODULE_ID]);
+					printf("I am rerouting a tub stored at %d towards %d\n", new_pos, msg[ARR_MODULE_ID]);
 					reroute_stored_tub(new_pos, msg[ARR_MODULE_ID], PLANE);
 				}
 				else{
-					//if not move it along the storage loop.
-					// reroute_stored_tub(new_pos, this.next[this.to_storage], STORAGE);
 					printf("Plane came, but not for my tub.\n");
 				}
 			}
@@ -151,12 +189,11 @@ int handle_plane_status(char* msg) {
 		}
 		return 1;
 	}
-
+	// If the plane is leaving, remove it from the system.
 	if (this.plane_to_id[msg[ARR_PLANE_ID]] != 0 && this.plane_to_id[msg[ARR_PLANE_ID]] == msg[ARR_MODULE_ID]){
 		printf("Plane %d at module %d left.\n", msg[ARR_PLANE_ID], msg[ARR_MODULE_ID]);
 		this.plane_to_id[msg[ARR_PLANE_ID]] = 0;
 		return 0;
-		//More logic to handle planes leaving might be needed.
 	} 
 	
 	printf("Something is wrong with the plane schedule.\n");
@@ -164,12 +201,11 @@ int handle_plane_status(char* msg) {
 
 }
 
-
-int handle_tub_config(char* msg) {
-	// return set_tub_id(msg[2]);
-	return 0;
-}
-
+/// @brief Waits for a message of a specific type and handles it accordingly.
+/// @param msg_ptr Pointer to the message to be processed.
+/// @param expected The expected message type to wait for.
+/// @param persistent If true, keeps waiting for messages until the expected one is received.
+/// @return Returns the response code based on the message type received.
 int await_message(char** msg_ptr, int expected, bool persistent) {
 	int response = NON;
 	char type;
@@ -210,18 +246,20 @@ int await_message(char** msg_ptr, int expected, bool persistent) {
 	return response;
 }
 
+/// @brief Sends a request for a response to a specific sender.
+/// @param sender The ID of the sender to whom the request is sent.
 bool await_response() {
 	printf("|| waiting for response...\n");
 	char* msg;
 	int response;
 	
-	// for (int i = 0; i < 60; i++){
+	for (int i = 0; i < 60; i++){
 		response = await_message(&msg, REQUEST_RESPONSE, true);
 		if (response >= 0) {
 			free(msg);
 			return 1;
 		}
-	// }
+	}
 	return 0;
 }
 

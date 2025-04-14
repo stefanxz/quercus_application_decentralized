@@ -21,6 +21,15 @@ int broadcast_plane_status(int plane_id, int dep_time, int module_id) {
 	return send_packet(0, data, sizeof(data));
 }
 
+/// @brief Create a Tub object with the given parameters.
+/// @param id ID of the tub.
+/// @param passed_security Indicates if the tub has passed through the security module.
+/// @param plane_dropoff Indicates if the tub is going to a plane or drop-off.
+/// @param plane_arrived Indicates if the plane has arrived at the module.
+/// @param destination ID of the destination module.
+/// @param destination_type Type of the destination (e.g., PLANE, STORAGE, SECURITY).
+/// @param plane_id ID of the plane associated with the tub.
+/// @return A Tub object initialized with the given parameters.
 Tub create_tub(int id, bool passed_security, bool plane_dropoff, bool plane_arrived, int destination, int destination_type, int plane_id) {
 	Tub tub;
 	tub.id = id;
@@ -34,13 +43,22 @@ Tub create_tub(int id, bool passed_security, bool plane_dropoff, bool plane_arri
 }
 
 
-//FIX move from here
+/// @brief Check if a plane has arrived at the module.
+/// @param tub_plane_id ID of the plane to check.
 bool check_plane_arrived(int tub_plane_id) { return this.plane_to_id[tub_plane_id] > 0; }
 
-//FIX move from here
+/// @brief Determine the destination of a tub based on its security check status and other parameters.
+/// @param sec_check_passed Indicates if the tub has passed through the security module.
+/// @param sec_check_needed Indicates if a security check is needed for the tub.
+/// @param plane_dropoff Indicates if the tub is going to a plane or drop-off.
+/// @param plane_id ID of the plane associated with the tub.
+/// @param destination Pointer to store the determined destination ID.
+/// @param destination_type Pointer to store the determined destination type.
 void determine_destination(bool sec_check_passed, bool sec_check_needed, bool plane_dropoff,
 	int plane_id, int* destination, int* destination_type) {
+	// If the tub needs a security check
 	if (sec_check_needed) {
+		// If the security check has passed, send it to quarantine; otherwise, send it to security
 		if (sec_check_passed) {
 			*destination_type = QUARANTINE;
 			*destination = this.nearest[QUARANTINE];
@@ -48,12 +66,15 @@ void determine_destination(bool sec_check_passed, bool sec_check_needed, bool pl
 			*destination_type = SECURITY;
 			*destination = this.nearest[SECURITY];
 		} 
+	// If the tub is going to a drop-off, send it to the nearest drop-off
 	} else if (plane_dropoff) {
 		*destination_type = DROPOFF;
 		*destination = this.nearest[DROPOFF];
+	// If the tub is going to a plane and its plane has arrived, send it to it
 	} else if (check_plane_arrived(plane_id)) {
 		*destination_type = PLANE;
 		*destination = this.plane_to_id[plane_id];
+	// If the tub is going to storage, send it to the nearest storage module
 	} else {
 		*destination_type = STORAGE;
 		*destination = this.nearest[STORAGE];
@@ -61,7 +82,8 @@ void determine_destination(bool sec_check_passed, bool sec_check_needed, bool pl
 	printf("reading: %d, %d\n", *destination, *destination_type);
 }
 
-// Might want to make this a bit more complex.
+/// @brief Determine the priority of a tub based on its destination type.
+/// @param tub Pointer to the tub whose priority is to be determined.
 void determine_priority(Tub* tub){
 	if(tub->destination_type == PLANE) {
 		tub->priority = PRIO_HI;
@@ -95,19 +117,30 @@ void save_RFID_data() {
 	determine_priority(&this.tub[RFID]);
 }
 
+/// @brief Detects and handles the entry of a tub into the module via RFID reader
 int in() {
 	char* msg;
+	// Set the LED color to cyan to indicate waiting for a tag
 	led_set_color(COLOR_CYAN);
+
+	// If the RFID detects a tag
 	if (RFID_check_tag()) {
 		sleep(PAUSE);
+		// If the detected tag is a plane, exit out of the function as it might mean the current plane is leaving
 		if (get_rfid_data(TUB_OR_PLANE) == 1) {
 			return 0;
+		// If the detected tag is a tub
 		} else {
+			// If the module is in storage mode, handle the storage, if there is any 
 			if(is_storing() > NON) {
-				printf("SOMETHING WENT WRONG! I am storing at %d\n", is_storing());
-				handle_storage(RFID);
+				printf("I am storing at %d\n", is_storing());
+				handle_storage();
 			}
+
+			// Save the RFID data to the module
 			save_RFID_data();
+
+			// Create a request message for the movement of the tub
 			char request[REQ_LENGTH];
 			request[MSG_SENDER] = this.id;
 			request[MSG_TYPE] = REQUEST_MOVEMENT;
@@ -117,14 +150,13 @@ int in() {
 			request[REQ_PLANE_ID] = this.tub[RFID].plane_id;
 			request[REQ_PLANE_ARRIVED] = this.tub[RFID].plane_arrived;
 			request[REQ_DEST_ID] = this.tub[RFID].destination_id;
-			//FIX
 			request[REQ_DEST_TYPE] = this.tub[RFID].destination_type;
 
-			// FIX
-			// request[REQ_SECURITY] = this.tub[RFID].passed_security;
+			// Reroute the tub from the RFID towards its destination
 			add_task(RFID, this.dir_lookup[this.tub[RFID].destination_id], request);
 			add_task(this.dir_lookup[this.tub[RFID].destination_id], OUT, request);
 
+			// Update the state of the module to indicate that the tub is at the RFID position
 			state.at[RFID] = this.tub[RFID].id;
 		}
 	}
