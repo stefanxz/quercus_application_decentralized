@@ -55,7 +55,7 @@ SRC_PICO_PLANE      = source/gate.c
 WASM_PICO_PLANE     = $(SRC_PICO_PLANE).wasm
 AOT_PICO_PLANE      = $(SRC_PICO_PLANE).aot
 
-SRC_PICO_WRITER      = lib/writer.c
+SRC_PICO_WRITER      = elementary_functions/writer.c
 WASM_PICO_WRITER     = $(SRC_PICO_WRITER).wasm
 AOT_PICO_WRITER      = $(SRC_PICO_WRITER).aot
 

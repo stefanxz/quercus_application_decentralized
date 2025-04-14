@@ -32,19 +32,3 @@ typedef struct Graph {
     int vertices;
     Node** adjLists; // Array of linked lists
 } Graph;
-
-int map_type_to_int(const char* type_str);
-void parse_value_data(int* value, char* data, int* i);
-int parse_config(char* data);
-Graph* createGraph(int vertices);
-Node* createNode(int vertex);
-void addEdge(Graph* graph, int src, int vertex);
-void removeEdge(Graph* graph, int src, int vertex);
-void printGraph(Graph* graph);
-void freeGraph(Graph* graph);
-Graph* convert_to_graph(char* layout, int vertex_type, Cycle* largest_cycle);
-int isEmpty(Node *queue);
-void enqueue(Node **queue, int value);
-int dequeue(Node **queue);
-void printQueue(Node *queue);
-int route_find(int start, int end, int* predecessors);
