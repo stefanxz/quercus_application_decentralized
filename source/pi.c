@@ -1,13 +1,19 @@
-#include "../quercus_lib_pico.h"
-#include "../libc_builtin.h"
+#include "../lib/quercus_lib_pico.h"
+#include "../lib/libc_builtin.h"
 #include "../lib/network.h"
 #include "../lib/graph.c"
 #include "../lib/graph.h"
 #include "../lib/essentials.h"
 
+/// @brief Run BFS from the startVertex on graph and fill the predecessors array and nearest_dest array
+/// @param graph The graph that BFS will be run on
+/// @param startVertex The starting vertex for BFS
+/// @param predecessors A list of predecessors for each vertex
+/// @param largest_cycle The largest cycle in the graph
+/// @param nearest_dest The array of nearest destinations for each module type
+/// @return returns -1 if the graph is empty, 0 otherwise
 int bfs(Graph* graph, int startVertex, int* predecessors, Cycle* largest_cycle, uint8_t nearest_dest[NUMBER_OF_DEST_TYPES])
 {
-    
     if(graph->adjLists[startVertex] == NULL) {
         return -1;
     }

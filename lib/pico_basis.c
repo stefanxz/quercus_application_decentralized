@@ -2,10 +2,10 @@
 #include "libc_builtin.h"
 #include "quercus_lib_pico.h"
 
-#include "lib/essentials.h"
-#include "lib/network.h"
-#include "lib/movement.h"
-#include "lib/movement.c"
+#include "essentials.h"
+#include "network.h"
+#include "movement.h"
+#include "movement.c"
 
 #include <stdbool.h>
 
@@ -30,10 +30,10 @@ int8_t is_storing(){
 }
 
 /// @brief 
-/// @param id_look_up the ID lookup table to be filled in
-/// @param direction_look_up 
-/// @param storage_cycle 
-/// @param nearest_dest 
+/// @param id_look_up the ID lookup table (2D array) to be filled in
+/// @param direction_look_up the direction lookup table (2D array) to be filled in
+/// @param storage_cycle the storage cycle array to be filled in
+/// @param nearest_dest the nearest destination array to be filled in
 void await_request_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_cycle, uint8_t* nearest, uint8_t* next){
 	char* msg;
 	char type;
@@ -86,7 +86,7 @@ int get_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_cy
 /// @brief Checks if the module shouldb be a storage module.
 /// @param storage_cycle the current storage cycle of the layout
 /// @param id module ID to check
-/// @return 
+/// @return false if the module is not a storage module, true if it is a storage module
 bool is_storage(uint8_t storage_cycle[MAX_NUMBER_OF_MODULES], uint8_t id){
 	for (int i = 0; i < MAX_NUMBER_OF_MODULES; i++) {
 		if(id == storage_cycle[i]) return 1;
@@ -122,23 +122,33 @@ void sys_check() {
 /// @return void
 /// @note This function is called at the beginning of the program to set up the module.
 void init() {
+	// Check that all of the sensors are working and reset the module
 	sys_check();
+
+	// Set the LED color to yellow to indicate that the module is initializing
 	led_set_color(COLOR_YELLOW);
+
+	// Set the module ID and subscribe to events
 	this.id = get_own_id();
 	uint8_t storage_cycle[MAX_NUMBER_OF_MODULES];
 	led_set_color(0xff7700);
 	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
 	
+	// Set the ID lookup table and direction lookup table by getting them from the Pi
 	get_path_config(this.id_lookup, this.dir_lookup, storage_cycle, this.nearest, this.next);
 	
+	// Initialize the state of the module to be empty
 	state.at[RFID] = NON;
 	state.at[LASER_LEFT] = NON;
 	state.at[LASER_RIGHT] = NON;
 
+	// Save if the module is a storage module
 	this.is_storage = is_storage(storage_cycle, this.id);
 	
+	// Set the to_storage variable to the ID of the nearest storage module
 	this.to_storage = this.dir_lookup[this.nearest[STORAGE]];
 	
+	// Initialize the plane_to_id table, the tasks ring buffer and tub array to be empty
 	for (int i = 0; i < MAX_NUMBER_OF_PLANES; i++) {
 		this.plane_to_id[i] = 0;
 	}
@@ -154,6 +164,7 @@ void init() {
 		this.tub[i].id = NON;
 	}
 	
+	// Set the LED color to red to indicate that the module is ready
 	led_set_color(COLOR_RED);
 
 	printf("I am done with the setup.\n");
@@ -181,7 +192,7 @@ void add_task(Direction from, Direction to, char* request) {
 	task.to = to;
 	task.from = from;
 
-	// POTENTIALLY SMELLY CODE
+	// Copy over the request into the task
 	memcpy(task.request, request, REQ_LENGTH);
 
 	printf("task request: %d, %d, %d, %d\n", request[MSG_SENDER], request[REQ_TUB_ID], request[REQ_DEST_TYPE], request[REQ_DEST_ID]);

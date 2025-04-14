@@ -1,5 +1,5 @@
-#include "../libc_builtin.h"
-#include "../quercus_lib_pico.h"
+#include "libc_builtin.h"
+#include "quercus_lib_pico.h"
 
 #include "rfid.c"
 

@@ -1,8 +1,8 @@
 #include "libc_builtin.h"
 #include "quercus_lib_pico.h"
 
-#include "lib/movement.h"
-#include "lib/rfid.c"
+#include "movement.h"
+#include "rfid.c"
 #include "pico_routing.c"
 
 #define COLOR_CYAN 0x00FFFF

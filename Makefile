@@ -35,23 +35,23 @@ WAMRC_PI_OPTS = --target=armv4 --target-abi=eabi --cpu=cortex-a53 \
 				--enable-builtin-intrinsics=all
 
 #Files
-SRC_PI      = test/pi.c
+SRC_PI      = source/pi.c
 WASM_PI     = $(SRC_PI).wasm
 AOT_PI      = $(SRC_PI).aot
 
-SRC_PICO_IN      = test/check-in.c
+SRC_PICO_IN      = source/check-in.c
 WASM_PICO_IN     = $(SRC_PICO_IN).wasm
 AOT_PICO_IN      = $(SRC_PICO_IN).aot
 
-SRC_PICO_ROUTING      = test/default.c
+SRC_PICO_ROUTING      = source/default.c
 WASM_PICO_ROUTING     = $(SRC_PICO_ROUTING).wasm
 AOT_PICO_ROUTING      = $(SRC_PICO_ROUTING).aot
 
-SRC_PICO_SECURITY      = test/security.c
+SRC_PICO_SECURITY      = source/security.c
 WASM_PICO_SECURITY     = $(SRC_PICO_SECURITY).wasm
 AOT_PICO_SECURITY      = $(SRC_PICO_SECURITY).aot
 
-SRC_PICO_PLANE      = test/gate.c
+SRC_PICO_PLANE      = source/gate.c
 WASM_PICO_PLANE     = $(SRC_PICO_PLANE).wasm
 AOT_PICO_PLANE      = $(SRC_PICO_PLANE).aot
 

@@ -1,6 +1,6 @@
 #pragma once
-#include "../libc_builtin.h"
-#include "../quercus_lib_pico.h"
+#include "libc_builtin.h"
+#include "quercus_lib_pico.h"
 #include <stdbool.h>
 
 const int BLOCK_SIZE = 4;
