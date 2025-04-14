@@ -19,6 +19,10 @@ int map_type_to_int(const char *type) {
     return -1; 
 }
 
+/// @brief Parses the value data from the string.
+/// @param val Pointer to the integer value to be assigned.
+/// @param data The string containing the data to be parsed.
+/// @param index Pointer to the current index in the string.
 void parse_value_data(int* val, char* data, int* index){
     while (data[*index] >= '0' && data[*index] <= '9') {
         *val = *val * 10 + (data[*index] - '0');
@@ -27,9 +31,9 @@ void parse_value_data(int* val, char* data, int* index){
 }
 
 
-/// @brief 
-/// @param data 
-/// @return 
+/// @brief Parses the configuration data from a string and populates the modules array.
+/// @param data A string containing the configuration data.
+/// @return The rotation of the configuration data.
 int parse_config(char* data) {
     int i = 0;
     int firstLineNumber = 0;
