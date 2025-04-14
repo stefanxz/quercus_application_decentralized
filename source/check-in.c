@@ -1,5 +1,5 @@
-#include "../lib/pico_routing.c"
-#include "../lib/pico_plane.c"
+#include "../elementary_functions/pico_routing.c"
+#include "../elementary_functions/pico_plane.c"
 
 /// @brief The code for a check-in module. Loops infintely, doing the loop() and in(). 
 export int main(void) {

@@ -1,9 +1,9 @@
-#include "../lib/quercus_lib_pico.h"
-#include "../lib/libc_builtin.h"
-#include "../lib/network.h"
-#include "../lib/graph.c"
-#include "../lib/graph.h"
-#include "../lib/essentials.h"
+#include "../elementary_functions/quercus_lib_pico.h"
+#include "../elementary_functions/libc_builtin.h"
+#include "../elementary_functions/network.h"
+#include "../elementary_functions/graph.c"
+#include "../elementary_functions/graph.h"
+#include "../elementary_functions/essentials.h"
 
 /// @brief Run BFS from the startVertex on graph and fill the predecessors array and nearest_dest array
 /// @param graph The graph that BFS will be run on

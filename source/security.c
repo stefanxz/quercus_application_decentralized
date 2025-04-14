@@ -1,6 +1,6 @@
-#include "../lib/pico_routing.c"
-#include "../lib/rfid.c"
-#include "../lib/pico_plane.c"
+#include "../elementary_functions/pico_routing.c"
+#include "../elementary_functions/rfid.c"
+#include "../elementary_functions/pico_plane.c"
 
 /// @brief checks the payload of a tub, determines its destination and resets the should_check value.
 /// @return the destination type of the tub after the check.
