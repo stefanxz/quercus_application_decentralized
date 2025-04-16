@@ -21,13 +21,17 @@ void reset_module() {
 
 // wiggles the arm to free the tub
 void the_wiggler() {
+	// get the current angle of the servo to wiggle around it
     float angle = servo_angle_get();
     for (int i = 0; i < 31; ++i) {
+		// wiggle the servo by 5 degrees to the left
         servo_angle_set(angle + 5);
         sleep(50);
+		// wiggle the servo by 5 degrees to the right
         servo_angle_set(angle - 5);
         sleep(50);
     }
+	// reset the servo to its original position
     servo_angle_set(angle);
 }
 
