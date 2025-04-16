@@ -1,4 +1,3 @@
-#include "../elementary_functions/pico_routing.c"
 #include "../elementary_functions/rfid.c"
 #include "../elementary_functions/pico_plane.c"
 
