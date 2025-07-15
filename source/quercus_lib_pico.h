@@ -85,11 +85,10 @@ extern int RFID_get_uid(int uid_pointer);
  * memory left in the WAMR heap, then returns -1.
  * Other errors are other negative numbers.
  */
-extern int next_message_address(char** address_ptr);
+extern int next_message_address(uint8_t** address_ptr);
 
 /**
  * Send a packet to the IP address with the last octet given by last_dest_octet.
  * The packet is sent with the data in the buffer at app_data, with the size of data_size.
  */
 extern int send_packet(int last_dest_octet, char* app_data, int data_size);
-
