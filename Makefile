@@ -33,28 +33,28 @@ WAMRC_PI_OPTS = --target=armv4 --target-abi=eabi --cpu=cortex-a53 \
 --enable-builtin-intrinsics=all
 
 # Files - Source files remain in source/, output files go to BUILD_DIR
-SRC_PI      = source/pi.c
+SRC_PI      = src/pi.c
 WASM_PI     = $(BUILD_DIR)/$(notdir $(SRC_PI)).wasm
 AOT_PI      = $(BUILD_DIR)/$(notdir $(SRC_PI)).aot
 
-SRC_PICO_IN      = source/pico_check-in.c
+SRC_PICO_IN      = src/pico_check-in.c
 WASM_PICO_IN     = $(BUILD_DIR)/$(notdir $(SRC_PICO_IN)).wasm
 AOT_PICO_IN      = $(BUILD_DIR)/$(notdir $(SRC_PICO_IN)).aot
 
-SRC_PICO_ROUTING      = source/pico_default.c
+SRC_PICO_ROUTING      = src/pico_default.c
 WASM_PICO_ROUTING     = $(BUILD_DIR)/$(notdir $(SRC_PICO_ROUTING)).wasm
 AOT_PICO_ROUTING      = $(BUILD_DIR)/$(notdir $(SRC_PICO_ROUTING)).aot
 
-SRC_PICO_SECURITY      = source/pico_security.c
+SRC_PICO_SECURITY      = src/pico_security.c
 WASM_PICO_SECURITY     = $(BUILD_DIR)/$(notdir $(SRC_PICO_SECURITY)).wasm
 AOT_PICO_SECURITY      = $(BUILD_DIR)/$(notdir $(SRC_PICO_SECURITY)).aot
 
-SRC_PICO_PLANE      = source/pico_gate.c
+SRC_PICO_PLANE      = src/pico_gate.c
 WASM_PICO_PLANE     = $(BUILD_DIR)/$(notdir $(SRC_PICO_PLANE)).wasm
 AOT_PICO_PLANE      = $(BUILD_DIR)/$(notdir $(SRC_PICO_PLANE)).aot
 
 # Uncomment if you have this source file
-SRC_PICO_WRITER      = source/tub_writer.c
+SRC_PICO_WRITER      = src/tub_writer.c
 WASM_PICO_WRITER     = $(BUILD_DIR)/$(notdir $(SRC_PICO_WRITER)).wasm
 AOT_PICO_WRITER      = $(BUILD_DIR)/$(notdir $(SRC_PICO_WRITER)).aot
 
