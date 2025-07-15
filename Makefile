@@ -41,12 +41,6 @@ SRC_PICO_IN      = source/pico_check-in.c
 WASM_PICO_IN     = $(BUILD_DIR)/$(notdir $(SRC_PICO_IN)).wasm
 AOT_PICO_IN      = $(BUILD_DIR)/$(notdir $(SRC_PICO_IN)).aot
 
-# Corrected variable name from original for consistency (was SRC_PICO_OUT, but not defined)
-# If pico_out.c exists, uncomment and define it
-# SRC_PICO_OUT      = source/pico_out.c
-# WASM_PICO_OUT     = $(BUILD_DIR)/$(notdir $(SRC_PICO_OUT)).wasm
-# AOT_PICO_OUT      = $(BUILD_DIR)/$(notdir $(SRC_PICO_OUT)).aot
-
 SRC_PICO_ROUTING      = source/pico_default.c
 WASM_PICO_ROUTING     = $(BUILD_DIR)/$(notdir $(SRC_PICO_ROUTING)).wasm
 AOT_PICO_ROUTING      = $(BUILD_DIR)/$(notdir $(SRC_PICO_ROUTING)).aot
@@ -60,14 +54,12 @@ WASM_PICO_PLANE     = $(BUILD_DIR)/$(notdir $(SRC_PICO_PLANE)).wasm
 AOT_PICO_PLANE      = $(BUILD_DIR)/$(notdir $(SRC_PICO_PLANE)).aot
 
 # Uncomment if you have this source file
-# SRC_PICO_WRITER      = elementary_functions/writer.c
-# WASM_PICO_WRITER     = $(BUILD_DIR)/$(notdir $(SRC_PICO_WRITER)).wasm
-# AOT_PICO_WRITER      = $(BUILD_DIR)/$(notdir $(SRC_PICO_WRITER)).aot
+SRC_PICO_WRITER      = source/tub_writer.c
+WASM_PICO_WRITER     = $(BUILD_DIR)/$(notdir $(SRC_PICO_WRITER)).wasm
+AOT_PICO_WRITER      = $(BUILD_DIR)/$(notdir $(SRC_PICO_WRITER)).aot
 
 # List of all AOT targets to build
-AOT_TARGETS = $(AOT_PI) $(AOT_PICO_IN) $(AOT_PICO_ROUTING) $(AOT_PICO_SECURITY) $(AOT_PICO_PLANE)
-# Add $(AOT_PICO_OUT) and $(AOT_PICO_WRITER) if they are defined
-# AOT_TARGETS += $(AOT_PICO_OUT) $(AOT_PICO_WRITER)
+AOT_TARGETS = $(AOT_PI) $(AOT_PICO_IN) $(AOT_PICO_ROUTING) $(AOT_PICO_SECURITY) $(AOT_PICO_PLANE) $(AOT_PICO_WRITER)
 
 # Default target builds all AOT binaries
 .PHONY: all
@@ -84,9 +76,8 @@ $(WASM_PI): $(SRC_PI) | $(BUILD_DIR)
 $(WASM_PICO_IN): $(SRC_PICO_IN) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(WASM_OPTS) $(WASM_PICO_OPTS) $< -o $@
 
-# Uncomment if SRC_PICO_OUT is defined
-# $(WASM_PICO_OUT): $(SRC_PICO_OUT) | $(BUILD_DIR)
-# 	$(CC) $(CFLAGS) $(WASM_OPTS) $(WASM_PICO_OPTS) $< -o $@
+$(WASM_PICO_OUT): $(SRC_PICO_OUT) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(WASM_OPTS) $(WASM_PICO_OPTS) $< -o $@
 
 $(WASM_PICO_ROUTING): $(SRC_PICO_ROUTING) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(WASM_OPTS) $(WASM_PICO_OPTS) $< -o $@
@@ -97,9 +88,8 @@ $(WASM_PICO_SECURITY): $(SRC_PICO_SECURITY) | $(BUILD_DIR)
 $(WASM_PICO_PLANE): $(SRC_PICO_PLANE) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(WASM_OPTS) $(WASM_PICO_OPTS) $< -o $@
 
-# Uncomment if SRC_PICO_WRITER is defined
-# $(WASM_PICO_WRITER): $(SRC_PICO_WRITER) | $(BUILD_DIR)
-# 	$(CC) $(CFLAGS) $(WASM_OPTS) $(WASM_PICO_OPTS) $< -o $@
+$(WASM_PICO_WRITER): $(SRC_PICO_WRITER) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(WASM_OPTS) $(WASM_PICO_OPTS) $< -o $@
 
 # Build the AOT binary from the WebAssembly binary
 $(AOT_PI): $(WASM_PI) | $(BUILD_DIR)
@@ -108,9 +98,8 @@ $(AOT_PI): $(WASM_PI) | $(BUILD_DIR)
 $(AOT_PICO_IN): $(WASM_PICO_IN) | $(BUILD_DIR)
 	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $@ $<
 
-# Uncomment if WASM_PICO_OUT is defined
-# $(AOT_PICO_OUT): $(WASM_PICO_OUT) | $(BUILD_DIR)
-# 	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $@ $<
+$(AOT_PICO_OUT): $(WASM_PICO_OUT) | $(BUILD_DIR)
+	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $@ $<
 
 $(AOT_PICO_ROUTING): $(WASM_PICO_ROUTING) | $(BUILD_DIR)
 	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $@ $<
@@ -121,9 +110,8 @@ $(AOT_PICO_SECURITY): $(WASM_PICO_SECURITY) | $(BUILD_DIR)
 $(AOT_PICO_PLANE): $(WASM_PICO_PLANE) | $(BUILD_DIR)
 	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $@ $<
 
-# Uncomment if WASM_PICO_WRITER is defined
-# $(AOT_PICO_WRITER): $(WASM_PICO_WRITER) | $(BUILD_DIR)
-# 	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $@ $<
+$(AOT_PICO_WRITER): $(WASM_PICO_WRITER) | $(BUILD_DIR)
+	$(WAMRC) $(WAMRC_OPTS) $(WAMRC_PICO_OPTS) -o $@ $<
 
 # Clean up build artifacts
 .PHONY: clean
