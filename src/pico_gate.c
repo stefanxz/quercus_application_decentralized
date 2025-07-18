@@ -1,6 +1,5 @@
-#include "common_init.c"
-#include "common_loop.c"
-#include "defs.h"
+#include "common.h"
+
 
 /// @brief Send a packet to the Pi to indicate the status of a plane.
 /// @param plane_id ID of the plane to be updated.

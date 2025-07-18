@@ -1,5 +1,5 @@
-#include "common_init.c"
-#include "common_loop.c"
+#include "common.h"
+
 
 /// @brief checks the payload of a tub, determines its destination and resets the should_check value.
 /// @return the destination type of the tub after the check.

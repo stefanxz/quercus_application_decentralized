@@ -1,6 +1,5 @@
-#include "quercus_lib_pico.h"
-#include "common_init.c"
-#include "common_loop.c"
+#include "common.h"
+
 /// @brief The code for a check-in module. Loops infintely, doing the loop() and in().
 export int main(void) {
     //initialize the module

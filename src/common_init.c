@@ -1,10 +1,9 @@
-#include "libc_builtin.h"
 #include "defs.h"
-#include "quercus_lib_pico.h"
-#include "common_hardware.c"
+#include "common_hardware.h"
 
-// type-only system libraries
-#include "stdbool.h"
+#include "quercus_lib_pico.h"
+#include "libc_builtin.h"
+
 
 // Function declarations
 void sys_check();

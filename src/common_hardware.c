@@ -1,9 +1,7 @@
-#pragma once
-
-
-#include "quercus_lib_pico.h"
 #include "defs.h"
+
 #include "libc_builtin.h"
+#include "quercus_lib_pico.h"
 
 
 /// @brief Reset the module to its default state: LED red, belts off, arm neutral.

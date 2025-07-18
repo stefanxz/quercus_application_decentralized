@@ -1,6 +1,4 @@
-#include "defs.h"
-#include "libc_builtin.h"
-#include "quercus_lib_pico.h"
+#include "common.h"
 
 #define MAX_PATH_LENGTH 100
 #define MAX_CYCLES 10

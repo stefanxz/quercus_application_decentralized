@@ -1,6 +1,4 @@
-#include "quercus_lib_pico.h"
-#include "common_init.c"
-#include "common_loop.c"
+#include "common.h"
 
 /// @brief The code for a default routing module. Loops infintely, doing the loop()
 export int main(void) {
