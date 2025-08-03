@@ -27,18 +27,18 @@ typedef struct ModulePi {
 // Structure for an adjacency list node
 typedef struct Node {
 	int vertex;
-	int dist[MAX_NUMBER_OF_MODULES];
+	int dist[Q_MAX_NUMBER_OF_MODULES];
 	struct Node* next;
 } Node;
 
 // Structure for an adjacency list
 typedef struct Graph {
-	int visited[MAX_NUMBER_OF_MODULES];
+	int visited[Q_MAX_NUMBER_OF_MODULES];
 	int vertices;
 	Node** adjLists; // Array of linked lists
 } Graph;
 
-ModulePi modules[MAX_NUMBER_OF_MODULES];
+ModulePi modules[Q_MAX_NUMBER_OF_MODULES];
 int count = 0;
 int highest_id_module = 0;
 
@@ -46,10 +46,10 @@ int highest_id_module = 0;
 /// @param type A string representing the type of the module.
 /// @return An integer value corresponding to the type string, or -1 if the type is not recognized.
 int map_type_to_int(const char* type) {
-	if (strcmp(type, "tgate") == 0) return PLANE;
-	if (strcmp(type, "tdrop-off") == 0) return DROPOFF;
-	if (strcmp(type, "tsecurity") == 0) return SECURITY;
-	if (strcmp(type, "tquarantine") == 0) return QUARANTINE;
+	if (strcmp(type, "tgate") == 0) return DEST_PLANE;
+	if (strcmp(type, "tdrop-off") == 0) return DEST_DROPOFF;
+	if (strcmp(type, "tsecurity") == 0) return DEST_SECURITY;
+	if (strcmp(type, "tquarantine") == 0) return DEST_QUARANTINE;
 	if (strcmp(type, "tdefault") == 0) return 5;
 	if (strcmp(type, "tcheck-in") == 0) return 6;
 	return -1;
@@ -166,7 +166,7 @@ Node* createNode(int vertex) {
 	Node* newNode = (Node*)malloc(sizeof(Node));
 	newNode->vertex = vertex;
 	newNode->next = NULL;
-	for (int i = 0; i < MAX_NUMBER_OF_MODULES; i++) {
+	for (int i = 0; i < Q_MAX_NUMBER_OF_MODULES; i++) {
 		newNode->dist[i] = 0;
 	}
 	return newNode;
@@ -431,7 +431,7 @@ void dfs(Graph_Node* nodes, int count, int start, int current, int depth) {
 /// @param nearest_dest The array of nearest destinations for each module type
 /// @return returns -1 if the graph is empty, 0 otherwise
 int bfs(Graph* graph, int startVertex, int* predecessors, Cycle* largest_cycle,
-		uint8_t nearest_dest[NUMBER_OF_DEST_TYPES]) {
+		uint8_t nearest_dest[Q_NUMBER_OF_DEST_TYPES]) {
 	// Check if the graph is empty and return -1 if it is
 	if (graph->adjLists[startVertex] == NULL) {
 		return -1;
@@ -468,7 +468,7 @@ int bfs(Graph* graph, int startVertex, int* predecessors, Cycle* largest_cycle,
 
 				// Assign nearest destinations for the module types
 				if (nearest_dest[mod_type] == 0) {
-					if (mod_type < NUMBER_OF_DEST_TYPES) {
+					if (mod_type < Q_NUMBER_OF_DEST_TYPES) {
 						sleep(10);
 						nearest_dest[mod_type] = adjVertex;
 					}
@@ -476,8 +476,8 @@ int bfs(Graph* graph, int startVertex, int* predecessors, Cycle* largest_cycle,
 
 				// Assign nearest storage
 				for (int i = 0; i < largest_cycle->length; i++) {
-					if (largest_cycle->nodes[i] == adjVertex && nearest_dest[STORAGE] == 0) {
-						nearest_dest[STORAGE] = adjVertex;
+					if (largest_cycle->nodes[i] == adjVertex && nearest_dest[DEST_STORAGE] == 0) {
+						nearest_dest[DEST_STORAGE] = adjVertex;
 						break;
 					}
 				}
@@ -496,7 +496,7 @@ int bfs(Graph* graph, int startVertex, int* predecessors, Cycle* largest_cycle,
 	}
 
 	// reset the visited array for the next BFS
-	for (int i = 1; i < MAX_NUMBER_OF_MODULES; i++) {
+	for (int i = 1; i < Q_MAX_NUMBER_OF_MODULES; i++) {
 		graph->visited[i] = 0;
 	}
 	return 0;
@@ -571,12 +571,12 @@ Graph* convert_to_graph(char* layout, int vertex_type, Cycle* largest_cycle) {
 /// @param curr_vertex The current vertex (module) ID
 /// @param adj_look_up_id The adjacent module ID
 /// @return The (Direction) direction in which the module is connected to the adjacent module,
-///         or OUT if the adjacent module ID is not found in the current module's connections
+///         or DIR_OUT if the adjacent module ID is not found in the current module's connections
 uint8_t assign_direction(int curr_vertex, int adj_look_up_id) {
-	if (modules[curr_vertex].a == adj_look_up_id) return LASER_LEFT;
-	if (modules[curr_vertex].b == adj_look_up_id) return RFID;
-	if (modules[curr_vertex].c == adj_look_up_id) return LASER_RIGHT;
-	return OUT;
+	if (modules[curr_vertex].a == adj_look_up_id) return DIR_LASER_LEFT;
+	if (modules[curr_vertex].b == adj_look_up_id) return DIR_RFID;
+	if (modules[curr_vertex].c == adj_look_up_id) return DIR_LASER_RIGHT;
+	return DIR_OUT;
 }
 
 /// @brief Fill up the graph data: look up table, largest cycle, and nearest destination array
@@ -584,13 +584,13 @@ uint8_t assign_direction(int curr_vertex, int adj_look_up_id) {
 /// @param look_up The 3D array to store the look up table for each module: [X][Y][0] for ID, [X][Y][1] for direction
 /// @param largest_cycle The largest cycle in the graph
 /// @param nearest_dest The array to store the nearest destination for each module type
-void fillGraphData(struct Graph* graph, uint8_t look_up[MAX_NUMBER_OF_MODULES][MAX_NUMBER_OF_MODULES][2],
-				   Cycle* largest_cycle, uint8_t nearest_dest[MAX_NUMBER_OF_MODULES][NUMBER_OF_DEST_TYPES]) {
+void fillGraphData(struct Graph* graph, uint8_t look_up[Q_MAX_NUMBER_OF_MODULES][Q_MAX_NUMBER_OF_MODULES][2],
+				   Cycle* largest_cycle, uint8_t nearest_dest[Q_MAX_NUMBER_OF_MODULES][Q_NUMBER_OF_DEST_TYPES]) {
 	// Iterate over possible ids of modules
 	for (int i = 1; i < highest_id_module + 1; i++) {
 
 		// Initialize the predecessors array to be empty
-		int predecessors[MAX_NUMBER_OF_MODULES];
+		int predecessors[Q_MAX_NUMBER_OF_MODULES];
 		for (int j = 0; j < highest_id_module + 1; j++) {
 			predecessors[j] = 0;
 		}
@@ -620,33 +620,33 @@ void fillGraphData(struct Graph* graph, uint8_t look_up[MAX_NUMBER_OF_MODULES][M
 /// @param cycle The largest cycle in the graph
 /// @param nearest_dest The nearest destination for each module type from the current module
 /// @return the result of the send_packet function
-int send_path_config(int sender, uint8_t current_look_up[MAX_NUMBER_OF_MODULES][2], Cycle* cycle,
-					 uint8_t nearest_dest[NUMBER_OF_DEST_TYPES]) {
-	char message[2 + MAX_NUMBER_OF_MODULES * 3 + NUMBER_OF_DEST_TYPES + 3] = {0};
+int send_path_config(int sender, uint8_t current_look_up[Q_MAX_NUMBER_OF_MODULES][2], Cycle* cycle,
+                     uint8_t nearest_dest[Q_NUMBER_OF_DEST_TYPES]) {
+	char message[2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES + 3] = {0};
 	// Set up the message with the sender ID, message type, and the look up table
 	message[MSG_SENDER] = 0;
-	message[MSG_TYPE] = PATH_CONFIG;
-	for (int i = 0; i < MAX_NUMBER_OF_MODULES; i++) {
+	message[MSG_TYPE] = MSG_PATH_CONFIG;
+	for (int i = 0; i < Q_MAX_NUMBER_OF_MODULES; i++) {
 		message[i + 2] = current_look_up[i][0];
 	}
 
-	for (int i = 0; i < MAX_NUMBER_OF_MODULES; i++) {
-		message[i + 2 + MAX_NUMBER_OF_MODULES] = current_look_up[i][1];
+	for (int i = 0; i < Q_MAX_NUMBER_OF_MODULES; i++) {
+		message[i + 2 + Q_MAX_NUMBER_OF_MODULES] = current_look_up[i][1];
 	}
 
 	// Fill in the cycle data
 	for (int i = 0; i < cycle->length; i++) {
-		message[i + 2 + MAX_NUMBER_OF_MODULES * 2] = cycle->nodes[i];
+		message[i + 2 + Q_MAX_NUMBER_OF_MODULES * 2] = cycle->nodes[i];
 	}
 
 	// Fill in the nearest destination data
-	for (int i = 0; i < NUMBER_OF_DEST_TYPES; i++) {
-		message[i + 2 + MAX_NUMBER_OF_MODULES * 3] = nearest_dest[i];
+	for (int i = 0; i < Q_NUMBER_OF_DEST_TYPES; i++) {
+		message[i + 2 + Q_MAX_NUMBER_OF_MODULES * 3] = nearest_dest[i];
 	}
-	// Fill in the neighbour module IDs in the order of LEFT, RIGHT, and RFID
-	message[2 + MAX_NUMBER_OF_MODULES * 3 + NUMBER_OF_DEST_TYPES] = modules[sender].a;	   // LEFT
-	message[1 + 2 + MAX_NUMBER_OF_MODULES * 3 + NUMBER_OF_DEST_TYPES] = modules[sender].c; // RIGHT
-	message[2 + 2 + MAX_NUMBER_OF_MODULES * 3 + NUMBER_OF_DEST_TYPES] = modules[sender].b; // RFID
+	// Fill in the neighbour module IDs in the order of LEFT, RIGHT, and DIR_RFID
+	message[2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES] = modules[sender].a;	   // LEFT
+	message[1 + 2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES] = modules[sender].c; // RIGHT
+	message[2 + 2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES] = modules[sender].b; // DIR_RFID
 
 	// Send the packet to the sender module
 	return send_packet(sender, message, sizeof(message));
@@ -658,7 +658,7 @@ int send_path_config(int sender, uint8_t current_look_up[MAX_NUMBER_OF_MODULES][
 /// @return 0 for a broadcast that did not crash
 int broadcast_plane_status(int sender, char plane_id) {
 	// Iterate over all modules
-	for (int i = 0; i < MAX_NUMBER_OF_MODULES; i++) {
+	for (int i = 0; i < Q_MAX_NUMBER_OF_MODULES; i++) {
 		// Sender already knows, so we ignore it
 		if (modules[i].id == sender) continue;
 		// If the module does not exist, skip it
@@ -669,7 +669,7 @@ int broadcast_plane_status(int sender, char plane_id) {
 		// Create the message to send
 		char data[ARR_LENGTH];
 		data[MSG_SENDER] = 0;
-		data[MSG_TYPE] = PLANE_STATUS;
+		data[MSG_TYPE] = MSG_PLANE_STATUS;
 		data[ARR_PLANE_ID] = plane_id;
 		data[ARR_MODULE_ID] = sender;
 
@@ -684,8 +684,8 @@ export int main(void) {
 	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
 
 	// Initialize the states
-	static uint8_t look_up[MAX_NUMBER_OF_MODULES][MAX_NUMBER_OF_MODULES][2] = {0};
-	static uint8_t nearest_dest[MAX_NUMBER_OF_MODULES][NUMBER_OF_DEST_TYPES] = {0};
+	static uint8_t look_up[Q_MAX_NUMBER_OF_MODULES][Q_MAX_NUMBER_OF_MODULES][2] = {0};
+	static uint8_t nearest_dest[Q_MAX_NUMBER_OF_MODULES][Q_NUMBER_OF_DEST_TYPES] = {0};
 	Graph* graph;
 	Cycle largest_cycle;
 
@@ -708,18 +708,18 @@ export int main(void) {
 			int sender = msg[MSG_SENDER];
 			int type = msg[MSG_TYPE];
 			switch (type) {
-			case PLANE_STATUS:
+			case MSG_PLANE_STATUS:
 				// If a plane status message is received, broadcast it to the other Picos
 				printf("I have received a plane update from: %d, with plane id: %d \n", sender, msg[ARR_PLANE_ID]);
 				printf("%d \n", broadcast_plane_status(sender, msg[ARR_PLANE_ID]));
 				break;
-			case REQUEST_MOVEMENT:
+			case MSG_REQUEST_MOVEMENT:
 				printf("I am Pi, I should not be receiving movement requests.\n");
 				break;
-			case REQUEST_RESPONSE:
+			case MSG_REQUEST_RESPONSE:
 				printf("I am Pi, I should not be receiving movement request responses.\n");
 				break;
-			case REQUEST_PATH_CONFIG:
+			case MSG_REQUEST_PATH_CONFIG:
 				// If a path configuration request is received, send the path configuration back to the sender
 				printf("I received a paths configuration request from: %d\n", sender);
 				printf("Sending configuration back. Result: %d\n",

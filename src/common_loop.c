@@ -34,7 +34,7 @@ void add_task(Module* module, Direction from, Direction to, uint8_t* request) {
 	printf("task request: %d, %d, %d, %d\n", request[MSG_SENDER], request[REQ_TUB_ID], request[REQ_DEST_TYPE],
 		   request[REQ_DEST_ID]);
 	module->tasks[module->task_new] = task;
-	module->task_new = (module->task_new + 1) % MAX_TASKS;
+	module->task_new = (module->task_new + 1) % Q_MAX_TASKS;
 }
 
 /// @brief Take care of stored tubs in the module.
@@ -46,15 +46,15 @@ void handle_storage(Module* module) {
 
 	// Fill the request to send to the next module
 	stor_req[MSG_SENDER] = module->id;
-	stor_req[MSG_TYPE] = REQUEST_MOVEMENT;
+	stor_req[MSG_TYPE] = MSG_REQUEST_MOVEMENT;
 	stor_req[REQ_TUB_ID] = module->tub[pos_stored_tub].id;
 	stor_req[REQ_PLANE_ID] = module->tub[pos_stored_tub].plane_id;
-	stor_req[REQ_DEST_TYPE] = STORAGE;
+	stor_req[REQ_DEST_TYPE] = DEST_STORAGE;
 	stor_req[REQ_DEST_ID] = module->next[module->to_storage];
 
 	// Reroute the tub from its initial position towards the next module
 	add_task(module, pos_stored_tub, module->to_storage, stor_req);
-	add_task(module, module->to_storage, OUT, stor_req);
+	add_task(module, module->to_storage, DIR_OUT, stor_req);
 }
 
 /// @brief Library for handling routing in the Quercus decentralized application.
@@ -67,10 +67,10 @@ int handle_request_movement(Module* module, uint8_t* msg) {
 	int plane = msg[REQ_PLANE_ID];
 
 	// Reroute tub if its plane has arrived
-	if (!plane_arrived && module->plane_to_id[plane] != 0 && msg[REQ_DEST_TYPE] == STORAGE) {
+	if (!plane_arrived && module->plane_to_id[plane] != 0 && msg[REQ_DEST_TYPE] == DEST_STORAGE) {
 		msg[REQ_DEST_ID] = module->plane_to_id[plane];
 		msg[REQ_PLANE_ARRIVED] = 1;
-		msg[REQ_DEST_TYPE] = PLANE;
+		msg[REQ_DEST_TYPE] = DEST_PLANE;
 	}
 
 	// Get the sender and destination IDs from the message
@@ -92,8 +92,8 @@ int handle_request_movement(Module* module, uint8_t* msg) {
 		if (module->next[i] == end) to = i;
 	}
 
-	// If the sender is this module, set the source position to RFID
-	if (origin == module->id) from = RFID;
+	// If the sender is this module, set the source position to DIR_RFID
+	if (origin == module->id) from = DIR_RFID;
 
 	// If the current module is storage and if a tub is being stored
 	if (module->is_storage && is_storing(*module) != Q_NULL) {
@@ -103,28 +103,28 @@ int handle_request_movement(Module* module, uint8_t* msg) {
 	}
 
 	// Receive tub at one of your endpoints:
-	add_task(module, OUT, from, msg);
+	add_task(module, DIR_OUT, from, msg);
 
 	// If the destination is the current module
 	if (end == module->id) {
 		// If the destination type is storage and the current module is a storage module
-		if (msg[REQ_DEST_TYPE] == STORAGE && module->is_storage) {
+		if (msg[REQ_DEST_TYPE] == DEST_STORAGE && module->is_storage) {
 			// Store the tub at the position it is at
 			printf("Saving plane id %d to position %d\n", plane, from);
 			module->tub[from].plane_id = plane;
-		} else if (msg[REQ_DEST_TYPE] == SECURITY) {
-			// If the destination type is security, send the tub to the RFID
-			add_task(module, from, RFID, msg);
+		} else if (msg[REQ_DEST_TYPE] == DEST_SECURITY) {
+			// If the destination type is security, send the tub to the DIR_RFID
+			add_task(module, from, DIR_RFID, msg);
 		} else {
 			// The tub should exit the system
-			add_task(module, from, RFID, msg);
-			add_task(module, RFID, OUT, msg);
+			add_task(module, from, DIR_RFID, msg);
+			add_task(module, DIR_RFID, DIR_OUT, msg);
 		}
 		return 0;
 	}
 	// If the destination is not the current module, route the tub to the next module
 	add_task(module, from, to, msg);
-	add_task(module, to, OUT, msg);
+	add_task(module, to, DIR_OUT, msg);
 
 	return 0;
 }
@@ -139,7 +139,7 @@ void reroute_stored_tub(Module* module, Direction from, uint8_t destination_id, 
 	// Create and fill the request to send to the next module
 	uint8_t request[REQ_LENGTH];
 	request[MSG_SENDER] = module->id;
-	request[MSG_TYPE] = REQUEST_MOVEMENT;
+	request[MSG_TYPE] = MSG_REQUEST_MOVEMENT;
 	request[REQ_TUB_ID] = module->state.at[from];
 	request[REQ_DEST_TYPE] = dest_type;
 	request[REQ_DEST_ID] = destination_id;
@@ -149,7 +149,7 @@ void reroute_stored_tub(Module* module, Direction from, uint8_t destination_id, 
 
 	// Reroute the tub from its initial position towards the next module
 	add_task(module, from, to, request);
-	add_task(module, to, OUT, request);
+	add_task(module, to, DIR_OUT, request);
 }
 
 /// @brief Handles the status of a plane, including its arrival and departure.
@@ -187,7 +187,7 @@ int handle_plane_status(Module* module, uint8_t* msg) {
 			if (module->tub[pos].plane_id == msg[ARR_PLANE_ID]) {
 				printf("I am rerouting a tub stored at direction towards the plane to it.\n");
 				// If that tub has to go to the plane, route it there.
-				reroute_stored_tub(module, pos, msg[ARR_MODULE_ID], PLANE);
+				reroute_stored_tub(module, pos, msg[ARR_MODULE_ID], DEST_PLANE);
 			} else {
 				printf("The plane is not for my tub.\n");
 			}
@@ -197,7 +197,7 @@ int handle_plane_status(Module* module, uint8_t* msg) {
 		int new_pos = pos + 1;
 		while (new_pos != pos) {
 
-			if (new_pos == OUT) {
+			if (new_pos == DIR_OUT) {
 				new_pos = 0;
 				continue;
 			}
@@ -209,7 +209,7 @@ int handle_plane_status(Module* module, uint8_t* msg) {
 				// If that tub has to go to the plane, route it there.
 				if (module->tub[new_pos].plane_id == msg[ARR_PLANE_ID]) {
 					printf("I am rerouting a tub stored at %d towards %d\n", new_pos, msg[ARR_MODULE_ID]);
-					reroute_stored_tub(module, new_pos, msg[ARR_MODULE_ID], PLANE);
+					reroute_stored_tub(module, new_pos, msg[ARR_MODULE_ID], DEST_PLANE);
 				} else {
 					printf("Plane came, but not for my tub.\n");
 				}
@@ -247,16 +247,16 @@ int await_message(Module* module, uint8_t** msg_ptr, int expected, bool persiste
 			printf("Type: %d, Sender:%d, Dest:%d, Tub_id: %d\n", type, (*msg_ptr)[MSG_SENDER], (*msg_ptr)[REQ_DEST_ID],
 				   (*msg_ptr)[REQ_TUB_ID]);
 
-			if (type == REQUEST_MOVEMENT) {
+			if (type == MSG_REQUEST_MOVEMENT) {
 				// complicated decision as to whether to accept or reject the request here i guess
 				response = handle_request_movement(module, *msg_ptr);
-			} else if (type == REQUEST_RESPONSE) {
+			} else if (type == MSG_REQUEST_RESPONSE) {
 			response = (int)msg_ptr[MSG_VALUE];
-			} else if (type == PLANE_STATUS) {
+			} else if (type == MSG_PLANE_STATUS) {
 				response = handle_plane_status(module, *msg_ptr);
-			} else if (type == PATH_CONFIG) {
+			} else if (type == MSG_PATH_CONFIG) {
 				// response = handle_paths_config(*msg_ptr);
-			} else if (type == TUB_CONFIG) {
+			} else if (type == MSG_TUB_CONFIG) {
 				// response = handle_tub_config(*msg_ptr);
 			}
 
@@ -269,7 +269,7 @@ int await_message(Module* module, uint8_t** msg_ptr, int expected, bool persiste
 			sleep(50);
 		}
 		// sleep between checking the mailbox;
-		sleep(PAUSE);
+		sleep(TIME_PAUSE);
 	} while (persistent);
 	return response;
 }
@@ -289,7 +289,7 @@ bool await_response(Module* module) {
 	int response;
 
 	for (int i = 0; i < 60; i++) {
-		response = await_message(module, &msg, REQUEST_RESPONSE, true);
+		response = await_message(module, &msg, MSG_REQUEST_RESPONSE, true);
 		if (response >= 0) {
 			free(msg);
 			return 1;
@@ -330,9 +330,9 @@ void save_tub_from_request(Tub* tub, char req[REQ_LENGTH]) {
 bool do_task(Module* module) {
 	Task task = module->tasks[module->task_current];
 	int tub_id = task.request[REQ_TUB_ID];
-	if (task.to == OUT && task.from == OUT) printf("I am doing an empty task, not good.\n");
+	if (task.to == DIR_OUT && task.from == DIR_OUT) printf("I am doing an empty task, not good.\n");
 
-	if (task.to == OUT) {
+	if (task.to == DIR_OUT) {
 		printf("Tub %d to leave to module %d by %d\n", tub_id, module->next[task.from], task.from);
 
 		int next_id = module->next[task.from];
@@ -345,7 +345,7 @@ bool do_task(Module* module) {
 		} else {
 			return false;
 		}
-	} else if (task.from == OUT) {
+	} else if (task.from == DIR_OUT) {
 		printf("Tub %d to enter module %d\n", tub_id, module->id);
 
 		while (send_request_response(task.request[MSG_SENDER], true) < 0) {
@@ -357,7 +357,7 @@ bool do_task(Module* module) {
 		printf("I am sending the response. Origin = %d\n", task.request[MSG_SENDER]);
 	} else {
 
-		if (task.request[REQ_DEST_TYPE] == SECURITY) {
+		if (task.request[REQ_DEST_TYPE] == DEST_SECURITY) {
 			module->should_check = 1;
 		}
 
@@ -368,11 +368,11 @@ bool do_task(Module* module) {
 	}
 
 	module->tasks[module->task_current] = EMPTY_TASK;
-	module->task_current = (module->task_current + 1) % MAX_TASKS;
+	module->task_current = (module->task_current + 1) % Q_MAX_TASKS;
 
 	// update the module's state
-	if (task.from != OUT) module->state.at[task.from] = Q_NULL;
-	if (task.to != OUT) module->state.at[task.to] = tub_id;
+	if (task.from != DIR_OUT) module->state.at[task.from] = Q_NULL;
+	if (task.to != DIR_OUT) module->state.at[task.to] = tub_id;
 	return true;
 }
 
@@ -380,7 +380,7 @@ void loop(Module* module) {
 	if (module->task_current == module->task_new) {
 		// no new tasks, wait for the next one
 		uint8_t* msg;
-		int response = await_message(module, &msg, REQUEST_MOVEMENT, false);
+		int response = await_message(module, &msg, MSG_REQUEST_MOVEMENT, false);
 
 		if (response == 1) {
 			printf("Destination Type: %d, Sender: %d, Tub id: %d\n", msg[REQ_DEST_TYPE], msg[MSG_SENDER],

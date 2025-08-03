@@ -8,20 +8,20 @@
 int broadcast_plane_status(int plane_id, int dep_time, int module_id) {
 	char data[ARR_LENGTH];
 	data[MSG_SENDER] = module_id;
-	data[MSG_TYPE] = PLANE_STATUS;
+	data[MSG_TYPE] = MSG_PLANE_STATUS;
 	data[ARR_PLANE_ID] = plane_id;
 	data[ARR_MODULE_ID] = module_id;
 	data[ARR_DEP_TIME] = dep_time;
 	return send_packet(0, data, sizeof(data));
 }
 
-/// @brief Checks if there is a plane on the RFID reader.
+/// @brief Checks if there is a plane on the DIR_RFID reader.
 /// @return 1 if there is, 0 if there is nothing, -1 if it's a tub.
 int check_for_plane(){
-    // Check if there is a tag on the RFID reader
+    // Check if there is a tag on the DIR_RFID reader
     if(RFID_check_tag()){
         // Check if the tag is a plane or tub
-        if (get_rfid_data(TUB_OR_PLANE)) {
+        if (get_rfid_data(DATA_TUB_OR_PLANE)) {
             // It's a plane
             return 1;
 		}
@@ -37,13 +37,13 @@ export int main(void) {
     //initialize the module
     Module module = module_init();
     while(1){
-        // Check if there is a plane on the RFID reader
+        // Check if there is a plane on the DIR_RFID reader
         int8_t new_gate_status = check_for_plane();
 
         // If there is a plane detected and there is already a plane here
         if(plane_direction && new_gate_status == 1) {
             // Save the plane id
-            int new_plane_id = get_rfid_data(PLANE_ID);
+            int new_plane_id = get_rfid_data(DATA_PLANE_ID);
             printf("Detecting plane: %d\n", new_plane_id);
 
             // Check if this plane is the one already here
@@ -67,10 +67,10 @@ export int main(void) {
             printf("Plane is not here and I am detecting a new one.\n");
 
             // Save the plane id and departure time
-            int new_plane_id = get_rfid_data(PLANE_ID);
-            int new_plane_dep_time = get_rfid_data(DEPARTURE_TIME);
+            int new_plane_id = get_rfid_data(DATA_PLANE_ID);
+            int new_plane_dep_time = get_rfid_data(DATA_DEPARTURE_TIME);
             // Save if the plane is incoming or outgoing
-            if(get_rfid_data(PLANE_DIRECTION) == 0) plane_direction = -1;
+            if(get_rfid_data(DATA_PLANE_DIRECTION) == 0) plane_direction = -1;
             else plane_direction = 1;
 
             // Save the module id to plane_to_id table at the id of the plane

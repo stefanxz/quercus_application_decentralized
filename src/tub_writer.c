@@ -9,47 +9,47 @@ void setup_plane(int plane_id, bool incoming) {
 	char data[4];
 	// SET TUB_PLANE
 	data[0] = 0x1;
-	RFID_write_data_block((int)data, TUB_OR_PLANE);
+	RFID_write_data_block((int)data, DATA_TUB_OR_PLANE);
 
 	// SET PLANE_DROPOFF
 	data[0] = -0x1;
-	RFID_write_data_block((int)data, PLANE_OR_DROPOFF);
+	RFID_write_data_block((int)data, DATA_PLANE_OR_DROPOFF);
 
-	// SET PLANE_ID
+	// SET DATA_PLANE_ID
 	data[0] = (char)plane_id;
-	RFID_write_data_block((int)data, PLANE_ID);
+	RFID_write_data_block((int)data, DATA_PLANE_ID);
 
-	// SET PAYLOAD
+	// SET DATA_PAYLOAD
 	data[0] = -0x1;
-	RFID_write_data_block((int)data, PAYLOAD);
+	RFID_write_data_block((int)data, DATA_PAYLOAD);
 
-	// SET DEPARTURE_TIME
+	// SET DATA_DEPARTURE_TIME
 	data[0] = 0x4;
-	RFID_write_data_block((int)data, DEPARTURE_TIME);
+	RFID_write_data_block((int)data, DATA_DEPARTURE_TIME);
 
-	// SET TUB_ID
+	// SET DATA_TUB_ID
 	data[0] = -0x1;
-	RFID_write_data_block((int)data, TUB_ID);
+	RFID_write_data_block((int)data, DATA_TUB_ID);
 
-	// SET SECURITY
+	// SET DEST_SECURITY
 	data[0] = -0x1;
-	RFID_write_data_block((int)data, NEEDS_SECURITY);
+	RFID_write_data_block((int)data, DATA_NEEDS_SECURITY);
 
-	// SET PASSED_SECURITY
+	// SET DATA_PASSED_SECURITY
 	data[0] = -0x1;
-	RFID_write_data_block((int)data, PASSED_SECURITY);
+	RFID_write_data_block((int)data, DATA_PASSED_SECURITY);
 
-	// SET PLANE_ARRIVED
+	// SET DATA_PLANE_ARRIVED
 	data[0] = -0x1;
-	RFID_write_data_block((int)data, PLANE_ARRIVED);
+	RFID_write_data_block((int)data, DATA_PLANE_ARRIVED);
 
-	// SET DESTINATION
+	// SET DATA_DESTINATION
 	data[0] = -0x1;
-	RFID_write_data_block((int)data, DESTINATION);
+	RFID_write_data_block((int)data, DATA_DESTINATION);
 
-	// SET PLANE_DIRECTION
+	// SET DATA_PLANE_DIRECTION
 	data[0] = incoming;
-	RFID_write_data_block((int)data, PLANE_DIRECTION);
+	RFID_write_data_block((int)data, DATA_PLANE_DIRECTION);
 }
 
 void setup_tub(int tub_id, int needs_security, int plane_dropoff, int plane_id, int payload) {
@@ -57,51 +57,51 @@ void setup_tub(int tub_id, int needs_security, int plane_dropoff, int plane_id, 
 	char data[4];
 	// SET TUB_PLANE
 	data[0] = 0x0;
-	RFID_write_data_block((int)data, TUB_OR_PLANE);
+	RFID_write_data_block((int)data, DATA_TUB_OR_PLANE);
 
 	// SET PLANE_DROPOFF
 	data[0] = (char)plane_dropoff;
-	RFID_write_data_block((int)data, PLANE_OR_DROPOFF);
+	RFID_write_data_block((int)data, DATA_PLANE_OR_DROPOFF);
 
-	// SET PLANE_ID
+	// SET DATA_PLANE_ID
 	data[0] = (char)plane_id;
-	RFID_write_data_block((int)data, PLANE_ID);
+	RFID_write_data_block((int)data, DATA_PLANE_ID);
 
-	// SET PAYLOAD
+	// SET DATA_PAYLOAD
 	data[0] = (char)payload;
-	RFID_write_data_block((int)data, PAYLOAD);
+	RFID_write_data_block((int)data, DATA_PAYLOAD);
 
-	// SET DEPARTURE_TIME
+	// SET DATA_DEPARTURE_TIME
 	data[0] = -0x1;
-	RFID_write_data_block((int)data, DEPARTURE_TIME);
+	RFID_write_data_block((int)data, DATA_DEPARTURE_TIME);
 
-	// SET TUB_ID
+	// SET DATA_TUB_ID
 	data[0] = (char)tub_id;
-	RFID_write_data_block((int)data, TUB_ID);
+	RFID_write_data_block((int)data, DATA_TUB_ID);
 
-	// SET SECURITY
+	// SET DEST_SECURITY
 	data[0] = (char)needs_security;
-	RFID_write_data_block((int)data, NEEDS_SECURITY);
+	RFID_write_data_block((int)data, DATA_NEEDS_SECURITY);
 
-	// SET PASSED_SECURITY
+	// SET DATA_PASSED_SECURITY
 	data[0] = 0x0;
-	RFID_write_data_block((int)data, PASSED_SECURITY);
+	RFID_write_data_block((int)data, DATA_PASSED_SECURITY);
 
-	// SET PLANE_ARRIVED
+	// SET DATA_PLANE_ARRIVED
 	data[0] = 0x0;
-	RFID_write_data_block((int)data, PLANE_ARRIVED);
+	RFID_write_data_block((int)data, DATA_PLANE_ARRIVED);
 
-	// SET DESTINATION
+	// SET DATA_DESTINATION
 	data[0] = 0x0;
-	RFID_write_data_block((int)data, DESTINATION);
+	RFID_write_data_block((int)data, DATA_DESTINATION);
 
-	// SET PLANE_DIRECTION
+	// SET DATA_PLANE_DIRECTION
 	data[0] = -0x1;
-	RFID_write_data_block((int)data, PLANE_DIRECTION);
+	RFID_write_data_block((int)data, DATA_PLANE_DIRECTION);
 
 	// SET TUB ID
 	data[0] = (char)tub_id;
-	RFID_write_data_block((int)data, TUB_ID);
+	RFID_write_data_block((int)data, DATA_TUB_ID);
 }
 
 int write() {
@@ -199,7 +199,7 @@ int write() {
 
 void read_tub() {
 	led_set_color(0x0000ff);
-	char data[RFID_LENGTH];
+	char data[DATA_RFID_LENGTH];
 	// SET TUB_PLANE
 	get_entrance_rfid_data(data);
 	printf("1: %d\n, 2: %d\n,3: %d\n,4: %d\n,5: %d\n,6: %d\n,7: %d\n,8: %d\n,9: %d\n,10: %d\n,11: %d\n", data[0],

@@ -6,7 +6,7 @@ export int main(void) {
     Module module = module_init();
 
     while(1){
-        //check if there is a tub on the RFID reader
+        //check if there is a tub on the DIR_RFID reader
         handle_tub_rfid_entry(&module);
 
         //deal with routing of tubs

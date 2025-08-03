@@ -17,7 +17,7 @@ typedef enum EventType {
 	EVENT_POWER_THRESHOLD_REACHED = 32, // indicates that the power threshold set to the current-voltage sensor has been reached
 	EVENT_MESSAGE_RECEIVED = 64, // special event, needs buffer for data
 	EVENT_MESSAGE_ALLOC_FAILED = 128, // indicates that the message buffer allocation failed
-	EVENT_RFID_DETECT = 256, // indicates that the RFID reader has detected a tag
+	EVENT_RFID_DETECT = 256, // indicates that the DIR_RFID reader has detected a tag
 } EventType;
 
 // Generic functions
@@ -68,7 +68,7 @@ extern float belt_big_get_speed();
 extern int64_t belt_big_get_encoder_count();
 extern double belt_big_get_encoder_freq();
 
-// RFID functions
+// DIR_RFID functions
 extern int RFID_check_tag();
 extern int RFID_write_data_block(int data_ptr, int offset);
 extern int RFID_read_data_block(int data_ptr, int offset);

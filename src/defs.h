@@ -1,14 +1,17 @@
 #pragma once
 
+// These standard headers only include type definitions, and do not involve
+// operating system support. Therefore, we can include them.
 #include "stdbool.h"
 #include "stdint.h"
 
 // # General
-#define MAX_NUMBER_OF_MODULES 50
-#define MAX_NUMBER_OF_PLANES 256
+// Prefixed with Q for "Quercus"
 #define Q_NULL -1
-#define MAX_TASKS 64
-#define NUMBER_OF_DEST_TYPES 5
+#define Q_MAX_NUMBER_OF_MODULES 50
+#define Q_MAX_NUMBER_OF_PLANES 256
+#define Q_MAX_TASKS 64
+#define Q_NUMBER_OF_DEST_TYPES 5
 
 
 
@@ -42,20 +45,19 @@
 #define ARM_NEUTRAL 0
 
 // network
-
-#define PAUSE 250
+#define TIME_PAUSE 250
 
 // Enum to represent the type of message being sent or received.
 // Each value corresponds to a specific type of message.
 enum MessageTypes {
-	NONE = 0,
-	REQUEST_MOVEMENT = 1, // Request to move a tub to the module
-	REQUEST_RESPONSE = 2, // Response to a request for movement
-	PLANE_STATUS = 3, // Status update for a plane
-	TUB_STATUS = 4, // Status update for a tub
-	PATH_CONFIG = 5, // Configuration of the paths
-	REQUEST_PATH_CONFIG = 6, // Request for path configuration
-	TUB_CONFIG = 7 // Configuration of a tub
+	MSG_NONE = 0,
+	MSG_REQUEST_MOVEMENT = 1, // Request to move a tub to the module
+	MSG_REQUEST_RESPONSE = 2, // Response to a request for movement
+	MSG_PLANE_STATUS = 3, // Status update for a plane
+	MSG_TUB_STATUS = 4, // Status update for a tub
+	MSG_PATH_CONFIG = 5, // Configuration of the paths
+	MSG_REQUEST_PATH_CONFIG = 6, // Request for path configuration
+	MSG_TUB_CONFIG = 7 // Configuration of a tub
 };
 
 // Enum to represent the content that every message should have.
@@ -90,10 +92,10 @@ enum ArrivalsContent {
 
 // Module endpoints encoded as directions. Out is not a direction, but a special additional value.
 typedef enum Direction {
-	LASER_LEFT = 0,
-	LASER_RIGHT = 1,
-	RFID = 2,
-	OUT = 3,
+	DIR_LASER_LEFT = 0,
+	DIR_LASER_RIGHT = 1,
+	DIR_RFID = 2,
+	DIR_OUT = 3,
 } Direction;
 
 // Priority levels for the tubs. The higher the number, the higher the priority.
@@ -105,18 +107,18 @@ typedef enum Priority {
 
 // Types of destinations for the tubs.
 typedef enum DestinationType {
-	PLANE = 0,
-	DROPOFF = 1,
-	SECURITY = 2,
-	STORAGE = 3,
-	QUARANTINE = 4,
+	DEST_PLANE = 0,
+	DEST_DROPOFF = 1,
+	DEST_SECURITY = 2,
+	DEST_STORAGE = 3,
+	DEST_QUARANTINE = 4,
 } DestinationType;
 
 // Task structures for the modules. Each module has a list of tasks to perform.
 typedef struct {
 	Direction to;
 	Direction from;
-	char request[13]; // MSG_HEAD + RFID_LENGTH
+	char request[13]; // MSG_HEAD + DATA_RFID_LENGTH
 } Task;				  // structure for a task
 
 // Tub structure that contains all related information about a tub.
@@ -140,10 +142,10 @@ typedef struct {
 typedef struct Module {
 	int id;
 
-	int plane_to_id[MAX_NUMBER_OF_PLANES]; // Plane with index plane_id is at the module with id = value of
+	int plane_to_id[Q_MAX_NUMBER_OF_PLANES]; // Plane with index plane_id is at the module with id = value of
 										   // plane_to_id[plane_id].
-	uint8_t id_lookup[MAX_NUMBER_OF_MODULES];  // Index 0 will always be Pi
-	uint8_t dir_lookup[MAX_NUMBER_OF_MODULES]; // Index 0 will always be Pi
+	uint8_t id_lookup[Q_MAX_NUMBER_OF_MODULES];  // Index 0 will always be Pi
+	uint8_t dir_lookup[Q_MAX_NUMBER_OF_MODULES]; // Index 0 will always be Pi
 
 	uint8_t next[3];	// Module IDs of the neighbouring modules. We index by Direction.
 	uint8_t nearest[5]; // Module IDs of nearest destinations. We index by ModuleType.
@@ -156,26 +158,26 @@ typedef struct Module {
 
 	State state;
 
-	Task tasks[MAX_TASKS];
+	Task tasks[Q_MAX_TASKS];
 	int8_t task_current;
 	int8_t task_new;
 } Module; // structure for a module containing its essential fields
 
-const Task EMPTY_TASK = {.to = OUT, .from = OUT};
+const Task EMPTY_TASK = {.to = DIR_OUT, .from = DIR_OUT};
 
 const int RFID_BLOCK_SIZE = 4;
 
 enum DataOnRFID {
-	TUB_OR_PLANE = 0,
-	PLANE_OR_DROPOFF = 1,
-	PLANE_ID = 2,
-	PAYLOAD = 3,
-	DEPARTURE_TIME = 4,
-	TUB_ID = 5,
-	NEEDS_SECURITY = 6,
-	PASSED_SECURITY = 7,
-	PLANE_ARRIVED = 8,
-	DESTINATION = 9,
-	PLANE_DIRECTION = 10, // 0 = outgoing, 1 = incoming
-	RFID_LENGTH = 11
+	DATA_TUB_OR_PLANE = 0,
+	DATA_PLANE_OR_DROPOFF = 1,
+	DATA_PLANE_ID = 2,
+	DATA_PAYLOAD = 3,
+	DATA_DEPARTURE_TIME = 4,
+	DATA_TUB_ID = 5,
+	DATA_NEEDS_SECURITY = 6,
+	DATA_PASSED_SECURITY = 7,
+	DATA_PLANE_ARRIVED = 8,
+	DATA_DESTINATION = 9,
+	DATA_PLANE_DIRECTION = 10, // 0 = outgoing, 1 = incoming
+	DATA_RFID_LENGTH = 11
 };

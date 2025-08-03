@@ -25,8 +25,8 @@ int8_t is_storing(const Module module);
  * @brief Adds a task to the task ring buffer.
  * A task represents a specific movement or action for a tub within the module.
  * @param module Pointer to the module to which the task is added.
- * @param from The endpoint of the module from which the tub moves (e.g., RFID, LASER_LEFT).
- * @param to The endpoint of the module to which the tub moves (e.g., LASER_RIGHT, OUT).
+ * @param from The endpoint of the module from which the tub moves (e.g., DIR_RFID, DIR_LASER_LEFT).
+ * @param to The endpoint of the module to which the tub moves (e.g., DIR_LASER_RIGHT, DIR_OUT).
  * @param request The related request message (uint8_t array) that led to the addition of this task.
  */
 void add_task(Module* module, Direction from, Direction to, uint8_t* request);
@@ -54,7 +54,7 @@ int handle_request_movement(Module* module, uint8_t* msg);
  * @param module Pointer to the module containing the stored tub.
  * @param from The current location/storage position of the tub within the module.
  * @param destination_id The unique identifier of the new destination (e.g., the plane's module ID).
- * @param dest_type The type of the new destination (e.g., PLANE).
+ * @param dest_type The type of the new destination (e.g., DEST_PLANE).
  */
 void reroute_stored_tub(Module* module, Direction from, uint8_t destination_id, DestinationType dest_type);
 
@@ -95,7 +95,7 @@ void clear_tub_data(Tub* tub);
 
 /**
  * @brief Waits for a confirmation response from another module after sending a request.
- * It attempts to receive a `REQUEST_RESPONSE` message.
+ * It attempts to receive a `MSG_REQUEST_RESPONSE` message.
  * @param module Pointer to the current module waiting for the response.
  * @return True if a positive response is received, false otherwise (e.g., timeout).
  */
