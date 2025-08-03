@@ -29,10 +29,10 @@ void determine_destination(Module* module, bool sec_check_passed, bool sec_check
 		*destination_type = DEST_DROPOFF;
 		*destination = module->nearest[DEST_DROPOFF];
 		// If the tub is going to a plane and its plane has arrived, send it to it
-	} else if (module->plane_to_id[plane_id] > 0) {
+	} else if (module->plane_to_module_id[plane_id] > 0) {
 	    // plane arrived
 		*destination_type = DEST_PLANE;
-		*destination = module->plane_to_id[plane_id];
+		*destination = module->plane_to_module_id[plane_id];
 		// If the tub is going to storage, send it to the nearest storage module
 	} else {
 		*destination_type = DEST_STORAGE;
@@ -65,7 +65,7 @@ void save_RFID_data(Module* module) {
 	bool plane_dropoff = (bool)data[DATA_PLANE_OR_DROPOFF];
 
 	int plane_id = (int)data[DATA_PLANE_ID];
-	bool plane_arrived = module->plane_to_id[plane_id];
+	bool plane_arrived = module->plane_to_module_id[plane_id];
 	int tub_destination_id;
 	int tub_destination_type;
 	determine_destination(module, has_passed_security, security_bit, plane_dropoff, plane_id, &tub_destination_id,

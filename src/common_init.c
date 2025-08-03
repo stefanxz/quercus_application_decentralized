@@ -134,7 +134,7 @@ Module module_init() {
 
 	// Initialize the plane_to_id table, the tasks ring buffer and tub array to be empty
 	for (int i = 0; i < Q_MAX_NUMBER_OF_PLANES; i++) {
-		module.plane_to_id[i] = 0;
+		module.plane_to_module_id[i] = 0;
 	}
 
 	module.task_current = 0;

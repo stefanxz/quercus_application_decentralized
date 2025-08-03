@@ -142,7 +142,7 @@ typedef struct {
 typedef struct Module {
 	int id;
 
-	int plane_to_id[Q_MAX_NUMBER_OF_PLANES]; // Plane with index plane_id is at the module with id = value of
+	int plane_to_module_id[Q_MAX_NUMBER_OF_PLANES]; // Plane with index plane_id is at the module with id = value of
 										   // plane_to_id[plane_id].
 	uint8_t id_lookup[Q_MAX_NUMBER_OF_MODULES];  // Index 0 will always be Pi
 	uint8_t dir_lookup[Q_MAX_NUMBER_OF_MODULES]; // Index 0 will always be Pi

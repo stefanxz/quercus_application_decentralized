@@ -25,9 +25,9 @@ uint8_t security_check(Module* module) {
 		}
 
 		// If the plane of the tub has arrived, set the destination to the plane
-		if (module->plane_to_id[plane_id] > 0) {
+		if (module->plane_to_module_id[plane_id] > 0) {
 			// plane arrived
-			module->tub[DIR_RFID].destination_id = module->plane_to_id[plane_id];
+			module->tub[DIR_RFID].destination_id = module->plane_to_module_id[plane_id];
 			module->tub[DIR_RFID].destination_type = DEST_PLANE;
 			module->tub[DIR_RFID].plane_id = plane_id;
 			printf("I am rerouting to plane %d on module %d.\n", module->tub[DIR_RFID].destination_id,

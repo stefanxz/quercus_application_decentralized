@@ -48,10 +48,10 @@ export int main(void) {
             printf("Detecting plane: %d\n", new_plane_id);
 
             // Check if this plane is the one already here
-            if(module.plane_to_id[new_plane_id] == module.id){
+            if(module.plane_to_module_id[new_plane_id] == module.id){
                 //Plane leaves
                 plane_direction = 0;
-                module.plane_to_id[new_plane_id] = 0;
+                module.plane_to_module_id[new_plane_id] = 0;
 
                 // Send the plane status to all modules
                 broadcast_plane_status(new_plane_id, -1, module.id);
@@ -75,7 +75,7 @@ export int main(void) {
             else plane_direction = 1;
 
             // Save the module id to plane_to_id table at the id of the plane
-            module.plane_to_id[new_plane_id] = module.id;
+            module.plane_to_module_id[new_plane_id] = module.id;
             // Send the plane status to all modules
             broadcast_plane_status(new_plane_id, new_plane_dep_time, module.id);
 

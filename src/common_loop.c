@@ -65,8 +65,8 @@ int handle_request_movement(Module* module, uint8_t* msg) {
 	uint8_t plane = msg[REQ_PLANE_ID];
 
 	// Reroute tub if its plane has arrived
-	if (!plane_arrived && module->plane_to_id[plane] != 0 && msg[REQ_DEST_TYPE] == DEST_STORAGE) {
-		msg[REQ_DEST_ID] = module->plane_to_id[plane];
+	if (!plane_arrived && module->plane_to_module_id[plane] != 0 && msg[REQ_DEST_TYPE] == DEST_STORAGE) {
+		msg[REQ_DEST_ID] = module->plane_to_module_id[plane];
 		msg[REQ_PLANE_ARRIVED] = 1;
 		msg[REQ_DEST_TYPE] = DEST_PLANE;
 	}
@@ -168,13 +168,14 @@ void reroute_stored_tub(Module* module, Direction from, uint8_t destination_id, 
 int handle_plane_status(Module* module, uint8_t* msg) {
 	// If the message sender is not the Pi
 	if (msg[MSG_SENDER] != 0) {
-		return Q_NULL;
+		return -1;
 	}
+	uint8_t arrived_plane_id = msg[ARR_PLANE_ID];
 	// If the plane has not been saved in the system yet
-	if (module->plane_to_id[msg[ARR_PLANE_ID]] == 0) {
+	if (module->plane_to_module_id[arrived_plane_id] == 0) {
 		// Save that the plane is coming.
-		module->plane_to_id[msg[ARR_PLANE_ID]] = msg[ARR_MODULE_ID];
-		printf("I got a plane update: plane %d landed on %d with departure time %d\n", msg[ARR_PLANE_ID],
+		module->plane_to_module_id[arrived_plane_id] = msg[ARR_MODULE_ID];
+		printf("I got a plane update: plane %d landed on %d with departure time %d\n", arrived_plane_id,
 			   msg[ARR_MODULE_ID], msg[ARR_DEP_TIME]);
 
 		// If the module is busy, it will not handle the plane.
@@ -188,7 +189,7 @@ int handle_plane_status(Module* module, uint8_t* msg) {
 		// If a tub is stored at the position towards the plane
 		if (module->tub[pos].id != Q_NULL) {
 			// If that tub has to go to the plane, route it there.
-			if (module->tub[pos].plane_id == msg[ARR_PLANE_ID]) {
+			if (module->tub[pos].plane_id == arrived_plane_id) {
 				printf("I am rerouting a tub stored at direction towards the plane to it.\n");
 				// If that tub has to go to the plane, route it there.
 				reroute_stored_tub(module, pos, msg[ARR_MODULE_ID], DEST_PLANE);
@@ -223,9 +224,10 @@ int handle_plane_status(Module* module, uint8_t* msg) {
 		return 1;
 	}
 	// If the plane is leaving, remove it from the system.
-	if (module->plane_to_id[msg[ARR_PLANE_ID]] != 0 && module->plane_to_id[msg[ARR_PLANE_ID]] == msg[ARR_MODULE_ID]) {
+	if (module->plane_to_module_id[msg[ARR_PLANE_ID]] != 0 &&
+		module->plane_to_module_id[msg[ARR_PLANE_ID]] == msg[ARR_MODULE_ID]) {
 		printf("Plane %d at module %d left.\n", msg[ARR_PLANE_ID], msg[ARR_MODULE_ID]);
-		module->plane_to_id[msg[ARR_PLANE_ID]] = 0;
+		module->plane_to_module_id[msg[ARR_PLANE_ID]] = 0;
 		return 0;
 	}
 
@@ -337,7 +339,9 @@ void save_tub_from_request(Tub* tub, char req[REQ_LENGTH]) {
 bool do_task(Module* module) {
 	Task task = module->tasks[module->task_current];
 	int tub_id = task.request[REQ_TUB_ID];
-	if (task.to == DIR_OUT && task.from == DIR_OUT) printf("I am doing an empty task, not good.\n");
+	if (task.to == DIR_OUT && task.from == DIR_OUT) {
+		printf("I am doing an empty task, not good.\n");
+	}
 
 	if (task.to == DIR_OUT) {
 		printf("Tub %d to leave to module %d by %d\n", tub_id, module->next[task.from], task.from);
