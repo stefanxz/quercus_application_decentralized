@@ -29,13 +29,14 @@ int check_for_plane(){
     // No plane detected
     return 0;
 }
-int8_t plane_direction = 0; //-1 for outgoing, 0 for no plane, 1 for incoming plane
 
 /// @brief The code for a gate module. Loops infinitely, checking if there is a plane detected, changing state
 /// and routing tubs accordingly.
 export int main(void) {
     //initialize the module
     Module module = module_init();
+    int8_t plane_direction = 0; //-1 for outgoing, 0 for no plane, 1 for incoming plane
+
     while(1){
         // Check if there is a plane on the DIR_RFID reader
         int8_t new_gate_status = check_for_plane();

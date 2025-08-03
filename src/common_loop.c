@@ -1,10 +1,9 @@
-#include "defs.h"
 #include "common_loop.h"
+#include "defs.h"
 
 #include "libc_builtin.h"
 #include "quercus_lib_pico.h"
-
-
+#include <stdint.h>
 
 /// @brief Checks if the module is storing a tub
 /// @return ID of the tub that is currently being stored in the module
@@ -17,13 +16,12 @@ int8_t is_storing(const Module module) {
 	return Q_NULL;
 }
 
-
 /// @brief Adds a task to the task ring buffer.
 /// @param from which endpoint of the module the tub moves from
 /// @param to which endpoint of the module the tub moves to
 /// @param request related request that led to the addition of this task
 void add_task(Module* module, Direction from, Direction to, uint8_t* request) {
-	printf("adding task: from %d, to %d, request: %s\n", from, to, request);
+	printf("adding movement task: from %d, to %d, request: %s\n", from, to, request);
 	Task task;
 	task.to = to;
 	task.from = from;
@@ -31,7 +29,7 @@ void add_task(Module* module, Direction from, Direction to, uint8_t* request) {
 	// Copy over the request into the task
 	memcpy(task.request, request, REQ_LENGTH);
 
-	printf("task request: %d, %d, %d, %d\n", request[MSG_SENDER], request[REQ_TUB_ID], request[REQ_DEST_TYPE],
+	printf("movement task request: %d, %d, %d, %d\n", request[MSG_SENDER], request[REQ_TUB_ID], request[REQ_DEST_TYPE],
 		   request[REQ_DEST_ID]);
 	module->tasks[module->task_new] = task;
 	module->task_new = (module->task_new + 1) % Q_MAX_TASKS;
@@ -57,14 +55,14 @@ void handle_storage(Module* module) {
 	add_task(module, module->to_storage, DIR_OUT, stor_req);
 }
 
-/// @brief Library for handling routing in the Quercus decentralized application.
+/// @brief Handle a movement request.
 /// @param msg The incoming message containing movement request details.
 /// @return Returns a status code indicating the success or failure of the operation.
 int handle_request_movement(Module* module, uint8_t* msg) {
 
 	// Get the plane arrival status and the plane ID from the message
-	int plane_arrived = msg[REQ_PLANE_ARRIVED];
-	int plane = msg[REQ_PLANE_ID];
+	bool plane_arrived = msg[REQ_PLANE_ARRIVED];
+	uint8_t plane = msg[REQ_PLANE_ID];
 
 	// Reroute tub if its plane has arrived
 	if (!plane_arrived && module->plane_to_id[plane] != 0 && msg[REQ_DEST_TYPE] == DEST_STORAGE) {
@@ -74,12 +72,12 @@ int handle_request_movement(Module* module, uint8_t* msg) {
 	}
 
 	// Get the sender and destination IDs from the message
-	int origin = msg[MSG_SENDER];
-	int end = module->id_lookup[msg[REQ_DEST_ID]];
+	uint8_t sender_id = msg[MSG_SENDER];
+	uint8_t destination_id = module->id_lookup[msg[REQ_DEST_ID]];
 
-	// Check if the sender id is valid
-	if (end < 1) {
-		printf("Bad request received: %d\n", end);
+	// Check if the destination id is valid
+	if (destination_id < 1) {
+		printf("Bad request received: %d\n", destination_id);
 		return -1;
 	}
 
@@ -88,12 +86,18 @@ int handle_request_movement(Module* module, uint8_t* msg) {
 
 	// Determine the beginning and final positions of the tub
 	for (int i = 0; i < 3; i++) {
-		if (module->next[i] == origin) from = i;
-		if (module->next[i] == end) to = i;
+		if (module->next[i] == sender_id) {
+			from = i;
+		}
+		if (module->next[i] == destination_id) {
+			to = i;
+		}
 	}
 
 	// If the sender is this module, set the source position to DIR_RFID
-	if (origin == module->id) from = DIR_RFID;
+	if (sender_id == module->id) {
+		from = DIR_RFID;
+	}
 
 	// If the current module is storage and if a tub is being stored
 	if (module->is_storage && is_storing(*module) != Q_NULL) {
@@ -106,7 +110,7 @@ int handle_request_movement(Module* module, uint8_t* msg) {
 	add_task(module, DIR_OUT, from, msg);
 
 	// If the destination is the current module
-	if (end == module->id) {
+	if (destination_id == module->id) {
 		// If the destination type is storage and the current module is a storage module
 		if (msg[REQ_DEST_TYPE] == DEST_STORAGE && module->is_storage) {
 			// Store the tub at the position it is at
@@ -118,7 +122,7 @@ int handle_request_movement(Module* module, uint8_t* msg) {
 		} else {
 			// The tub should exit the system
 			add_task(module, from, DIR_RFID, msg);
-			add_task(module, DIR_RFID, DIR_OUT, msg);
+			add_task(module, DIR_RFID, DIR_OUT, msg); // assumption: only rfid sides can be entries and exits
 		}
 		return 0;
 	}
@@ -234,30 +238,33 @@ int handle_plane_status(Module* module, uint8_t* msg) {
 /// @param expected The expected message type to wait for.
 /// @param persistent If true, keeps waiting for messages until the expected one is received.
 /// @return Returns the response code based on the message type received.
-int await_message(Module* module, uint8_t** msg_ptr, int expected, bool persistent) {
+int await_message(Module* module, uint8_t** msg_ptr_ptr, int expected, bool persistent) {
 	int response = Q_NULL;
-	char type;
+	uint8_t type;
 	do {
 		EventType e = next_event();
 		// Sift mailbox for messages:
-		while (e == EVENT_MESSAGE_RECEIVED) {
-			next_message_address(msg_ptr);
-			type = (*msg_ptr)[MSG_TYPE];
+		if (e == EVENT_MESSAGE_RECEIVED) {
+			next_message_address(msg_ptr_ptr);
+			// msg_ptr_ptr -> msg_string -> first byte of msg
+			uint8_t* msg_string = *msg_ptr_ptr;
+			type = msg_string[MSG_TYPE];
 
-			printf("Type: %d, Sender:%d, Dest:%d, Tub_id: %d\n", type, (*msg_ptr)[MSG_SENDER], (*msg_ptr)[REQ_DEST_ID],
-				   (*msg_ptr)[REQ_TUB_ID]);
+			printf("Type: %d, Sender:%d, Dest:%d, Tub_id: %d\n", type, msg_string[MSG_SENDER], msg_string[REQ_DEST_ID],
+				   msg_string[REQ_TUB_ID]);
 
 			if (type == MSG_REQUEST_MOVEMENT) {
-				// complicated decision as to whether to accept or reject the request here i guess
-				response = handle_request_movement(module, *msg_ptr);
+				// complicated decision as to whether to accept or reject the request
+				response = handle_request_movement(module, msg_string);
 			} else if (type == MSG_REQUEST_RESPONSE) {
-			response = (int)msg_ptr[MSG_VALUE];
+				// simply return the value for request_response messages
+				response = msg_string[MSG_VALUE];
 			} else if (type == MSG_PLANE_STATUS) {
-				response = handle_plane_status(module, *msg_ptr);
+				response = handle_plane_status(module, msg_string);
 			} else if (type == MSG_PATH_CONFIG) {
-				// response = handle_paths_config(*msg_ptr);
+				// unimplemented
 			} else if (type == MSG_TUB_CONFIG) {
-				// response = handle_tub_config(*msg_ptr);
+				// unimplemented
 			}
 
 			// If you get the message you need, return it

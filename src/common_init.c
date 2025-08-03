@@ -25,6 +25,9 @@ bool is_storage(uint8_t storage_cycle[Q_MAX_NUMBER_OF_MODULES], uint8_t id) {
 /// @details The function checks the status of the laser and DIR_RFID sensors.
 // If any of them are not functioning properly, it prints an error message.
 void sys_check() {
+    laser_left_set(1);
+    laser_right_set(1);
+    sleep(50);
 	if (!laser_left_detect()) {
 		printf("Laser left aint good\n");
 	}
@@ -32,7 +35,7 @@ void sys_check() {
 		printf("Laser right aint good\n");
 	}
 	if (RFID_check_tag()) {
-		printf("DIR_RFID aint good\n");
+		printf("RFID not detecting\n");
 	}
 	belt_big_set_speed(BELT_UP_SLOW);
 	belt_small_set_speed(BELT_UP_SLOW);
@@ -47,14 +50,16 @@ void sys_check() {
 /// @brief Sends a request for the path configuration to the Pi module, await the response, handle it.
 /// @details The function sends a message to the Pi module requesting the path configuration.
 /// It then waits for a response and processes the received data.
+/// NOTE: MUST BE SUBSCRIBED TO EVENT_MESSAGE_RECEIVED
 /// @param id_lookup the ID lookup table to be filled in
 /// @param dir_lookup the direction lookup table to be filled in
 /// @param storage_cycle the storage cycle table to be filled in
 /// @param nearest the nearest destination table to be filled in
 /// @param next the next module table to be filled in
 void get_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_cycle, uint8_t* nearest, uint8_t* next) {
+
 	// request config from pi
-	char data[2] = {get_own_id(), REQUEST_PATH_CONFIG};
+	char data[2] = {get_own_id(), MSG_REQUEST_PATH_CONFIG};
 	send_packet(0, data, sizeof(data));
 
 	uint8_t* msg;
@@ -102,14 +107,14 @@ Module module_init() {
 	// Set the LED color to yellow to indicate that the module is initializing
 	led_set_color(COLOR_YELLOW);
 
-	Module module;
+	Module module; // all fields undefined
 	// State state;
 
 	// Set the module ID and subscribe to events
 	module.id = get_own_id();
-	uint8_t storage_cycle[Q_MAX_NUMBER_OF_MODULES];
-	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
 
+	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
+	uint8_t storage_cycle[Q_MAX_NUMBER_OF_MODULES];
 	get_path_config(module.id_lookup, module.dir_lookup, storage_cycle, module.nearest, module.next);
 	// Set the ID lookup table and direction lookup table by getting them from the Pi
 	// send_request_path_config();

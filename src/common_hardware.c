@@ -4,11 +4,13 @@
 #include "quercus_lib_pico.h"
 
 
-/// @brief Reset the module to its default state: LED red, belts off, arm neutral.
+/// @brief Reset the module to its default state: LED red, belts off, arm neutral, lasers on.
 void reset_module() {
 	led_set_color(COLOR_RED);
 	belt_small_set_speed(BELT_OFF);
 	belt_big_set_speed(BELT_OFF);
+	laser_left_set(1);
+	laser_right_set(1);
 
 	// Wait a little before resetting the arm
 	float curr_pos = servo_angle_get();
