@@ -62,7 +62,7 @@ int map_type_to_int(const char* type) {
 void parse_value_data(int* val, char* data, int* index) {
 	while (data[*index] >= '0' && data[*index] <= '9') {
 		*val = *val * 10 + (data[*index] - '0');
-		 *index++;
+		 (*index)++;
 	}
 }
 
@@ -81,6 +81,7 @@ int parse_config(char* data) {
 	if (data[i] == '\n') i++; // Skip newline
 
 	while (data[i]) {
+	    printf("Parsing line %d\n", i);
 		// Parse line manually
 		int m_num = 0, a_val = 0, b_val = 0, c_val = 0;
 		char type_str[50];
@@ -94,6 +95,7 @@ int parse_config(char* data) {
 				i++;
 			}
 		}
+		printf("Module number: %d\n", m_num);
 
 		// Skip comma
 		if (data[i] == ',') i++;
@@ -107,6 +109,8 @@ int parse_config(char* data) {
 		type_str[j] = '\0';
 		if (data[i] == ',') i++;
 
+		printf("Type string: %s\n", type_str);
+
 		// Expecting: a<num>,
 		if (data[i] == 'a') i++;
 		parse_value_data(&a_val, data, &i);
@@ -119,12 +123,16 @@ int parse_config(char* data) {
 
 		// Expecting: c<num>
 		if (data[i] == 'c') i++;
-		parse_value_data(&a_val, data, &i);
+		parse_value_data(&c_val, data, &i);
+
+		printf("Values: a=%d, b=%d, c=%d\n", a_val, b_val, c_val);
 
 		// Skip to next line
 		while (data[i] && data[i] != '\n')
 			i++;
 		if (data[i] == '\n') i++;
+
+		printf("done, Module number: %d\n", m_num);
 
 		// Store in modules
 		modules[m_num].id = m_num;
@@ -273,7 +281,7 @@ int route_find(int from, int to, int* predec) {
 		} else {
 			to = predec[to];
 		}
-		sleep(100);
+		// sleep(100);
 	}
 	return -1;
 }
@@ -469,7 +477,7 @@ int bfs(Graph* graph, int startVertex, int* predecessors, Cycle* largest_cycle,
 				// Assign nearest destinations for the module types
 				if (nearest_dest[mod_type] == 0) {
 					if (mod_type < Q_NUMBER_OF_DEST_TYPES) {
-						sleep(10);
+						// sleep(10);
 						nearest_dest[mod_type] = adjVertex;
 					}
 				}
@@ -505,6 +513,7 @@ int bfs(Graph* graph, int startVertex, int* predecessors, Cycle* largest_cycle,
 // Main function to test the adjacency list implementation
 Graph* convert_to_graph(char* layout, int vertex_type, Cycle* largest_cycle) {
 	parse_config(layout);
+	printf("config parsed\n");
 
 	// Start a DFS from each node.
 	// The  only follows neighbors with id >= start so that each cycle's canonical representation is encountered once.
@@ -531,6 +540,7 @@ Graph* convert_to_graph(char* layout, int vertex_type, Cycle* largest_cycle) {
 	}
 	printf("\n");
 	Graph* graph = createGraph(highest_id_module);
+	printf("Graph created, highest id: %d\n", highest_id_module);
 	for (int i = 0; i <= highest_id_module; i++) {
 		if (!modules[i].id) {
 			continue;
@@ -548,6 +558,7 @@ Graph* convert_to_graph(char* layout, int vertex_type, Cycle* largest_cycle) {
 			addEdge(graph, i, modules[i].b);
 		}
 	}
+	printf("Graph edges added\n");
 	int next_node;
 	for (int i = largest_cycle->length - 1; i >= 0; i--) {
 		if (i == 0) {
@@ -556,14 +567,15 @@ Graph* convert_to_graph(char* layout, int vertex_type, Cycle* largest_cycle) {
 			next_node = largest_cycle->nodes[i - 1];
 		}
 		if (modules[largest_cycle->nodes[i]].a == next_node || modules[largest_cycle->nodes[i]].c == next_node) {
-			sleep(1000);
+			sleep(1);
 			removeEdge(graph, largest_cycle->nodes[i], next_node);
 		} else if (modules[largest_cycle->nodes[i]].b == next_node) {
-			sleep(1000);
+			sleep(1);
 			removeEdge(graph, largest_cycle->nodes[i], next_node);
 		}
 	}
-	// printGraph(graph);
+	printf("Graph edges removed\n");
+	printGraph(graph);
 	return graph;
 }
 
@@ -595,9 +607,11 @@ void fillGraphData(struct Graph* graph, uint8_t look_up[Q_MAX_NUMBER_OF_MODULES]
 			predecessors[j] = 0;
 		}
 
+		printf("Running BFS from module %d\n", i);
 		// Run BFS from the current module
 		// TODO LEA: CHECK THIS WHEN TESTING - WAS 		bfs(graph, i, &predecessors, largest_cycle, nearest_dest[i]);
-		bfs(graph, i, predecessors, largest_cycle, nearest_dest[i]);
+		// bfs(graph, i, predecessors, largest_cycle, nearest_dest[i]);
+		bfs(graph, i, &predecessors, largest_cycle, nearest_dest[i]);
 
 		// Find the path from the current module to all other modules
 		for (int j = 1; j <= highest_id_module; j++) {
@@ -680,6 +694,7 @@ int broadcast_plane_status(int sender, char plane_id) {
 }
 
 export int main(void) {
+    printf("hello!\n");
 	// Subscribe to the event of receiving a message
 	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
 
@@ -692,10 +707,13 @@ export int main(void) {
 	// Create a graph based on the network map
 	char* net_map = get_network_map();
 	if (net_map == NULL) return -1;
+	printf("creating graph...\n");
 	graph = convert_to_graph(net_map, SINGLE_VERTEX, &largest_cycle);
 
 	// Fill the graph data
+	printf("filling graph data...\n");
 	fillGraphData(graph, look_up, &largest_cycle, nearest_dest);
+	printf("graph data filled.\n");
 
 	// Loop to receive messages
 	EventType e = next_event();

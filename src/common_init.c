@@ -81,6 +81,7 @@ void get_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_c
 
 		e = next_event();
 		sleep(TIME_PAUSE);
+		printf("awaiting...\n");
 	}
 
 	uint8_t sender = msg[MSG_SENDER];
@@ -101,6 +102,8 @@ void get_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_c
 /// @return void
 /// @note This function is called at the beginning of the program to set up the module.
 Module module_init() {
+    printf("hello!\n");
+
 	// Check that all of the sensors are working and reset the module
 	sys_check();
 
