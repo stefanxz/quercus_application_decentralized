@@ -21,7 +21,6 @@ typedef enum EventType {
 } EventType;
 
 // Generic functions
-extern void print(const char* str);
 extern void sleep(int ms);
 
 // Module functions
