@@ -1,0 +1,18 @@
+#include "common.h"
+
+/// @brief The code for a check-in module. Loops infintely, doing the loop() and in().
+export int main(void) {
+    //initialize the module
+    Module module = module_init();
+
+    while(1){
+        //check if there is a tub on the DIR_RFID reader
+        handle_tub_rfid_entry(&module);
+
+        //deal with routing of tubs
+        loop(&module);
+
+        //sleep for a bit to add reliability
+        sleep(100);
+    }
+}
