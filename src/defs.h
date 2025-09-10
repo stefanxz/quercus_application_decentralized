@@ -34,10 +34,10 @@
 
 // # Motors and servos
 #define BELT_OFF 0
-#define BELT_LEFT_SLOW 20
-#define BELT_RIGHT_SLOW -20
-#define BELT_DOWN_SLOW 20
-#define BELT_UP_SLOW -20
+#define BELT_LEFT_SLOW 70
+#define BELT_RIGHT_SLOW -70
+#define BELT_DOWN_SLOW 70
+#define BELT_UP_SLOW -70
 
 
 #define ARM_LEFT 60
