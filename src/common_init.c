@@ -1,14 +1,11 @@
-#include "defs.h"
 #include "common_hardware.h"
+#include "defs.h"
 
-#include "quercus_lib_pico.h"
 #include "libc_builtin.h"
-
+#include "quercus_lib_pico.h"
 
 // Function declarations
 void sys_check();
-
-
 
 /// @brief Checks if the module shouldb be a storage module.
 /// @param storage_cycle the current storage cycle of the layout
@@ -25,9 +22,9 @@ bool is_storage(uint8_t storage_cycle[Q_MAX_NUMBER_OF_MODULES], uint8_t id) {
 /// @details The function checks the status of the laser and DIR_RFID sensors.
 // If any of them are not functioning properly, it prints an error message.
 void sys_check() {
-    laser_left_set(1);
-    laser_right_set(1);
-    sleep(50);
+	laser_left_set(1);
+	laser_right_set(1);
+	sleep(50);
 	if (!laser_left_detect()) {
 		printf("Laser left aint good\n");
 	}
@@ -45,7 +42,6 @@ void sys_check() {
 	sleep(200);
 	reset_module();
 }
-
 
 /// @brief Sends a request for the path configuration to the Pi module, await the response, handle it.
 /// @details The function sends a message to the Pi module requesting the path configuration.
@@ -94,7 +90,7 @@ void get_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_c
 	memcpy(dir_lookup, msg + 2 + Q_MAX_NUMBER_OF_MODULES, Q_MAX_NUMBER_OF_MODULES);
 	memcpy(storage_cycle, msg + 2 + Q_MAX_NUMBER_OF_MODULES * 2, Q_MAX_NUMBER_OF_MODULES);
 	memcpy(nearest, msg + 2 + Q_MAX_NUMBER_OF_MODULES * 3, Q_NUMBER_OF_DEST_TYPES);
-	memcpy(next, msg + 2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES, 3);
+	memcpy(next, msg + 2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES, 4); // next[3] is next-hop neighbour
 	free(msg);
 }
 
@@ -102,7 +98,7 @@ void get_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_c
 /// @return void
 /// @note This function is called at the beginning of the program to set up the module.
 Module module_init() {
-    printf("hello!\n");
+	printf("hello!\n");
 
 	// Check that all of the sensors are working and reset the module
 	sys_check();

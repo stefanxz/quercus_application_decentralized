@@ -13,8 +13,6 @@
 #define Q_MAX_TASKS 64
 #define Q_NUMBER_OF_DEST_TYPES 5
 
-
-
 // # LED
 // common colors
 #define COLOR_RED 0xFF0000
@@ -39,7 +37,6 @@
 #define BELT_DOWN_SLOW 70
 #define BELT_UP_SLOW -70
 
-
 #define ARM_LEFT 60
 #define ARM_RIGHT 105
 #define ARM_NEUTRAL 0
@@ -51,43 +48,43 @@
 // Each value corresponds to a specific type of message.
 enum MessageTypes {
 	MSG_NONE = 0,
-	MSG_REQUEST_MOVEMENT = 1, // Request to move a tub to the module
-	MSG_REQUEST_RESPONSE = 2, // Response to a request for movement
-	MSG_PLANE_STATUS = 3, // Status update for a plane
-	MSG_TUB_STATUS = 4, // Status update for a tub
-	MSG_PATH_CONFIG = 5, // Configuration of the paths
+	MSG_REQUEST_MOVEMENT = 1,	 // Request to move a tub to the module
+	MSG_REQUEST_RESPONSE = 2,	 // Response to a request for movement
+	MSG_PLANE_STATUS = 3,		 // Status update for a plane
+	MSG_TUB_STATUS = 4,			 // Status update for a tub
+	MSG_PATH_CONFIG = 5,		 // Configuration of the paths
 	MSG_REQUEST_PATH_CONFIG = 6, // Request for path configuration
-	MSG_TUB_CONFIG = 7 // Configuration of a tub
+	MSG_TUB_CONFIG = 7			 // Configuration of a tub
 };
 
 // Enum to represent the content that every message should have.
 // Each value corresponds to a specific piece of information in the message.
 enum MessageHead {
 	MSG_SENDER = 0, // Sender of the message
-	MSG_TYPE = 1, // Type of the message
-	MSG_VALUE = 2 // Used for request responses
+	MSG_TYPE = 1,	// Type of the message
+	MSG_VALUE = 2	// Used for request responses
 };
 
 // Enum to represent the content of a request message.
 // Each value corresponds to a specific piece of information in the request.
 enum RequestsContent {
-    REQ_TUB_ID = 2,       // Identifier for the tub being referenced in the request.
-    REQ_DEST_TYPE = 3,    // Type of destination (e.g., module, plane, etc.).
-    REQ_DEST_ID = 4,      // Identifier for the destination.
-    REQ_PLANE_ARRIVED = 5,// Indicates whether a plane has arrived.
-    REQ_PLANE_ID = 6,     // Identifier for the plane.
-    REQ_SECURITY = 7,     // Security-related information for the request.
-    REQ_PAYLOAD = 8,      // Payload data associated with the request.
-    REQ_LENGTH = 9        // Total length of the request message.
+	REQ_TUB_ID = 2,		   // Identifier for the tub being referenced in the request.
+	REQ_DEST_TYPE = 3,	   // Type of destination (e.g., module, plane, etc.).
+	REQ_DEST_ID = 4,	   // Identifier for the destination.
+	REQ_PLANE_ARRIVED = 5, // Indicates whether a plane has arrived.
+	REQ_PLANE_ID = 6,	   // Identifier for the plane.
+	REQ_SECURITY = 7,	   // Security-related information for the request.
+	REQ_PAYLOAD = 8,	   // Payload data associated with the request.
+	REQ_LENGTH = 9		   // Total length of the request message.
 };
 
 // Enum to represent the content of an arrivals message.
 // Each value corresponds to a specific piece of information in the arrivals data.
 enum ArrivalsContent {
-    ARR_PLANE_ID = 2,     // Identifier for the plane in the arrivals message.
-    ARR_MODULE_ID = 3,    // Identifier for the module associated with the arrival.
-    ARR_DEP_TIME = 4,     // Departure time for the plane or module.
-    ARR_LENGTH = 5        // Total length of the arrivals message.
+	ARR_PLANE_ID = 2,  // Identifier for the plane in the arrivals message.
+	ARR_MODULE_ID = 3, // Identifier for the module associated with the arrival.
+	ARR_DEP_TIME = 4,  // Departure time for the plane or module.
+	ARR_LENGTH = 5	   // Total length of the arrivals message.
 };
 
 // Module endpoints encoded as directions. Out is not a direction, but a special additional value.
@@ -143,11 +140,12 @@ typedef struct Module {
 	int id;
 
 	int plane_to_module_id[Q_MAX_NUMBER_OF_PLANES]; // Plane with index plane_id is at the module with id = value of
-										   // plane_to_id[plane_id].
-	uint8_t id_lookup[Q_MAX_NUMBER_OF_MODULES];  // Index 0 will always be Pi
-	uint8_t dir_lookup[Q_MAX_NUMBER_OF_MODULES]; // Index 0 will always be Pi
+													// plane_to_id[plane_id].
+	uint8_t id_lookup[Q_MAX_NUMBER_OF_MODULES];		// Index 0 will always be Pi
+	uint8_t dir_lookup[Q_MAX_NUMBER_OF_MODULES];	// Index 0 will always be Pi
 
-	uint8_t next[3];	// Module IDs of the neighbouring modules. We index by Direction.
+	uint8_t
+		next[4]; // Module IDs of the neighbouring modules. We index by Direction. 4th now is not the next-hop neighbour
 	uint8_t nearest[5]; // Module IDs of nearest destinations. We index by ModuleType.
 
 	bool is_storage; // Indicates whether this module has storage responsibilities.

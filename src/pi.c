@@ -62,7 +62,7 @@ int map_type_to_int(const char* type) {
 void parse_value_data(int* val, char* data, int* index) {
 	while (data[*index] >= '0' && data[*index] <= '9') {
 		*val = *val * 10 + (data[*index] - '0');
-		 (*index)++;
+		(*index)++;
 	}
 }
 
@@ -81,7 +81,7 @@ int parse_config(char* data) {
 	if (data[i] == '\n') i++; // Skip newline
 
 	while (data[i]) {
-	    printf("Parsing line %d\n", i);
+		printf("Parsing line %d\n", i);
 		// Parse line manually
 		int m_num = 0, a_val = 0, b_val = 0, c_val = 0;
 		char type_str[50];
@@ -635,8 +635,9 @@ void fillGraphData(struct Graph* graph, uint8_t look_up[Q_MAX_NUMBER_OF_MODULES]
 /// @param nearest_dest The nearest destination for each module type from the current module
 /// @return the result of the send_packet function
 int send_path_config(int sender, uint8_t current_look_up[Q_MAX_NUMBER_OF_MODULES][2], Cycle* cycle,
-                     uint8_t nearest_dest[Q_NUMBER_OF_DEST_TYPES]) {
-	char message[2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES + 3] = {0};
+					 uint8_t nearest_dest[Q_NUMBER_OF_DEST_TYPES]) {
+	char message[2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES + 4] = {
+		0}; // another byte for the next-hop neighbour
 	// Set up the message with the sender ID, message type, and the look up table
 	message[MSG_SENDER] = 0;
 	message[MSG_TYPE] = MSG_PATH_CONFIG;
@@ -661,7 +662,8 @@ int send_path_config(int sender, uint8_t current_look_up[Q_MAX_NUMBER_OF_MODULES
 	message[2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES] = modules[sender].a;	   // LEFT
 	message[1 + 2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES] = modules[sender].c; // RIGHT
 	message[2 + 2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES] = modules[sender].b; // DIR_RFID
-
+	message[3 + 2 + Q_MAX_NUMBER_OF_MODULES * 3 + Q_NUMBER_OF_DEST_TYPES] =
+		modules[modules[sender].c].c; // NEXT RIGHT HOP
 	// Send the packet to the sender module
 	return send_packet(sender, message, sizeof(message));
 }
@@ -694,7 +696,7 @@ int broadcast_plane_status(int sender, char plane_id) {
 }
 
 export int main(void) {
-    printf("hello!\n");
+	printf("hello!\n");
 	// Subscribe to the event of receiving a message
 	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
 
