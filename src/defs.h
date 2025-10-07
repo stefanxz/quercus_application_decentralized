@@ -54,7 +54,8 @@ enum MessageTypes {
 	MSG_TUB_STATUS = 4,			 // Status update for a tub
 	MSG_PATH_CONFIG = 5,		 // Configuration of the paths
 	MSG_REQUEST_PATH_CONFIG = 6, // Request for path configuration
-	MSG_TUB_CONFIG = 7			 // Configuration of a tub
+	MSG_TUB_CONFIG = 7,			 // Configuration of a tub
+	MSG_KEYS_FOR_YOU = 8		 // Per-Pico keypair and neighbor pubkeys
 };
 
 // Enum to represent the content that every message should have.
@@ -164,6 +165,11 @@ typedef struct Module {
 const Task EMPTY_TASK = {.to = DIR_OUT, .from = DIR_OUT};
 
 const int RFID_BLOCK_SIZE = 4;
+
+// Ed25519 sizes (Monocypher)
+#define ED25519_SK_LEN 32
+#define ED25519_PK_LEN 32
+#define ED25519_SIG_LEN 64
 
 enum DataOnRFID {
 	DATA_TUB_OR_PLANE = 0,
