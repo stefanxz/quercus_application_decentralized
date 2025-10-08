@@ -267,6 +267,26 @@ int await_message(Module* module, uint8_t** msg_ptr_ptr, int expected, bool pers
 				// unimplemented
 			} else if (type == MSG_TUB_CONFIG) {
 				// unimplemented
+			} else if (type == MSG_KEYS_FOR_YOU) {
+				// Parse key payload: SK(64) + PK_SELF(32) + 4*PK(32)
+				uint8_t* p = &msg_string[2];
+				memcpy(module->my_sk, p, 64);
+				p += 64;
+				memcpy(module->my_pk, p, 32);
+				p += 32;
+				// LEFT, RIGHT, RFID, NEXT_RIGHT_HOP
+				memcpy(module->neighbor_pk[DIR_LASER_LEFT], p, 32);
+				p += 32;
+				memcpy(module->neighbor_pk[DIR_LASER_RIGHT], p, 32);
+				p += 32;
+				memcpy(module->neighbor_pk[DIR_RFID], p, 32);
+				p += 32;
+				memcpy(module->neighbor_pk[3], p, 32);
+				// Print own public key for testing
+				printf("My PK: ");
+				for (int i = 0; i < 32; i++)
+					printf("%02X", module->my_pk[i]);
+				printf("\n");
 			}
 
 			// If you get the message you need, return it

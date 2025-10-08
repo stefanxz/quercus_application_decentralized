@@ -160,6 +160,12 @@ typedef struct Module {
 	Task tasks[Q_MAX_TASKS];
 	int8_t task_current;
 	int8_t task_new;
+
+	// Crypto: Ed25519 keys
+	uint8_t my_sk[64];
+	uint8_t my_pk[32];
+	// Neighbor public keys in order: LEFT, RIGHT, RFID, NEXT_RIGHT_HOP
+	uint8_t neighbor_pk[4][32];
 } Module; // structure for a module containing its essential fields
 
 const Task EMPTY_TASK = {.to = DIR_OUT, .from = DIR_OUT};
