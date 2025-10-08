@@ -267,6 +267,7 @@ int await_message(Module* module, uint8_t** msg_ptr_ptr, int expected, bool pers
 				// unimplemented
 			} else if (type == MSG_TUB_CONFIG) {
 				// unimplemented
+				// TODO: Marian peer review pls - store keys received from Pi
 			} else if (type == MSG_KEYS_FOR_YOU) {
 				// Parse key payload: SK(64) + PK_SELF(32) + 4*PK(32)
 				uint8_t* p = &msg_string[2];

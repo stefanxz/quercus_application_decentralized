@@ -46,6 +46,7 @@
 
 // Enum to represent the type of message being sent or received.
 // Each value corresponds to a specific type of message.
+// TODO: Marian peer review pls - added new message type for key distribution
 enum MessageTypes {
 	MSG_NONE = 0,
 	MSG_REQUEST_MOVEMENT = 1,	 // Request to move a tub to the module
@@ -57,6 +58,7 @@ enum MessageTypes {
 	MSG_TUB_CONFIG = 7,			 // Configuration of a tub
 	MSG_KEYS_FOR_YOU = 8		 // Per-Pico keypair and neighbor pubkeys
 };
+// end TODO
 
 // Enum to represent the content that every message should have.
 // Each value corresponds to a specific piece of information in the message.
@@ -137,6 +139,7 @@ typedef struct {
 } State;
 
 // Module structure that contains all related fields of a module.
+// TODO: Marian peer review pls - added per-pico key storage in Module
 typedef struct Module {
 	int id;
 
@@ -167,15 +170,18 @@ typedef struct Module {
 	// Neighbor public keys in order: LEFT, RIGHT, RFID, NEXT_RIGHT_HOP
 	uint8_t neighbor_pk[4][32];
 } Module; // structure for a module containing its essential fields
+// end TODO
 
 const Task EMPTY_TASK = {.to = DIR_OUT, .from = DIR_OUT};
 
 const int RFID_BLOCK_SIZE = 4;
 
+// TODO: Marian peer review pls - added Ed25519 size constants
 // Ed25519 sizes (Monocypher)
 #define ED25519_SK_LEN 32
 #define ED25519_PK_LEN 32
 #define ED25519_SIG_LEN 64
+// end TODO
 
 enum DataOnRFID {
 	DATA_TUB_OR_PLANE = 0,
