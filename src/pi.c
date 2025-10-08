@@ -1,4 +1,5 @@
 #include "common.h"
+#include "monocypher.h"
 
 #define MAX_PATH_LENGTH 100
 #define MAX_CYCLES 10
@@ -693,6 +694,33 @@ int broadcast_plane_status(int sender, char plane_id) {
 		send_packet(modules[i].id, data, sizeof(data));
 	}
 	return 0;
+}
+
+static uint8_t pi_sk[Q_MAX_NUMBER_OF_MODULES + 1][64];
+static uint8_t pi_pk[Q_MAX_NUMBER_OF_MODULES + 1][32];
+
+/// @brief Seeds the Monocypher context from the ID of the module.
+/// @param seed The seed to be seeded.
+/// @param id The ID of the module.
+void seed_from_id(uint8_t seed[32], int id) {
+	// zero the seed
+	for (int i = 0; i < 32; i++)
+		seed[i] = 0;
+	// id in little-endian
+	seed[0] = (uint8_t)(id & 0xFF);
+	seed[1] = (uint8_t)((id >> 8) & 0xFF);
+	seed[2] = (uint8_t)((id >> 16) & 0xFF);
+	seed[3] = (uint8_t)((id >> 24) & 0xFF);
+}
+
+/// @brief Generates all the keys for the Pi modules.
+static void pi_generate_all_keys(void) {
+	for (int id = 1; id <= Q_MAX_NUMBER_OF_MODULES; id++) {
+		if (modules[id].id == 0) continue; // skip non-existent
+		uint8_t seed[32];
+		seed_from_id(seed, id);
+		crypto_eddsa_key_pair(pi_sk[id], pi_pk[id], seed);
+	}
 }
 
 export int main(void) {
