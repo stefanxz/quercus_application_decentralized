@@ -1,4 +1,5 @@
 #include "common.h"
+#include "monocypher.h"
 
 #define MAX_PATH_LENGTH 100
 #define MAX_CYCLES 10
@@ -694,6 +695,74 @@ int broadcast_plane_status(int sender, char plane_id) {
 	}
 	return 0;
 }
+/// Secret keys are 64 bytes long, public keys are 32 bytes long
+/// We need to generate these keys for each module
+// TODO: Marian peer review pls - added Pi key storage
+static uint8_t pi_sk[Q_MAX_NUMBER_OF_MODULES + 1][64];
+static uint8_t pi_pk[Q_MAX_NUMBER_OF_MODULES + 1][32];
+// end TODO
+
+/// @brief Seeds the Monocypher context from the ID of the module.
+/// @param seed The seed to be seeded.
+/// @param id The ID of the module.
+// TODO: Marian peer review pls - deterministic seed from module id
+void seed_from_id(uint8_t seed[32], int id) {
+	// zero the seed
+	for (int i = 0; i < 32; i++)
+		seed[i] = 0;
+	// id in little-endian
+	seed[0] = (uint8_t)(id & 0xFF);
+	seed[1] = (uint8_t)((id >> 8) & 0xFF);
+	seed[2] = (uint8_t)((id >> 16) & 0xFF);
+	seed[3] = (uint8_t)((id >> 24) & 0xFF);
+}
+// end TODO
+
+/// @brief Generates all the keys for the Pi modules.
+// TODO: Marian peer review pls - generate all keys at startup
+static void pi_generate_all_keys(void) {
+	for (int id = 1; id <= Q_MAX_NUMBER_OF_MODULES; id++) {
+		if (modules[id].id == 0) continue; // skip non-existent
+		uint8_t seed[32];
+		seed_from_id(seed, id);
+		crypto_eddsa_key_pair(pi_sk[id], pi_pk[id], seed);
+	}
+}
+// end TODO
+/// @brief Sends the keys for the module to the sender
+/// @param sender The id of the module that sent the request for the keys
+/// @return The result of the send_packet function
+// TODO: Marian peer review pls - send own sk/pk + neighbor pks
+static int send_keys_for_you(int sender) {
+	uint8_t left = modules[sender].a;
+	uint8_t right = modules[sender].c;
+	uint8_t rfid = modules[sender].b;
+	uint8_t next_hop_right = modules[modules[sender].c].c;
+
+	// 2 byte header, 64 byte secret key, 32 bytes for the personal public key
+	// 32 bytes for neighbouring modules' public keys
+	char msg[2 + 64 + 32 + 32 * 4] = {0};
+	msg[MSG_SENDER] = 0;
+	msg[MSG_TYPE] = MSG_KEYS_FOR_YOU;
+
+	char* p = &msg[2];
+	memcpy(p, pi_sk[sender], 64);
+	p += 64; // SK_SELF
+	memcpy(p, pi_pk[sender], 32);
+	p += 32; // PK_SELF
+	memcpy(p, pi_pk[left], 32);
+	p += 32; // PK_LEFT
+	memcpy(p, pi_pk[right], 32);
+	p += 32; // PK_RIGHT
+	memcpy(p, pi_pk[rfid], 32);
+	p += 32;							  // PK_RFID
+	memcpy(p, pi_pk[next_hop_right], 32); // PK_NEXT_RIGHT
+
+	// send_packet API needs a chars buffer; The key is initially kept as an arrray of bytes,
+	// of type uint8_t. Shouldn't be a problem since we are still transferring bytes.
+	return send_packet(sender, msg, sizeof(msg));
+}
+// end TODO
 
 export int main(void) {
 	printf("hello!\n");
@@ -716,6 +785,10 @@ export int main(void) {
 	printf("filling graph data...\n");
 	fillGraphData(graph, look_up, &largest_cycle, nearest_dest);
 	printf("graph data filled.\n");
+
+	// TODO: Marian peer review pls - Generate Ed25519 keypairs for all modules (deterministic from IDs)
+	pi_generate_all_keys();
+	// end TODO
 
 	// Loop to receive messages
 	EventType e = next_event();
@@ -744,6 +817,9 @@ export int main(void) {
 				printf("I received a paths configuration request from: %d\n", sender);
 				printf("Sending configuration back. Result: %d\n",
 					   send_path_config(sender, look_up[sender], &largest_cycle, nearest_dest[sender]));
+				// TODO: Marian peer review pls - Also send the key material (own sk/pk + neighbor pks)
+				printf("Sending keys to %d. Result: %d\n", sender, send_keys_for_you(sender));
+				// end TODO
 				break;
 			default:
 				break;
