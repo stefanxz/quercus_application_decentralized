@@ -1,13 +1,12 @@
 #pragma once
 
 #include <stdbool.h> // For bool type
-#include <stdint.h>  // For uint8_t
+#include <stdint.h>	 // For uint8_t
 
 // Include other necessary headers that define types or constants used here
+#include "defs.h"			  // For module structures, constants like DATA_RFID_LENGTH, etc.
 #include "quercus_lib_pico.h" // For hardware interaction functions
-#include "defs.h"             // For module structures, constants like DATA_RFID_LENGTH, etc.
 // #include "libc_builtin.h"  // Only if it defines types or macros actually used in prototypes
-
 
 // --- Hardware Control and Basic Module Operations ---
 
@@ -49,7 +48,8 @@ int set_security_flag(int flag);
 /**
  * @brief Sets the 'security passed' flag if the DIR_RFID tag indicates security is needed.
  * @param flag The value to set for the security-passed indicator.
- * @return 0 on success, -1 if no tag is detected, or -2 if the 'DATA_NEEDS_SECURITY' block indicates no security requirement.
+ * @return 0 on success, -1 if no tag is detected, or -2 if the 'DATA_NEEDS_SECURITY' block indicates no security
+ * requirement.
  */
 int set_security_passed(int flag);
 
@@ -97,7 +97,6 @@ void leave_at(int exit);
  */
 void enter_at(int entrance);
 
-
 // --- Communication Functions ---
 
 /**
@@ -135,3 +134,12 @@ int send_request_response(int module_id, int value);
  * @return 0 for success, < 0 for failure.
  */
 int send_request_path_config(void);
+
+/**
+ * @brief Announce to the next-hop-right neighbour that it is authoritative (NHN).
+ * @param nhn_id The pico ID of the next-hop-right neighbour.
+ * @return 0 for success, < 0 for failure.
+ */
+// TODO: CHANGED/REVIEW — New API send_nhn_announce(int nhn_id) sends a minimal 2-byte message
+// (1 byte MSG_SENDER, 1 byte MSG_TYPE=MSG_NHN_ANNOUNCE) to next-right-hop; review common_hardware.c implementation.
+int send_nhn_announce(int nhn_id);

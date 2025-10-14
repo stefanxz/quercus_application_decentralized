@@ -58,6 +58,12 @@ void get_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_c
 	char data[2] = {get_own_id(), MSG_REQUEST_PATH_CONFIG};
 	send_packet(0, data, sizeof(data));
 
+	// periodic resend parameters
+	int resend_attempts = 0;
+	const int RESEND_INTERVAL_MS = 2000; // throttle resends
+	const int MAX_RESENDS = 10;			 // cap to avoid spamming forever
+	int last_send_ms = get_uptime();
+
 	uint8_t* msg;
 	char type;
 
@@ -65,6 +71,16 @@ void get_path_config(uint8_t* id_lookup, uint8_t* dir_lookup, uint8_t* storage_c
 	// if any other message is received, ignore it.
 	EventType e = next_event();
 	while (true) {
+		// periodically resend request if config not yet received
+		int now_ms = get_uptime();
+		if (now_ms - last_send_ms >= RESEND_INTERVAL_MS && resend_attempts < MAX_RESENDS) {
+			char rdata[2] = {get_own_id(), MSG_REQUEST_PATH_CONFIG};
+			send_packet(0, rdata, sizeof(rdata));
+			resend_attempts++;
+			last_send_ms = now_ms;
+			printf("awaiting config... resend #%d\n", resend_attempts);
+		}
+
 		if (e == EVENT_MESSAGE_RECEIVED) {
 			next_message_address(&msg);
 			type = msg[MSG_TYPE];
@@ -115,6 +131,12 @@ Module module_init() {
 	subscribe_to_event(EVENT_MESSAGE_RECEIVED);
 	uint8_t storage_cycle[Q_MAX_NUMBER_OF_MODULES];
 	get_path_config(module.id_lookup, module.dir_lookup, storage_cycle, module.nearest, module.next);
+	// Initialize NHN queue state
+	// TODO: CHANGED/REVIEW — Initialize authoritative NHN ring buffer and time base.
+	// nhn_head/tail set to 0 (empty queue), loop_tick to 0; see common_loop.c loop() for tick increments.
+	module.nhn_head = 0;
+	module.nhn_tail = 0;
+	module.loop_tick = 0;
 	// Set the ID lookup table and direction lookup table by getting them from the Pi
 	// send_request_path_config();
 	// await_request_path_config(module.id_lookup, module.dir_lookup, storage_cycle, module.nearest, module.next);

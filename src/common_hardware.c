@@ -3,7 +3,6 @@
 #include "libc_builtin.h"
 #include "quercus_lib_pico.h"
 
-
 /// @brief Reset the module to its default state: LED red, belts off, arm neutral, lasers on.
 void reset_module() {
 	led_set_color(COLOR_RED);
@@ -32,7 +31,8 @@ int get_rfid_data(int type) {
 	return data[0];
 }
 
-/// @brief Reads multiple DIR_RFID data blocks (up to DATA_RFID_LENGTH) and stores the first byte of each into rfid_data.
+/// @brief Reads multiple DIR_RFID data blocks (up to DATA_RFID_LENGTH) and stores the first byte of each into
+/// rfid_data.
 /// @param rfid_data A pointer to a buffer that will store the read bytes.
 /// @return 0 on success, or -1 if no tag is detected.
 int get_entrance_rfid_data(char* rfid_data) {
@@ -69,7 +69,8 @@ int set_security_flag(int flag) {
 
 /// @brief Sets the 'security passed' flag if the DIR_RFID tag indicates security is needed.
 /// @param flag The value to set for the security-passed indicator.
-/// @return 0 on success, -1 if no tag is detected, or -2 if the 'DATA_NEEDS_SECURITY' block indicates no security requirement.
+/// @return 0 on success, -1 if no tag is detected, or -2 if the 'DATA_NEEDS_SECURITY' block indicates no security
+/// requirement.
 int set_security_passed(int flag) {
 	if (!RFID_check_tag()) return -1;
 	if (!get_rfid_data(DATA_NEEDS_SECURITY)) return -2;
@@ -102,35 +103,32 @@ int set_destination(int dest) {
 	return 0;
 }
 
-
 // wiggles the arm to free the tub
 void the_wiggler() {
 	// get the current angle of the servo to wiggle around it
-    float angle = servo_angle_get();
-    for (int i = 0; i < 31; ++i) {
+	float angle = servo_angle_get();
+	for (int i = 0; i < 31; ++i) {
 		// wiggle the servo by 5 degrees to the left
-        servo_angle_set(angle + 5);
-        sleep(50);
+		servo_angle_set(angle + 5);
+		sleep(50);
 		// wiggle the servo by 5 degrees to the right
-        servo_angle_set(angle - 5);
-        sleep(50);
-    }
+		servo_angle_set(angle - 5);
+		sleep(50);
+	}
 	// reset the servo to its original position
-    servo_angle_set(angle);
+	servo_angle_set(angle);
 }
 
 void wiggle() {
 
-    float angle = servo_angle_get();
-    servo_angle_set(angle + 5);
-    sleep(50);
-    servo_angle_set(angle - 5);
-    sleep(50);
+	float angle = servo_angle_get();
+	servo_angle_set(angle + 5);
+	sleep(50);
+	servo_angle_set(angle - 5);
+	sleep(50);
 
-    servo_angle_set(angle);
+	servo_angle_set(angle);
 }
-
-
 
 /// @brief Move the tub within the module from one endpoint to another.
 /// @param tub_id The ID of the tub that is moving.
@@ -164,8 +162,8 @@ void move_within_module(int from, int to) {
 	}
 
 	// TODO: Implement timeout?
-    int start_wait_time = get_uptime(); // uptime in ms
-    float servo_angle = servo_angle_get();
+	int start_wait_time = get_uptime(); // uptime in ms
+	float servo_angle = servo_angle_get();
 	for (int i = 0; true; i++) {
 		if (to == DIR_RFID && RFID_check_tag()) {
 			break;
@@ -174,20 +172,19 @@ void move_within_module(int from, int to) {
 		} else if (to == DIR_LASER_RIGHT && !laser_right_detect()) {
 			break;
 		}
-        int curr_wait_time = get_uptime();
-        if (curr_wait_time - start_wait_time > 4000) { // 4 seconds
-            if (i % 10 == 0) {
-                servo_angle_set(servo_angle + 5);
-            } else if (i % 10 == 5) {
-                servo_angle_set(servo_angle - 5);
-            }
-        }
-        sleep(10);
+		int curr_wait_time = get_uptime();
+		if (curr_wait_time - start_wait_time > 4000) { // 4 seconds
+			if (i % 10 == 0) {
+				servo_angle_set(servo_angle + 5);
+			} else if (i % 10 == 5) {
+				servo_angle_set(servo_angle - 5);
+			}
+		}
+		sleep(10);
 	}
-    servo_angle_set(servo_angle);
+	servo_angle_set(servo_angle);
 	sleep(20);
 	reset_module();
-
 }
 
 /// @brief Push a tub out of the module at a specific exit point.
@@ -207,7 +204,6 @@ void leave_at(int exit) {
 	sleep(1500);
 	reset_module();
 }
-
 
 /// @brief Take on a tub at a specific entrance point.
 /// @param entrance the entrance point where the tub enters (DIR_LASER_LEFT, DIR_LASER_RIGHT, DIR_RFID).
@@ -234,8 +230,6 @@ void enter_at(int entrance) {
 	reset_module();
 }
 
-
-
 /// @brief Send a request for movement to another module.
 /// @param module_id id of the module to which the request is sent
 /// @param data the request data to be sent
@@ -250,7 +244,7 @@ int send_request_movement(int module_id, char* data) {
 int send_updated_tub_location(int tub_id, int location_belt) {
 	char data[4];
 	data[MSG_SENDER] = get_own_id();
-	data[MSG_TYPE] = 17;//FAKE TUB_LOGGING;
+	data[MSG_TYPE] = 17; // FAKE TUB_LOGGING;
 	data[2] = tub_id;
 	data[3] = location_belt;
 	return send_packet(0, data, sizeof(data));
@@ -268,7 +262,6 @@ int send_plane_status(int plane_id, bool arrival_status) {
 	data[3] = arrival_status;
 	return send_packet(0, data, sizeof(data));
 }
-
 
 // TODO: delete this function, it is not used anywhere relevant
 int send_tub_status(char* tub_data) {
@@ -295,7 +288,17 @@ int send_request_response(int module_id, int value) {
 
 /// @brief Send a request to receive your path configuration to the Pi module.
 /// @return 0 for success, < 0 for failure
-int send_request_path_config(){
+int send_request_path_config() {
 	char data[2] = {get_own_id(), MSG_REQUEST_PATH_CONFIG};
 	return send_packet(0, data, sizeof(data));
+}
+
+int send_nhn_announce(int nhn_id) {
+	char data[2];
+	// TODO: CHANGED/REVIEW — Pack NHN announce as a 2-byte message:
+	// data[MSG_SENDER] = 1 byte pico ID of announcer; data[MSG_TYPE] = 1 byte MSG_NHN_ANNOUNCE.
+	// No dynamic allocation: fixed 2-byte stack buffer. Next to review: common_loop.c handling & queueing.
+	data[MSG_SENDER] = get_own_id();
+	data[MSG_TYPE] = MSG_NHN_ANNOUNCE;
+	return send_packet(nhn_id, data, sizeof(data));
 }

@@ -268,6 +268,15 @@ int await_message(Module* module, uint8_t** msg_ptr_ptr, int expected, bool pers
 			} else if (type == MSG_TUB_CONFIG) {
 				// unimplemented
 				// TODO: Marian peer review pls - store keys received from Pi
+			} else if (type == MSG_NHN_ANNOUNCE) {
+				// TODO: CHANGED/REVIEW — NHN authoritative mode: enqueue current loop tick.
+				// We store module->loop_tick (uint32_t, 4 bytes) into the ring buffer; no heap allocation.
+				// Next to review: loop() where we check timeout and dequeue on left laser trigger.
+				int next_tail = (module->nhn_tail + 1) % Q_NHN_QUEUE_SIZE;
+				if (next_tail != module->nhn_head) {
+					module->nhn_queue[module->nhn_tail] = module->loop_tick;
+					module->nhn_tail = next_tail;
+				}
 			} else if (type == MSG_KEYS_FOR_YOU) {
 				// Parse key payload: SK(64) + PK_SELF(32) + 4*PK(32)
 				uint8_t* p = &msg_string[2];
@@ -374,6 +383,12 @@ bool do_task(Module* module) {
 		} else if (request_to_leave(module, next_id, task.request)) {
 			clear_tub_data(&module->tub[task.from]);
 			leave_at(task.from);
+			// TODO: CHANGED/REVIEW — After successful neighbour handshake, notify next-right-hop (NHN).
+			// We use module->next[3] (pre-existing index for next-right-hop) and send a 2-byte NHN announce.
+			int nhn = module->next[3]; // next-right-hop index
+			if (nhn > 0) {
+				send_nhn_announce(nhn);
+			}
 		} else {
 			return false;
 		}
@@ -409,6 +424,27 @@ bool do_task(Module* module) {
 }
 
 void loop(Module* module) {
+	// TODO: CHANGED/REVIEW — loop_tick increments once per iteration; used as a monotonic time base.
+	module->loop_tick++;
+
+	// TODO: CHANGED/REVIEW — NHN timeout check: compare current tick to head timestamp; drop and log if exceeded.
+	if (module->nhn_head != module->nhn_tail) {
+		uint32_t head_ts = module->nhn_queue[module->nhn_head];
+		if (module->loop_tick - head_ts > Q_NHN_TIMEOUT_TICKS) {
+			printf("NHN timeout: authoritative check exceeded threshold. head_ts=%u now=%u\n", head_ts,
+				   module->loop_tick);
+			// drop the timed-out head to avoid repeated logs
+			module->nhn_head = (module->nhn_head + 1) % Q_NHN_QUEUE_SIZE;
+		}
+	}
+
+	// TODO: CHANGED/REVIEW — NHN dequeue condition: when left laser gets triggered (beam broken => detect() == 0),
+	// remove one queued authoritative item (if any). Next to review: defs.h constants & queue fields.
+	if (laser_left_detect() == 0) {
+		if (module->nhn_head != module->nhn_tail) {
+			module->nhn_head = (module->nhn_head + 1) % Q_NHN_QUEUE_SIZE;
+		}
+	}
 	if (module->task_current == module->task_new) {
 		// no new tasks, wait for the next one
 		uint8_t* msg;
