@@ -56,9 +56,18 @@ enum MessageTypes {
 	MSG_PATH_CONFIG = 5,		 // Configuration of the paths
 	MSG_REQUEST_PATH_CONFIG = 6, // Request for path configuration
 	MSG_TUB_CONFIG = 7,			 // Configuration of a tub
-	MSG_KEYS_FOR_YOU = 8		 // Per-Pico keypair and neighbor pubkeys
+	MSG_KEYS_FOR_YOU = 8,		 // Per-Pico keypair and neighbor pubkeys
+	// TODO: CHANGED/REVIEW — Added MSG_NHN_ANNOUNCE (9) to notify the next-hop-right neighbour (NHN)
+	// that it is authoritative for an incoming tub. Next to review: common_hardware.c send_nhn_announce()
+	// to see how we pack and send this 2-byte message (1 byte MSG_SENDER, 1 byte MSG_TYPE).
+	MSG_NHN_ANNOUNCE = 9 // Announce to next-hop-right neighbour
 };
 // end TODO
+#define Q_NHN_QUEUE_SIZE 32
+#define Q_NHN_TIMEOUT_TICKS 2000
+// TODO: CHANGED/REVIEW — Introduced NHN queue sizing and timeout threshold.
+// Q_NHN_QUEUE_SIZE: circular buffer capacity; each entry is a uint32_t (4 bytes) storing a loop tick timestamp.
+// Q_NHN_TIMEOUT_TICKS: maximum allowed delta (in loop iterations) before NHN declares a timeout on the head item.
 
 // Enum to represent the content that every message should have.
 // Each value corresponds to a specific piece of information in the message.
@@ -169,7 +178,16 @@ typedef struct Module {
 	uint8_t my_pk[32];
 	// Neighbor public keys in order: LEFT, RIGHT, RFID, NEXT_RIGHT_HOP
 	uint8_t neighbor_pk[4][32];
-} Module; // structure for a module containing its essential fields
+
+	// NHN authoritative queue and timing
+	// TODO: CHANGED/REVIEW — Added nhn_queue (uint32_t timestamps, 4 bytes each), nhn_head/tail (ring buffer indices),
+	// and loop_tick (monotonic per-iteration counter). Next to review: common_loop.c await_message() handling for
+	// MSG_NHN_ANNOUNCE, and loop() timeout/dequeue logic.
+	uint32_t nhn_queue[Q_NHN_QUEUE_SIZE]; // circular buffer of loop ticks when NHN messages received
+	int nhn_head;
+	int nhn_tail;
+	uint32_t loop_tick; // increments every loop iteration
+} Module;				// structure for a module containing its essential fields
 // end TODO
 
 const Task EMPTY_TASK = {.to = DIR_OUT, .from = DIR_OUT};
